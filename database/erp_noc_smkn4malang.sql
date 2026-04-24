@@ -16,9 +16,9 @@ USE `erp_noc_smkn4malang`;
 -- -------------------------------------------
 DROP TABLE IF EXISTS `cache`;
 CREATE TABLE `cache` (
-  `key` VARCHAR,
+  `key` VARCHAR(255),
   `value` TEXT NOT NULL,
-  `expiration` BIGINT NOT NULL,
+  `expiration` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_expiration_index` (`expiration`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -28,9 +28,9 @@ CREATE TABLE `cache` (
 -- -------------------------------------------
 DROP TABLE IF EXISTS `cache_locks`;
 CREATE TABLE `cache_locks` (
-  `key` VARCHAR,
-  `owner` VARCHAR NOT NULL,
-  `expiration` BIGINT NOT NULL,
+  `key` VARCHAR(255),
+  `owner` VARCHAR(255) NOT NULL,
+  `expiration` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_locks_expiration_index` (`expiration`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -41,8 +41,8 @@ CREATE TABLE `cache_locks` (
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `name` VARCHAR NOT NULL,
-  `slug` VARCHAR NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `slug` VARCHAR(255) NOT NULL,
   `description` TEXT DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
@@ -71,7 +71,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `failed_jobs`;
 CREATE TABLE `failed_jobs` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `uuid` VARCHAR NOT NULL,
+  `uuid` VARCHAR(255) NOT NULL,
   `connection` TEXT NOT NULL,
   `queue` TEXT NOT NULL,
   `payload` TEXT NOT NULL,
@@ -87,12 +87,12 @@ CREATE TABLE `failed_jobs` (
 DROP TABLE IF EXISTS `item_movements`;
 CREATE TABLE `item_movements` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `item_id` BIGINT NOT NULL,
-  `user_id` BIGINT NOT NULL,
-  `type` VARCHAR NOT NULL,
-  `from_location_id` BIGINT DEFAULT NULL,
-  `to_location_id` BIGINT DEFAULT NULL,
-  `quantity` BIGINT NOT NULL DEFAULT 1,
+  `item_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `type` VARCHAR(255) NOT NULL,
+  `from_location_id` BIGINT UNSIGNED DEFAULT NULL,
+  `to_location_id` BIGINT UNSIGNED DEFAULT NULL,
+  `quantity` BIGINT UNSIGNED NOT NULL DEFAULT 1,
   `notes` TEXT DEFAULT NULL,
   `movement_date` DATE NOT NULL,
   `created_at` DATETIME DEFAULT NULL,
@@ -110,20 +110,20 @@ CREATE TABLE `item_movements` (
 DROP TABLE IF EXISTS `items`;
 CREATE TABLE `items` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `name` VARCHAR NOT NULL,
-  `code` VARCHAR NOT NULL,
-  `serial_number` VARCHAR DEFAULT NULL,
-  `brand` VARCHAR DEFAULT NULL,
-  `model` VARCHAR DEFAULT NULL,
-  `category_id` BIGINT NOT NULL,
-  `location_id` BIGINT NOT NULL,
-  `quantity` BIGINT NOT NULL DEFAULT 1,
-  `condition` VARCHAR NOT NULL DEFAULT 'baik',
-  `status` VARCHAR NOT NULL DEFAULT 'tersedia',
+  `name` VARCHAR(255) NOT NULL,
+  `code` VARCHAR(255) NOT NULL,
+  `serial_number` VARCHAR(255) DEFAULT NULL,
+  `brand` VARCHAR(255) DEFAULT NULL,
+  `model` VARCHAR(255) DEFAULT NULL,
+  `category_id` BIGINT UNSIGNED NOT NULL,
+  `location_id` BIGINT UNSIGNED NOT NULL,
+  `quantity` BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  `condition` VARCHAR(255) NOT NULL DEFAULT 'baik',
+  `status` VARCHAR(255) NOT NULL DEFAULT 'tersedia',
   `purchase_date` DATE DEFAULT NULL,
   `purchase_price` DECIMAL(15,2) DEFAULT NULL,
   `notes` TEXT DEFAULT NULL,
-  `image` VARCHAR DEFAULT NULL,
+  `image` VARCHAR(255) DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -152,16 +152,16 @@ UNLOCK TABLES;
 -- -------------------------------------------
 DROP TABLE IF EXISTS `job_batches`;
 CREATE TABLE `job_batches` (
-  `id` VARCHAR,
-  `name` VARCHAR NOT NULL,
-  `total_jobs` BIGINT NOT NULL,
-  `pending_jobs` BIGINT NOT NULL,
-  `failed_jobs` BIGINT NOT NULL,
+  `id` VARCHAR(255),
+  `name` VARCHAR(255) NOT NULL,
+  `total_jobs` BIGINT UNSIGNED NOT NULL,
+  `pending_jobs` BIGINT UNSIGNED NOT NULL,
+  `failed_jobs` BIGINT UNSIGNED NOT NULL,
   `failed_job_ids` TEXT NOT NULL,
   `options` TEXT DEFAULT NULL,
-  `cancelled_at` BIGINT DEFAULT NULL,
-  `created_at` BIGINT NOT NULL,
-  `finished_at` BIGINT DEFAULT NULL,
+  `cancelled_at` BIGINT UNSIGNED DEFAULT NULL,
+  `created_at` BIGINT UNSIGNED NOT NULL,
+  `finished_at` BIGINT UNSIGNED DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -171,12 +171,12 @@ CREATE TABLE `job_batches` (
 DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `queue` VARCHAR NOT NULL,
+  `queue` VARCHAR(255) NOT NULL,
   `payload` TEXT NOT NULL,
-  `attempts` BIGINT NOT NULL,
-  `reserved_at` BIGINT DEFAULT NULL,
-  `available_at` BIGINT NOT NULL,
-  `created_at` BIGINT NOT NULL,
+  `attempts` BIGINT UNSIGNED NOT NULL,
+  `reserved_at` BIGINT UNSIGNED DEFAULT NULL,
+  `available_at` BIGINT UNSIGNED NOT NULL,
+  `created_at` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   KEY `jobs_queue_index` (`queue`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -187,8 +187,8 @@ CREATE TABLE `jobs` (
 DROP TABLE IF EXISTS `locations`;
 CREATE TABLE `locations` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `name` VARCHAR NOT NULL,
-  `code` VARCHAR NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `code` VARCHAR(255) NOT NULL,
   `description` TEXT DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
@@ -213,8 +213,8 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE `migrations` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `migration` VARCHAR NOT NULL,
-  `batch` BIGINT NOT NULL,
+  `migration` VARCHAR(255) NOT NULL,
+  `batch` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -236,8 +236,8 @@ UNLOCK TABLES;
 -- -------------------------------------------
 DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE `password_reset_tokens` (
-  `email` VARCHAR,
-  `token` VARCHAR NOT NULL,
+  `email` VARCHAR(255),
+  `token` VARCHAR(255) NOT NULL,
   `created_at` DATETIME DEFAULT NULL,
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -247,12 +247,12 @@ CREATE TABLE `password_reset_tokens` (
 -- -------------------------------------------
 DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
-  `id` VARCHAR,
-  `user_id` BIGINT DEFAULT NULL,
-  `ip_address` VARCHAR DEFAULT NULL,
+  `id` VARCHAR(255),
+  `user_id` BIGINT UNSIGNED DEFAULT NULL,
+  `ip_address` VARCHAR(255) DEFAULT NULL,
   `user_agent` TEXT DEFAULT NULL,
   `payload` TEXT NOT NULL,
-  `last_activity` BIGINT NOT NULL,
+  `last_activity` BIGINT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sessions_last_activity_index` (`last_activity`),
   KEY `sessions_user_id_index` (`user_id`)
@@ -270,15 +270,15 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT,
-  `name` VARCHAR NOT NULL,
-  `email` VARCHAR NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
   `email_verified_at` DATETIME DEFAULT NULL,
-  `password` VARCHAR NOT NULL,
-  `remember_token` VARCHAR DEFAULT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `remember_token` VARCHAR(255) DEFAULT NULL,
   `created_at` DATETIME DEFAULT NULL,
   `updated_at` DATETIME DEFAULT NULL,
-  `username` VARCHAR DEFAULT NULL,
-  `role` VARCHAR NOT NULL DEFAULT 'Admin',
+  `username` VARCHAR(255) DEFAULT NULL,
+  `role` VARCHAR(255) NOT NULL DEFAULT 'Admin',
   `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_username_unique` (`username`),

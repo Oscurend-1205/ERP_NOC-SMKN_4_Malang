@@ -1,48 +1,54 @@
 # ERP NOC - SMKN 4 Malang
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/images/Logo-NOC.jpeg" width="300" alt="Logo NOC SMKN 4 Malang">
 </p>
 
-## About Laravel
+## Deskripsi Singkat
+Sistem yang dikembangkan merupakan sistem informasi inventory berbasis ERP yang digunakan untuk mengelola data inventaris di **NOC SMKN 4 Malang**. Sistem ini dirancang berbasis web agar dapat diakses dengan mudah oleh pengguna sesuai perannya. Fitur utama yang tersedia meliputi pengelolaan barang, peminjaman, manajemen aset, sistem persetujuan, serta pelaporan. Dengan adanya sistem ini, diharapkan proses pengelolaan inventaris menjadi lebih terstruktur, efisien, dan transparan, serta meminimalkan kesalahan dalam pencatatan data.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Analisis Profil Klien
+NOC (Network Operation Center) SMKN 4 Malang merupakan bagian yang bertanggung jawab dalam pengelolaan perangkat jaringan dan inventaris teknologi yang digunakan di lingkungan sekolah. NOC memiliki peran penting dalam memastikan ketersediaan, kondisi, serta distribusi perangkat seperti router, switch, kabel, dan peralatan pendukung lainnya. Selain itu, NOC juga mendukung kegiatan pembelajaran dan praktikum dengan menyediakan fasilitas peminjaman alat bagi siswa maupun pihak terkait.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Dokumentasi Permasalahan
+Permasalahan yang dihadapi dalam pengelolaan inventaris di NOC saat ini adalah:
+- **Pencatatan Manual**: Proses pencatatan masih dilakukan secara manual sehingga berpotensi menimbulkan kesalahan dan ketidaksesuaian data.
+- **Kurangnya Sentralisasi**: Belum adanya sistem terpusat menyebabkan kesulitan dalam memantau stok, kondisi barang, serta riwayat peminjaman.
+- **Pelacakan yang Sulit**: Proses peminjaman belum terdokumentasi dengan baik, sehingga menyulitkan dalam melakukan pelacakan penggunaan barang dan mengurangi transparansi.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Analisis Kebutuhan Pengguna
+Berikut beberapa kebutuhan sistem yang diperlukan untuk mendukung pengelolaan inventaris di NOC:
 
-## Learning Laravel
+### 1. Pengelolaan Barang
+- Sistem mampu mencatat data barang secara lengkap (nama, kategori, kondisi, asal barang).
+- Menyediakan informasi stok barang secara akurat dan real-time.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 2. Peminjaman Barang
+- Admin dapat melakukan pengajuan peminjaman barang melalui sistem.
+- Sistem mencatat data peminjaman dan pengembalian secara otomatis.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. Sistem Persetujuan
+- Superadmin melakukan validasi terhadap peminjaman barang.
+- Proses persetujuan dilakukan secara digital dan tercatat.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 4. Manajemen Aset dan Kondisi
+- Sistem dapat mencatat kondisi barang (baik/rusak).
+- Tersedia fitur pencatatan perawatan atau perbaikan barang.
 
-## Contributing
+### 5. Laporan dan Monitoring
+- Menyediakan laporan stok barang, peminjaman, dan barang keluar/masuk.
+- Memudahkan monitoring penggunaan barang.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Hak Akses Pengguna
+- **Superadmin**: Mengelola sistem dan memvalidasi peminjaman.
+- **Admin**: Mengelola data barang dan melakukan peminjaman.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Spesifikasi Teknis
+- **Framework**: Laravel 13.x
+- **PHP Version**: ^8.3
+- **Frontend**: Vite, Blade, Tailwind CSS / Vanilla CSS
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
+## Lisensi
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

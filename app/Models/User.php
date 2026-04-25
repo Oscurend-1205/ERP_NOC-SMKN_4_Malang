@@ -18,6 +18,22 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Cek apakah user adalah Superadmin.
+     */
+    public function isSuperadmin(): bool
+    {
+        return $this->role === 'Superadmin';
+    }
+
+    /**
+     * Cek apakah user adalah Admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'Admin';
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

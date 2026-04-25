@@ -93,4 +93,40 @@ class ItemMovementController extends Controller
         return redirect()->route('movements.index')
             ->with('success', 'Pergerakan barang berhasil dicatat.');
     }
+
+    /**
+     * Simpan pinjaman barang (dari modal Dashboard).
+     */
+    public function storeLoan(Request $request)
+    {
+        $validated = $request->validate([
+            'borrower_name' => 'required|string|max:255',
+            'borrower_id' => 'required|string|max:255',
+            'borrower_phone' => 'required|string|max:20',
+            'item_id' => 'required|exists:items,id',
+            'quantity' => 'required|integer|min:1',
+            'movement_date' => 'required|date',
+        ]);
+
+        $notes = "Peminjam: {$validated['borrower_name']} (ID: {$validated['borrower_id']}), HP: {$validated['borrower_phone']}";
+
+        $movement = ItemMovement::create([
+            'item_id' => $validated['item_id'],
+            'user_id' => Auth::id(),
+            'type' => 'keluar',
+            'quantity' => $validated['quantity'],
+            'movement_date' => $validated['movement_date'],
+            'notes' => $notes,
+        ]);
+
+        $item = Item::find($validated['item_id']);
+        if ($item->quantity >= $validated['quantity']) {
+            $item->decrement('quantity', $validated['quantity']);
+        }
+        
+        // Update item status to dipinjam
+        $item->update(['status' => 'dipinjam']);
+
+        return redirect()->back()->with('success', 'Pinjaman barang berhasil dicatat.');
+    }
 }

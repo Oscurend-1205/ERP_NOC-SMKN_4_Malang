@@ -13,6 +13,10 @@ use App\Http\Controllers\UserController;
 |--------------------------------------------------------------------------
 | Web Routes - ERP NOC SMKN 4 Malang
 |--------------------------------------------------------------------------
+|
+| Superadmin : Akses penuh (Dashboard, Data Master, Data Barang, dll)
+| Admin      : Akses terbatas (Data Barang, Mutasi Barang) tanpa Data Master
+|
 */
 
 // Authentication
@@ -24,26 +28,42 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('setup-password', [AuthController::class, 'showPasswordSetup'])->name('password.setup');
 Route::post('setup-password', [AuthController::class, 'updatePassword']);
 
-// Protected Routes
+// ============================================================
+// Protected Routes (harus login)
+// ============================================================
 Route::middleware(['auth'])->group(function () {
-    // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Kategori Barang
-    Route::resource('categories', CategoryController::class)->except(['show']);
+    // --------------------------------------------------------
+    // SUPERADMIN ONLY - Data Master & Pengguna
+    // --------------------------------------------------------
+    Route::middleware(['role:Superadmin'])->group(function () {
+        // Kategori Barang (Data Master)
+        Route::resource('categories', CategoryController::class)->except(['show']);
 
-    // Lokasi Laboratorium
-    Route::resource('locations', LocationController::class)->except(['show']);
+        // Lokasi Laboratorium (Data Master)
+        Route::resource('locations', LocationController::class)->except(['show']);
 
-    // Barang Elektronik
-    Route::resource('items', ItemController::class);
+        // Manajemen Pengguna (hanya Superadmin yang bisa tambah)
+        Route::post('data-pengguna', [UserController::class, 'store'])->name('users.store');
+    });
 
-    // Pergerakan Barang
-    Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
+    // --------------------------------------------------------
+    // SUPERADMIN & ADMIN - Dashboard, Barang & Mutasi
+    // --------------------------------------------------------
+    Route::middleware(['role:Superadmin,Admin'])->group(function () {
+        // Dashboard
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Pinjaman Barang (Aksi dari Dashboard)
+        Route::post('pinjaman', [ItemMovementController::class, 'storeLoan'])->name('movements.loan');
+        
+        // Lihat Data Pengguna
+        Route::get('data-pengguna', [UserController::class, 'index'])->name('users.index');
 
-    // Manajemen Pengguna
-    Route::resource('data-pengguna', UserController::class)->names([
-        'index' => 'users.index',
-        'store' => 'users.store'
-    ])->only(['index', 'store']);
+        // Barang Elektronik
+        Route::resource('items', ItemController::class);
+
+        // Pergerakan Barang
+        Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
+    });
 });

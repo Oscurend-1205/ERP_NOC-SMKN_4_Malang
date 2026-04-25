@@ -32,10 +32,12 @@
                     <span id="realtime-clock-display" class="font-extrabold tracking-widest text-emerald-400">00:00</span>
                 </div>
 
+                @if(Auth::user()->role === 'Superadmin')
                 <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
                     <span class="material-symbols-outlined text-[20px]" data-icon="person_add">person_add</span>
                     Tambah User
                 </button>
+                @endif
             </div>
         </div>
 
@@ -51,7 +53,9 @@
                             <th class="px-4 py-3">EMAIL</th>
                             <th class="px-4 py-3">ROLE</th>
                             <th class="px-4 py-3 text-center">STATUS</th>
+                            @if(Auth::user()->role === 'Superadmin')
                             <th class="px-4 py-3 text-right">AKSI</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50 text-[11px]">
@@ -76,6 +80,7 @@
                                     <span class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-bold uppercase">Non-Aktif</span>
                                 @endif
                             </td>
+                            @if(Auth::user()->role === 'Superadmin')
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <button class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors">
@@ -86,6 +91,7 @@
                                     </button>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @empty
                         <tr>

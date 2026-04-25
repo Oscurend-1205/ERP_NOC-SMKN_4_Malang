@@ -34,8 +34,10 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('dashboard'))
-                ->with('success', 'Selamat datang kembali, ' . Auth::user()->name . '!');
+            $user = Auth::user();
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Selamat datang kembali, ' . $user->name . '!');
         }
 
         throw ValidationException::withMessages([

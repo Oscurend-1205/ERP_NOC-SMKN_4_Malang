@@ -60,6 +60,9 @@ class DashboardController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
+        // Data barang untuk modal Pinjaman
+        $availableItems = Item::where('quantity', '>', 0)->get();
+
         return view('dashboard', compact(
             'totalItems',
             'totalCategories',
@@ -72,7 +75,8 @@ class DashboardController extends Controller
             'itemsByCategory',
             'itemsByLocation',
             'conditionStats',
-            'itemsEnteredToday'
+            'itemsEnteredToday',
+            'availableItems'
         ));
     }
 }

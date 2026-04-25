@@ -916,6 +916,7 @@
                 <span>Barang Elektronik</span>
             </a>
 
+            @if(Auth::user()->role === 'Superadmin')
             <a href="{{ route('categories.index') }}" class="sidebar-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
                 <i class="bi bi-tags"></i>
                 <span>Kategori</span>
@@ -925,6 +926,7 @@
                 <i class="bi bi-geo-alt"></i>
                 <span>Lokasi Lab</span>
             </a>
+            @endif
 
             <div class="sidebar-section-title">Aktivitas</div>
 
@@ -939,7 +941,11 @@
                 <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
                 <div>
                     <div style="color: #fff; font-weight: 600; font-size: 13px;">{{ Auth::user()->name }}</div>
-                    <div style="font-size: 11px;">{{ Auth::user()->email }}</div>
+                    <div style="font-size: 11px;">
+                        <span style="display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(0,168,107,0.2); color: #6ee7b7;">
+                            {{ Auth::user()->role }}
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="mt-4">

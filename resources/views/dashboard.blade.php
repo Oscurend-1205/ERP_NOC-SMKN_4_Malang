@@ -21,7 +21,7 @@
 <div class="flex items-center justify-between">
 <div>
 <h1 class="text-lg font-bold text-on-background">Ringkasan Dasbor</h1>
-<p class="text-xs text-outline">Selamat datang kembali, Admin.</p>
+<p class="text-xs text-outline">Selamat datang kembali, {{ Auth::user()->name }}. <span class="font-bold text-blue-600">({{ Auth::user()->role }})</span></p>
 </div>
 <div class="flex items-center gap-3">
     <!-- Realtime Clock -->
@@ -29,10 +29,13 @@
         <span id="realtime-clock-display" class="font-extrabold tracking-widest text-emerald-400">00:00</span>
     </div>
 
-    <button class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
-        <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
-        Input Barang
+    <!-- Tombol Input Pinjaman -->
+    <button onclick="document.getElementById('loanModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
+        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+        Input Pinjaman
     </button>
+
+
 </div>
 </div>
 <!-- Metrics Row (Bento Style) -->
@@ -224,4 +227,87 @@
 </div>
 </main>
 </div>
+
+<!-- Modal Input Pinjaman -->
+<div id="loanModal" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
+            <h2 class="text-[15px] font-bold text-gray-800">Input Pinjaman</h2>
+            <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form action="{{ route('movements.loan') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            
+            <div class="p-5 space-y-4 overflow-y-auto">
+                <!-- Nama Lengkap -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">Nama Lengkap</label>
+                    <input type="text" name="borrower_name" required placeholder="Masukkan nama lengkap" 
+                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
+                </div>
+
+                <!-- ID -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">ID</label>
+                    <input type="text" name="borrower_id" required placeholder="Masukkan ID peminjam" 
+                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
+                </div>
+
+                <!-- No HP -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">No HP</label>
+                    <input type="text" name="borrower_phone" required placeholder="Masukan nomor HP *081..." 
+                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
+                </div>
+
+                <!-- Nama Barang -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">Nama Barang</label>
+                    <select name="item_id" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
+                        <option value="" disabled selected>Masukan nama barang</option>
+                        @foreach($availableItems ?? [] as $item)
+                            <option value="{{ $item->id }}">{{ $item->name }} (Stok: {{ $item->quantity }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Jumlah -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">Jumlah</label>
+                    <input type="number" name="quantity" required min="1" placeholder="Masukkan jumlah" 
+                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
+                </div>
+
+                <!-- Tanggal Peminjaman -->
+                <div class="space-y-1.5">
+                    <label class="block text-[11px] font-bold text-gray-700">Tanggal Peminjaman</label>
+                    <input type="date" name="movement_date" required value="{{ date('Y-m-d') }}"
+                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('loanModal').classList.add('hidden')" 
+                        class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 text-[13px] font-bold text-white bg-[#0056b3] rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 </body></html>

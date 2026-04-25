@@ -22,9 +22,9 @@
         <div class="flex items-center h-full gap-2 cursor-pointer">
             <div class="flex flex-col justify-center text-right">
                 <p class="text-[11px] font-bold text-on-background leading-none mb-0.5">{{ Auth::user()->name }}</p>
-                <p class="text-[9px] text-outline uppercase tracking-wider leading-none">Administrator</p>
+                <p class="text-[9px] uppercase tracking-wider leading-none text-outline">{{ Auth::user()->role }}</p>
             </div>
-            <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold border border-gray-200">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold border border-gray-200">
                 {{ substr(Auth::user()->name, 0, 1) }}
             </div>
         </div>

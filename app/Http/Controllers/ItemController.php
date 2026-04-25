@@ -66,6 +66,45 @@ class ItemController extends Controller
     }
 
     /**
+     * Tampilkan form input barang via Scanner QR.
+     */
+    public function scanInput()
+    {
+        $categories = Category::all();
+        $locations = Location::all();
+        return view('items.scan-input', compact('categories', 'locations'));
+    }
+
+    /**
+     * Simpan barang dari Scanner QR.
+     */
+    public function storeScanInput(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:100|unique:items',
+            'name' => 'required|string|max:255',
+            'condition' => 'required|in:baik,rusak_ringan,rusak_berat,hilang',
+            'category_id' => 'required|exists:categories,id',
+            'purchase_date' => 'required|date',
+            // Field opsional atau yang bisa diset default jika dikirim dari form scan
+            'location_id' => 'required|exists:locations,id',
+            'quantity' => 'nullable|integer|min:1',
+            'status' => 'nullable|in:tersedia,dipinjam,maintenance,dimusnahkan',
+        ]);
+
+        // Beri default value untuk field yang tidak ada di form scanner
+        $validated['quantity'] = $validated['quantity'] ?? 1;
+        $validated['status'] = $validated['status'] ?? 'tersedia';
+
+        Item::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Barang berhasil disimpan!',
+        ]);
+    }
+
+    /**
      * Simpan barang baru.
      */
     public function store(Request $request)

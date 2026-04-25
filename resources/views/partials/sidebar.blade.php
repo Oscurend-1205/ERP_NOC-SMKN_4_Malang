@@ -17,6 +17,12 @@
             <span class="font-medium text-sm">Dashboard</span>
         </a>
 
+        {{-- QR Peminjaman --}}
+        <a class="flex items-center gap-3 px-3 py-1.5 {{ request()->routeIs('qr.*') ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }} rounded-lg transition-colors" href="{{ route('qr.admin') }}">
+            <span class="material-symbols-outlined text-[20px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+            <span class="font-medium text-sm">QR Peminjaman</span>
+        </a>
+
         {{-- Data Pengguna --}}
         <a class="flex items-center gap-3 px-3 py-1.5 {{ request()->routeIs('users.index') ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }} rounded-lg transition-colors" href="{{ route('users.index') }}">
             <span class="material-symbols-outlined text-[20px]" data-icon="group">group</span>

@@ -8,6 +8,8 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemMovementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\QrAdminController;
+use App\Http\Controllers\QrScanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,10 +62,31 @@ Route::middleware(['auth'])->group(function () {
         // Lihat Data Pengguna
         Route::get('data-pengguna', [UserController::class, 'index'])->name('users.index');
 
+        // Input Barang via Scanner
+        Route::get('items/scan-input', [ItemController::class, 'scanInput'])->name('items.scan-input');
+        Route::post('items/scan-input', [ItemController::class, 'storeScanInput'])->name('items.store-scan');
+        
         // Barang Elektronik
         Route::resource('items', ItemController::class);
 
         // Pergerakan Barang
         Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
+
+        // --------------------------------------------------------
+        // QR LENDING SYSTEM - Admin Panel
+        // --------------------------------------------------------
+        Route::get('qr-panel', [QrAdminController::class, 'index'])->name('qr.admin');
+        Route::post('qr-generate', [QrAdminController::class, 'generateQr'])->name('qr.generate');
+        Route::get('qr-poll', [QrAdminController::class, 'pollPeminjaman'])->name('qr.poll');
+        Route::delete('qr-revoke/{token}', [QrAdminController::class, 'revokeToken'])->name('qr.revoke');
     });
+});
+
+// ============================================================
+// PUBLIC ROUTES - QR Scan (Tidak Perlu Login, Dilindungi Token)
+// ============================================================
+Route::middleware(['scan.token'])->group(function () {
+    Route::get('scan/{token}', [QrScanController::class, 'showScanner'])->name('qr.scan');
+    Route::get('scan/{token}/lookup/{code}', [QrScanController::class, 'lookupItem'])->name('qr.lookup');
+    Route::post('scan/{token}/submit', [QrScanController::class, 'submitPeminjaman'])->name('qr.submit');
 });

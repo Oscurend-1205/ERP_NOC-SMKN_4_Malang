@@ -18,13 +18,17 @@
 <!-- Main Canvas -->
 <main class="p-4 pt-16 space-y-6">
 <!-- Page Header -->
+@php
+    $currentHour = now()->format('H');
+    $isOpen = ($currentHour >= 6 && $currentHour < 15);
+@endphp
 <div class="flex items-center justify-between">
 <div>
 <h1 class="text-2xl font-bold tracking-tight text-on-background">Ringkasan Dasbor</h1>
 <p class="text-xs text-outline">Selamat datang kembali, {{ Auth::user()->name }}. <span class="font-bold text-blue-600">({{ Auth::user()->role }})</span></p>
 </div>
 <div class="flex items-center gap-3">
-    <!-- Realtime Monitor (Clock & Speed) -->
+    <!-- Realtime Monitor (Clock & Status) -->
     <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center gap-4 shadow-inner">
         <!-- Clock -->
         <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
@@ -32,10 +36,12 @@
         <!-- Divider -->
         <span class="text-gray-600 font-normal">|</span>
         
-        <!-- Speed -->
-        <div class="hidden md:flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-400 text-[16px]" data-icon="speed">speed</span>
-            <span id="network-speed-display" class="font-bold text-blue-400 text-[13px]">0.0 Mbps</span>
+        <!-- Status Operasional -->
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400/50 text-[16px]" data-icon="schedule">schedule</span>
+            <span id="operational-status" class="font-bold text-[13px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">
+                {{ $isOpen ? 'open' : 'closed' }}
+            </span>
         </div>
     </div>
 

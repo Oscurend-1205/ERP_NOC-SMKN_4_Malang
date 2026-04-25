@@ -64,17 +64,25 @@ function updateRealtimeClock() {
     clockElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
-// Network Speed Function
-function updateNetworkSpeed() {
-    const speedElement = document.getElementById('network-speed-display');
-    if (!speedElement) return;
+// Operational Status Function
+function updateOperationalStatus() {
+    const statusElement = document.getElementById('operational-status');
+    if (!statusElement) {
+        console.log("Operational status element not found");
+        return;
+    }
 
-    if (navigator.connection && navigator.connection.downlink) {
-        // downlink is in Mbps
-        const speed = navigator.connection.downlink;
-        speedElement.textContent = `${speed.toFixed(1)} Mbps`;
+    const now = new Date();
+    const hour = now.getHours();
+    console.log("Current hour for status:", hour);
+
+    // Operational Hours: 06:00 - 15:00
+    if (hour >= 6 && hour < 15) {
+        statusElement.textContent = "open";
+        statusElement.style.color = "#4ade80"; // Tailwind green-400
     } else {
-        speedElement.textContent = "--- Mbps";
+        statusElement.textContent = "closed";
+        statusElement.style.color = "#f87171"; // Tailwind red-400
     }
 }
 
@@ -83,18 +91,13 @@ let clockInterval = null;
 
 function initApp() {
     updateRealtimeClock();
-    updateNetworkSpeed();
+    updateOperationalStatus();
 
     if (clockInterval) clearInterval(clockInterval);
     clockInterval = setInterval(updateRealtimeClock, 1000);
 
-    // Update speed on connection change
-    if (navigator.connection) {
-        navigator.connection.addEventListener('change', updateNetworkSpeed);
-    }
-    
-    // Fallback interval for speed (some browsers don't fire change often)
-    setInterval(updateNetworkSpeed, 5000);
+    // Update operational status every minute
+    setInterval(updateOperationalStatus, 60000);
 
     // Phone Number Formatter
     const phoneInput = document.getElementById('borrower_phone_input');

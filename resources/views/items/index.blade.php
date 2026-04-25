@@ -8,9 +8,15 @@
         <h2>Barang Elektronik</h2>
         <p>Kelola inventaris barang elektronik laboratorium</p>
     </div>
-    <a href="{{ route('items.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Tambah Barang
-    </a>
+    <div class="flex items-center gap-2">
+        <a href="{{ route('items.scan-input') }}" class="btn btn-secondary flex items-center gap-2" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 700;">
+            <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> 
+            Scan & Tambah
+        </a>
+        <a href="{{ route('items.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Tambah Barang
+        </a>
+    </div>
 </div>
 
 {{-- Filter Bar --}}

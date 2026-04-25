@@ -15,6 +15,28 @@
     {{-- Bootstrap Icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    {{-- Material Symbols --}}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    {{-- Tailwind CSS CDN (Disable Preflight to prevent breaking native styles) --}}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            },
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#005bbf',
+                        'primary-dark': '#004494',
+                        'primary-light': '#dbeafe',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         /* ============================================
            CSS Design System - ERP NOC SMKN 4 Malang
@@ -180,7 +202,7 @@
             padding: 6px 12px;
             border-radius: var(--radius-sm);
             color: var(--text-secondary);
-            text-decoration: none;
+            text-decoration: none !important;
             font-size: 13px;
             font-weight: 500;
             transition: var(--transition);
@@ -196,6 +218,10 @@
         .sidebar-link.active {
             background: var(--bg-sidebar-active);
             color: var(--text-sidebar-active);
+        }
+
+        aside a {
+            text-decoration: none !important;
         }
 
         .sidebar-link.active::before {
@@ -906,95 +932,9 @@
     </style>
 </head>
 <body>
-    {{-- Sidebar Overlay (Mobile) --}}
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    {{-- Sidebar --}}
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand" style="background: var(--primary, #3b3fbd); margin: 8px; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-            <img src="{{ asset('images/Logo-NOC.jpeg') }}" alt="Logo NOC" style="width: 44px; height: 44px; object-fit: contain; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);">
-            <div class="sidebar-brand-text">
-                <h1 style="font-size: 13px; font-weight: 800; color: #ffffff; margin: 0; text-transform: uppercase; line-height: 1.2;">Inventory System</h1>
-                <span style="font-size: 10px; color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">SMKN 4 Malang</span>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-title">Menu Utama</div>
-
-            <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                <i class="bi bi-grid-1x2-fill"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <div class="sidebar-section-title">Manajemen Data</div>
-
-            <a href="{{ route('items.index') }}" class="sidebar-link {{ request()->routeIs('items.*') ? 'active' : '' }}">
-                <i class="bi bi-cpu"></i>
-                <span>Barang Elektronik</span>
-            </a>
-
-            @if(Auth::user()->role === 'Superadmin')
-            <a href="{{ route('categories.index') }}" class="sidebar-link {{ request()->routeIs('categories.*') ? 'active' : '' }}">
-                <i class="bi bi-tags"></i>
-                <span>Kategori</span>
-            </a>
-
-            <a href="{{ route('locations.index') }}" class="sidebar-link {{ request()->routeIs('locations.*') ? 'active' : '' }}">
-                <i class="bi bi-geo-alt"></i>
-                <span>Lokasi Lab</span>
-            </a>
-            @endif
-
-            <div class="sidebar-section-title">Aktivitas</div>
-
-            <a href="{{ route('movements.index') }}" class="sidebar-link {{ request()->routeIs('movements.*') ? 'active' : '' }}">
-                <i class="bi bi-arrow-left-right"></i>
-                <span>Mutasi Barang</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-footer-info">
-                <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
-                <div>
-                    <div style="color: #fff; font-weight: 600; font-size: 13px;">{{ Auth::user()->name }}</div>
-                    <div style="font-size: 11px;">
-                        <span style="display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(0,168,107,0.2); color: #6ee7b7;">
-                            {{ Auth::user()->role }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="sidebar-link w-full" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; cursor: pointer;">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Keluar Sesi</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </aside>
-
-    {{-- Topbar --}}
-    <header class="topbar">
-        <div class="topbar-left">
-            <button class="topbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
-                <i class="bi bi-list"></i>
-            </button>
-            <h2 class="topbar-title">@yield('title', 'Dashboard')</h2>
-        </div>
-        <div class="topbar-right">
-            <button class="topbar-btn" title="Notifikasi">
-                <i class="bi bi-bell"></i>
-            </button>
-            <button class="topbar-btn" title="Pengaturan">
-                <i class="bi bi-gear"></i>
-            </button>
-        </div>
-    </header>
+    {{-- Sidebar & Topbar Partials --}}
+    @include('partials.sidebar')
+    @include('partials.topbar')
 
     {{-- Main Content --}}
     <main class="main-content">

@@ -20,6 +20,10 @@
 
     <!-- Main Canvas -->
     <main class="p-4 pt-16 space-y-6">
+        @php
+            $currentHour = now()->format('H');
+            $isOpen = ($currentHour >= 6 && $currentHour < 15);
+        @endphp
         <!-- Page Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -35,10 +39,12 @@
                     <!-- Divider -->
                     <span class="text-gray-600 font-normal">|</span>
                     
-                    <!-- Speed -->
-                    <div class="hidden md:flex items-center gap-2">
-                        <span class="material-symbols-outlined text-blue-400 text-[16px]" data-icon="speed">speed</span>
-                        <span id="network-speed-display" class="font-bold text-blue-400 text-[13px]">0.0 Mbps</span>
+                    <!-- Status Operasional -->
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-400/50 text-[16px]" data-icon="schedule">schedule</span>
+                        <span id="operational-status" class="font-bold text-[13px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $isOpen ? 'open' : 'closed' }}
+                        </span>
                     </div>
                 </div>
 

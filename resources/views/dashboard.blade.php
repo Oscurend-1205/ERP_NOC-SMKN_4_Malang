@@ -20,17 +20,27 @@
 <!-- Page Header -->
 <div class="flex items-center justify-between">
 <div>
-<h1 class="text-lg font-bold text-on-background">Ringkasan Dasbor</h1>
+<h1 class="text-2xl font-bold tracking-tight text-on-background">Ringkasan Dasbor</h1>
 <p class="text-xs text-outline">Selamat datang kembali, {{ Auth::user()->name }}. <span class="font-bold text-blue-600">({{ Auth::user()->role }})</span></p>
 </div>
 <div class="flex items-center gap-3">
-    <!-- Realtime Clock -->
-    <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center justify-center shadow-inner min-w-[70px]">
-        <span id="realtime-clock-display" class="font-extrabold tracking-widest text-emerald-400">00:00</span>
+    <!-- Realtime Monitor (Clock & Speed) -->
+    <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center gap-4 shadow-inner">
+        <!-- Clock -->
+        <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
+        
+        <!-- Divider -->
+        <span class="text-gray-600 font-normal">|</span>
+        
+        <!-- Speed -->
+        <div class="hidden md:flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-400 text-[16px]" data-icon="speed">speed</span>
+            <span id="network-speed-display" class="font-bold text-blue-400 text-[13px]">0.0 Mbps</span>
+        </div>
     </div>
 
     <!-- Tombol Input Pinjaman -->
-    <button onclick="document.getElementById('loanModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
+    <button onclick="document.getElementById('loanModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
         <span class="material-symbols-outlined text-[18px]">add_circle</span>
         Input Pinjaman
     </button>
@@ -96,79 +106,104 @@
 <!-- Analytics Row -->
 <div class="grid grid-cols-12 gap-lg">
 <!-- Bar Chart: Aktivitas Barang Masuk -->
-<div class="col-span-12 lg:col-span-8 bg-white p-lg rounded-xl border border-outline-variant shadow-sm">
-<div class="flex items-center justify-between mb-xl">
+<div class="col-span-12 lg:col-span-8 bg-white p-lg rounded-xl border border-outline-variant shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-4">
 <h3 class="font-h3 text-h3">Aktivitas Barang Masuk</h3>
 <select class="text-body-sm border-gray-200 rounded-lg py-1 px-3 focus:ring-primary focus:border-primary">
 <option>7 Bulan Terakhir</option>
 <option>12 Bulan Terakhir</option>
 </select>
 </div>
-<div class="h-40 flex items-end justify-between gap-4 px-4">
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[40%] hover:bg-primary transition-colors"></div>
+<div class="flex-1 flex items-end justify-between gap-2 px-2 mt-4">
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[40%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">Jan</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[55%] hover:bg-primary transition-colors"></div>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[55%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">Feb</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[80%] hover:bg-primary transition-colors"></div>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[80%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">Mar</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary w-full rounded-t-lg h-[95%] hover:bg-primary-fixed transition-colors"></div>
-<span class="text-label-md text-outline">Apr</span>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-primary w-full rounded-t-md h-[95%] shadow-sm transition-all"></div>
+<span class="text-label-md font-bold text-primary">Apr</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[65%] hover:bg-primary transition-colors"></div>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[65%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">May</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[45%] hover:bg-primary transition-colors"></div>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[45%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">Jun</span>
 </div>
-<div class="flex flex-col items-center gap-2 w-full">
-<div class="bg-primary-fixed-dim w-full rounded-t-lg h-[75%] hover:bg-primary transition-colors"></div>
+<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
+<div class="bg-blue-100 w-full rounded-t-md h-[75%] hover:bg-primary transition-all"></div>
 <span class="text-label-md text-outline">Jul</span>
 </div>
 </div>
 </div>
 <!-- Donut Chart: Distribusi Kondisi Barang -->
 <div class="col-span-12 lg:col-span-4 bg-white p-lg rounded-xl border border-outline-variant shadow-sm">
-<h3 class="font-h3 text-h3 mb-xl">Distribusi Kondisi</h3>
-<div class="relative flex items-center justify-center h-32 mb-4">
-<svg class="w-full h-full transform -rotate-90">
-<circle cx="50%" cy="50%" fill="transparent" r="50" stroke="#f1f3f4" stroke-width="18"></circle>
-<circle cx="50%" cy="50%" fill="transparent" r="50" stroke="#005bbf" stroke-dasharray="314" stroke-dashoffset="80" stroke-linecap="round" stroke-width="18"></circle>
+<h3 class="font-h3 text-h3 mb-3">Distribusi Kondisi</h3>
+<div class="relative flex items-center justify-center h-32 mb-2">
+@php
+    $total = $totalItems > 0 ? $totalItems : 1;
+    $pBaik = ($itemsBaik / $total) * 314.159;
+    $pRusak = ($itemsRusak / $total) * 314.159;
+    $pHilang = ($conditionStats['hilang'] / $total) * 314.159;
+    
+    // Calculate offsets for stacking segments
+    $offsetRusak = 314.159 - $pBaik;
+    $offsetHilang = 314.159 - ($pBaik + $pRusak);
+@endphp
+<svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+    <!-- Background -->
+    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f3f4" stroke-width="18"></circle>
+    
+    <!-- Lainnya/Hilang (Gray) -->
+    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#94a3b8" 
+            stroke-dasharray="314.159" stroke-dashoffset="0" 
+            stroke-width="18"></circle>
+            
+    <!-- Rusak (Red) -->
+    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#ba1a1a" 
+            stroke-dasharray="314.159" stroke-dashoffset="{{ 314.159 - ($pBaik + $pRusak) }}" 
+            stroke-width="18"></circle>
+            
+    <!-- Baik (Blue) -->
+    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#005bbf" 
+            stroke-dasharray="314.159" stroke-dashoffset="{{ 314.159 - $pBaik }}" 
+            stroke-width="18"></circle>
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center">
 <span class="font-bold text-xl">{{ $totalItems }}</span>
 <span class="text-[9px] text-outline uppercase">Total</span>
 </div>
 </div>
-<div class="space-y-sm">
-<div class="flex items-center justify-between text-body-md">
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-xs text-gray-600">
 <div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
 <span>Kondisi Baik</span>
 </div>
-<span class="font-semibold">{{ $totalItems > 0 ? round(($itemsBaik / $totalItems) * 100) : 0 }}%</span>
+<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($itemsBaik / $totalItems) * 100) : 0 }}%</span>
 </div>
-<div class="flex items-center justify-between text-body-md">
+<div class="flex items-center justify-between text-xs text-gray-600">
 <div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
 <span>Kondisi Rusak</span>
 </div>
-<span class="font-semibold">{{ $totalItems > 0 ? round(($itemsRusak / $totalItems) * 100) : 0 }}%</span>
+<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($itemsRusak / $totalItems) * 100) : 0 }}%</span>
 </div>
-<div class="flex items-center justify-between text-body-md">
+<div class="flex items-center justify-between text-xs text-gray-600">
 <div class="flex items-center gap-2">
-<span class="w-3 h-3 rounded-full bg-gray-400"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
 <span>Lainnya (Hilang)</span>
 </div>
-<span class="font-semibold">{{ $totalItems > 0 ? round(($conditionStats['hilang'] / $totalItems) * 100) : 0 }}%</span>
+<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($conditionStats['hilang'] / $totalItems) * 100) : 0 }}%</span>
 </div>
 </div>
 </div>
@@ -229,16 +264,16 @@
 </div>
 
 <!-- Modal Input Pinjaman -->
-<div id="loanModal" class="fixed inset-0 z-50 hidden">
+<div id="loanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
     
     <!-- Modal Content -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
-            <h2 class="text-[15px] font-bold text-gray-800">Input Pinjaman</h2>
-            <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+            <h2 class="text-[18px] font-bold text-gray-800">Input Pinjaman</h2>
+            <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
@@ -247,33 +282,34 @@
         <form action="{{ route('movements.loan') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
             @csrf
             
-            <div class="p-5 space-y-4 overflow-y-auto">
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
                 <!-- Nama Lengkap -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">Nama Lengkap</label>
+                    <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
                     <input type="text" name="borrower_name" required placeholder="Masukkan nama lengkap" 
                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
                 </div>
 
                 <!-- ID -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">ID</label>
+                    <label class="block text-[13px] font-bold text-gray-700">ID</label>
                     <input type="text" name="borrower_id" required placeholder="Masukkan ID peminjam" 
                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
                 </div>
 
                 <!-- No HP -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">No HP</label>
-                    <input type="text" name="borrower_phone" required placeholder="Masukan nomor HP *081..." 
+                    <label class="block text-[13px] font-bold text-gray-700">No HP</label>
+                    <input type="text" id="borrower_phone_input" name="borrower_phone" required placeholder="Masukan nomor HP *081..." 
                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
                 </div>
 
                 <!-- Nama Barang -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">Nama Barang</label>
+                    <label class="block text-[13px] font-bold text-gray-700">Nama Barang</label>
                     <select name="item_id" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
                         <option value="" disabled selected>Masukan nama barang</option>
+                        @php /** @var \App\Models\Item $item */ @endphp
                         @foreach($availableItems ?? [] as $item)
                             <option value="{{ $item->id }}">{{ $item->name }} (Stok: {{ $item->quantity }})</option>
                         @endforeach
@@ -282,27 +318,27 @@
 
                 <!-- Jumlah -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">Jumlah</label>
+                    <label class="block text-[13px] font-bold text-gray-700">Jumlah</label>
                     <input type="number" name="quantity" required min="1" placeholder="Masukkan jumlah" 
                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
                 </div>
 
                 <!-- Tanggal Peminjaman -->
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-bold text-gray-700">Tanggal Peminjaman</label>
+                    <label class="block text-[13px] font-bold text-gray-700">Tanggal Peminjaman</label>
                     <input type="date" name="movement_date" required value="{{ date('Y-m-d') }}"
                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
                 </div>
             </div>
 
             <!-- Footer -->
-            <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
                 <button type="button" onclick="document.getElementById('loanModal').classList.add('hidden')" 
                         class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                     Batal
                 </button>
                 <button type="submit" 
-                        class="px-5 py-2 text-[13px] font-bold text-white bg-[#0056b3] rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                        class="px-5 py-2 text-[13px] font-bold text-white bg-primary rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                     Simpan
                 </button>
             </div>

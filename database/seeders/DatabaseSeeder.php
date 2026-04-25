@@ -16,24 +16,28 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Buat user Superadmin
-        User::factory()->create([
-            'name' => 'Super Admin NOC',
-            'username' => 'superadmin',
-            'email' => 'superadmin@noc.smkn4malang.sch.id',
-            'password' => bcrypt('SuperAdmin@2026'),
-            'role' => 'Superadmin',
-            'is_active' => true,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'superadmin@noc.smkn4malang.sch.id'],
+            [
+                'name' => 'Super Admin NOC',
+                'username' => 'superadmin',
+                'password' => bcrypt('password'),
+                'role' => 'Superadmin',
+                'is_active' => true,
+            ]
+        );
 
         // Buat user Admin NOC
-        User::factory()->create([
-            'name' => 'Admin NOC',
-            'username' => 'admin',
-            'email' => 'admin@noc.smkn4malang.sch.id',
-            'password' => bcrypt('admin123'),
-            'role' => 'Admin',
-            'is_active' => true,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@noc.smkn4malang.sch.id'],
+            [
+                'name' => 'Admin NOC',
+                'username' => 'admin',
+                'password' => bcrypt('password'),
+                'role' => 'Admin',
+                'is_active' => true,
+            ]
+        );
 
         // Seed data ERP
         $this->call(ERPSeeder::class);

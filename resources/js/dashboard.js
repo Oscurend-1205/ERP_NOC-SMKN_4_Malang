@@ -14,10 +14,10 @@ if (window.tailwind) {
                     "on-primary": "#ffffff",
                     "primary-container": "#1a73e8",
                     "on-primary-container": "#ffffff",
-                    "secondary": "#006e2c",
+                    "secondary": "#2563eb",
                     "on-secondary": "#ffffff",
-                    "secondary-container": "#86f898",
-                    "on-secondary-container": "#00722f",
+                    "secondary-container": "#dbeafe",
+                    "on-secondary-container": "#1e3a8a",
                     "tertiary": "#795900",
                     "on-tertiary": "#ffffff",
                     "tertiary-container": "#987000",
@@ -59,8 +59,23 @@ function updateRealtimeClock() {
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    clockElement.textContent = `${hours}:${minutes}`;
+    clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+// Network Speed Function
+function updateNetworkSpeed() {
+    const speedElement = document.getElementById('network-speed-display');
+    if (!speedElement) return;
+
+    if (navigator.connection && navigator.connection.downlink) {
+        // downlink is in Mbps
+        const speed = navigator.connection.downlink;
+        speedElement.textContent = `${speed.toFixed(1)} Mbps`;
+    } else {
+        speedElement.textContent = "--- Mbps";
+    }
 }
 
 // Variable to store interval to prevent double execution
@@ -68,8 +83,34 @@ let clockInterval = null;
 
 function initApp() {
     updateRealtimeClock();
+    updateNetworkSpeed();
+
     if (clockInterval) clearInterval(clockInterval);
     clockInterval = setInterval(updateRealtimeClock, 1000);
+
+    // Update speed on connection change
+    if (navigator.connection) {
+        navigator.connection.addEventListener('change', updateNetworkSpeed);
+    }
+    
+    // Fallback interval for speed (some browsers don't fire change often)
+    setInterval(updateNetworkSpeed, 5000);
+
+    // Phone Number Formatter
+    const phoneInput = document.getElementById('borrower_phone_input');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove all non-digits
+            let value = e.target.value.replace(/\D/g, '');
+            // Add dash every 4 digits
+            let formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1-');
+            // Limit to 15 characters (e.g., 0812-3456-7890)
+            if (formattedValue.length > 15) {
+                formattedValue = formattedValue.substring(0, 15);
+            }
+            e.target.value = formattedValue;
+        });
+    }
 
     // Helper for Material Icons (Delayed to ensure DOM is ready)
     setTimeout(() => {

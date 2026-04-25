@@ -290,7 +290,8 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`, `username`, `role`, `is_active`) VALUES
 (1, 'Admin NOC', 'admin@noc.smkn4malang.sch.id', '2026-04-23 14:56:43', '$2y$12$6v/dUIqiBjS6hMfnt56n3O9jl/wRV9rYabgecks/st4vmNi5MVSgK', 'mxPUu6cSD3ZQfN1GrenJzNvThFEi8XIuK8f34yzzZsxQ8iaKRgN41rCoYSAJ', '2026-04-23 14:56:44', '2026-04-23 15:31:57', NULL, 'Admin', 1),
 (2, 'Andika Galon Lima Liter', 'andika@gmail.com', NULL, '$2y$12$/.NBAODTvaRxqsPJ.ruEYeHMc5pWmyILBG17ar8asrHz/zZZUecMC', NULL, '2026-04-23 18:21:29', '2026-04-23 18:21:29', 'Adidika', 'User', 1),
-(3, 'Bagus Ganteng', 'bagus@example.com', NULL, '$2y$12$ewMkrwuzmWhRyGFNWtixB.SBxfmXW0JNHQlKAhEUOZ0mhiiTGdGk.', NULL, '2026-04-24 06:38:24', '2026-04-24 06:38:24', 'gusgus', 'User', 1);
+(3, 'Bagus Ganteng', 'bagus@example.com', NULL, '$2y$12$ewMkrwuzmWhRyGFNWtixB.SBxfmXW0JNHQlKAhEUOZ0mhiiTGdGk.', NULL, '2026-04-24 06:38:24', '2026-04-24 06:38:24', 'gusgus', 'User', 1),
+(4, 'Superadmin NOC', 'superadmin@noc.smkn4malang.sch.id', NULL, '$2y$12$6v/dUIqiBjS6hMfnt56n3O9jl/wRV9rYabgecks/st4vmNi5MVSgK', NULL, '2026-04-25 18:48:00', '2026-04-25 18:48:00', 'superadmin', 'Superadmin', 1);
 UNLOCK TABLES;
 
 SET FOREIGN_KEY_CHECKS = 1;

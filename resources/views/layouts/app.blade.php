@@ -21,11 +21,11 @@
            ============================================ */
 
         :root {
-            /* Primary Colors - Hijau NOC */
-            --primary: #00a86b;
-            --primary-dark: #008c59;
-            --primary-light: #e6f7f0;
-            --primary-glow: rgba(0, 168, 107, 0.15);
+            /* Primary Colors - Biru NOC */
+            --primary: #005bbf;
+            --primary-dark: #004494;
+            --primary-light: #dbeafe;
+            --primary-glow: rgba(0, 91, 191, 0.15);
 
             /* Accent */
             --accent: #1a1a2e;
@@ -42,8 +42,8 @@
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
-            --text-sidebar: #cbd5e1;
-            --text-sidebar-active: #00a86b;
+            --text-sidebar: #64748b;
+            --text-sidebar-active: #005bbf;
 
             /* Status Colors */
             --success: #10b981;
@@ -82,6 +82,24 @@
             color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+        .page-header h1, .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
         /* ============================================

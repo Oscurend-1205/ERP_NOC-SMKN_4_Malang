@@ -13,7 +13,7 @@
 <div class="absolute inset-0 dot-pattern opacity-50 pointer-events-none"></div>
 <div class="relative w-full max-w-[400px] login-card p-6 transition-all duration-300 flex flex-col justify-center">
 @if(session('success'))
-    <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-xs">
+    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-600 rounded-lg text-xs">
         {{ session('success') }}
     </div>
 @endif

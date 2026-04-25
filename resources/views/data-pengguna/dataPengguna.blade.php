@@ -23,17 +23,27 @@
         <!-- Page Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-lg font-bold text-on-background">Manajemen Pengguna</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-on-background">Manajemen Pengguna</h1>
                 <p class="text-xs text-outline">Kelola data user, role, dan hak akses sistem.</p>
             </div>
             <div class="flex items-center gap-3">
-                <!-- Realtime Clock From Dashboard Style -->
-                <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center justify-center shadow-inner min-w-[70px]">
-                    <span id="realtime-clock-display" class="font-extrabold tracking-widest text-emerald-400">00:00</span>
+                <!-- Realtime Monitor (Clock & Speed) -->
+                <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center gap-4 shadow-inner">
+                    <!-- Clock -->
+                    <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
+                    
+                    <!-- Divider -->
+                    <span class="text-gray-600 font-normal">|</span>
+                    
+                    <!-- Speed -->
+                    <div class="hidden md:flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-400 text-[16px]" data-icon="speed">speed</span>
+                        <span id="network-speed-display" class="font-bold text-blue-400 text-[13px]">0.0 Mbps</span>
+                    </div>
                 </div>
 
                 @if(Auth::user()->role === 'Superadmin')
-                <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
+                <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
                     <span class="material-symbols-outlined text-[20px]" data-icon="person_add">person_add</span>
                     Tambah User
                 </button>
@@ -75,7 +85,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if($user->is_active)
-                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-md text-[9px] font-bold uppercase">Aktif</span>
+                                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[9px] font-bold uppercase">Aktif</span>
                                 @else
                                     <span class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-bold uppercase">Non-Aktif</span>
                                 @endif
@@ -120,45 +130,45 @@
 <!-- Modal Tambah User (100% Exact Match) -->
 <div id="addUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop Blur -->
-    <div class="absolute inset-0 bg-gray-900/30 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addUserModal').classList.add('hidden')"></div>
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addUserModal').classList.add('hidden')"></div>
     
     <!-- Modal Content -->
-    <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-[500px] overflow-hidden flex flex-col font-sans">
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
         <!-- Header -->
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
             <h2 class="text-[18px] font-bold text-gray-900">Tambah User Baru</h2>
-            <button onclick="document.getElementById('addUserModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="document.getElementById('addUserModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
 
         <!-- Form Body -->
-        <form action="{{ route('users.store') }}" method="POST">
+        <form action="{{ route('users.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
             @csrf
-            <div class="px-6 py-5 space-y-5">
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
                 
                 <!-- Nama Lengkap -->
                 <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-900">Nama Lengkap</label>
-                    <input type="text" name="name" required placeholder="Masukkan nama lengkap" class="w-full border border-gray-300 rounded-md px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                    <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
+                    <input type="text" name="name" required placeholder="Masukkan nama lengkap" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
                 </div>
 
                 <!-- Username -->
                 <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-900">Username</label>
-                    <input type="text" name="username" required placeholder="Masukkan username" class="w-full border border-gray-300 rounded-md px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                    <label class="block text-[13px] font-bold text-gray-700">Username</label>
+                    <input type="text" name="username" required placeholder="Masukkan username" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
                 </div>
 
                 <!-- Email -->
                 <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-900">Email</label>
-                    <input type="email" name="email" required placeholder="email@contoh.com" class="w-full border border-gray-300 rounded-md px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                    <label class="block text-[13px] font-bold text-gray-700">Email</label>
+                    <input type="email" name="email" required placeholder="email@contoh.com" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
                 </div>
 
                 <!-- Role -->
                 <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-900">Role</label>
-                    <select name="role" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white shadow-sm appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234b5563%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;">
+                    <label class="block text-[13px] font-bold text-gray-700">Role</label>
+                    <select name="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white shadow-sm appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234b5563%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;">
                         <option value="" disabled selected hidden>Pilih Role</option>
                         <option value="Superadmin">Superadmin</option>
                         <option value="Admin">Admin</option>
@@ -169,14 +179,14 @@
 
                 <!-- Password -->
                 <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-900">Password</label>
-                    <input type="password" name="password" required placeholder="........" class="w-full border border-gray-300 rounded-md px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 tracking-widest text-lg h-9">
+                    <label class="block text-[13px] font-bold text-gray-700">Password</label>
+                    <input type="password" name="password" required placeholder="........" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 tracking-widest text-lg h-9">
                 </div>
 
                 <!-- Status Akun Toggle -->
                 <div class="flex items-center justify-between pt-1">
                     <div>
-                        <label class="block text-[13px] font-bold text-gray-900">Status Akun</label>
+                        <label class="block text-[13px] font-bold text-gray-700">Status Akun</label>
                         <p class="text-[13px] text-gray-500 mt-0.5">Aktifkan user ini agar dapat login.</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -188,11 +198,11 @@
             </div>
 
             <!-- Footer -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-lg">
-                <button type="button" onclick="document.getElementById('addUserModal').classList.add('hidden')" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-[13px] font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('addUserModal').classList.add('hidden')" class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                     Batal
                 </button>
-                <button type="submit" class="px-4 py-2 bg-[#005bbf] rounded-md text-[13px] font-bold text-white hover:bg-blue-700 transition-colors shadow-sm">
+                <button type="submit" class="px-5 py-2 text-[13px] font-bold text-white bg-primary rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                     Simpan User
                 </button>
             </div>

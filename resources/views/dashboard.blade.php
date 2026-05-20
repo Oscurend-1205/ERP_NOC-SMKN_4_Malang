@@ -1,355 +1,225 @@
 <!DOCTYPE html>
 
-<html lang="id" class="notranslate" translate="no"><head>
-<meta name="google" content="notranslate" />
+<html lang="id"><head>
+<meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>ERP NOC - Dashboard</title>
+<!-- Tailwind CSS v3 CDN -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols for modal icons -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/@hotwired/turbo@7.3.0/dist/turbo.es2017-umd.js"></script>
-@vite(['resources/js/dashboard.js', 'resources/css/dashboard.css'])
+<style data-purpose="base-typography">
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8FAFC;
+    }
+  </style>
+<style data-purpose="custom-layout">
+    /* Custom scrollbar for a cleaner look */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
 </head>
-<body class="bg-background font-body-md text-on-background antialiased notranslate" translate="no">
+<body class="flex min-h-screen">
+
+
+
 @include('partials.sidebar')
-<!-- Main Content Wrapper -->
-<div class="ml-[200px] min-h-screen">
+
+<!-- BEGIN: Main Content Area -->
+<main class="flex-grow flex flex-col h-screen overflow-y-auto">
 @include('partials.topbar')
-<!-- Main Canvas -->
-<main class="p-4 pt-16 space-y-6">
-<!-- Page Header -->
-@php
-    $currentHour = now()->format('H');
-    $isOpen = ($currentHour >= 6 && $currentHour < 15);
-@endphp
-<div class="flex items-center justify-between">
-<div>
-<h1 class="text-2xl font-bold tracking-tight text-on-background">Ringkasan Dasbor</h1>
-<p class="text-xs text-outline">Selamat datang kembali, {{ Auth::user()->name }}. <span class="font-bold text-blue-600">({{ Auth::user()->role }})</span></p>
-</div>
-<div class="flex items-center gap-3">
-    <!-- Realtime Monitor (Clock & Status) -->
-    <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center gap-4 shadow-inner">
-        <!-- Clock -->
-        <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
-        
-        <!-- Divider -->
-        <span class="text-gray-600 font-normal">|</span>
-        
-        <!-- Status Operasional -->
-        <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-400/50 text-[16px]" data-icon="schedule">schedule</span>
-            <span id="operational-status" class="font-bold text-[13px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">
-                {{ $isOpen ? 'open' : 'closed' }}
-            </span>
-        </div>
-    </div>
 
-    <!-- Tombol Input Pinjaman -->
-    <button onclick="document.getElementById('loanModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95 text-sm">
-        <span class="material-symbols-outlined text-[18px]">add_circle</span>
-        Input Pinjaman
-    </button>
+<!-- BEGIN: Dashboard Content -->
+<div class="p-10 space-y-10">
+<!-- BEGIN: Ringkasan Section -->
+<section data-purpose="summary-stats">
+<h3 class="text-xl font-bold mb-6 text-gray-800">Ringkasan Dashboard</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1: Total Aset NOC -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+<div class="space-y-4">
+<p class="text-gray-900 font-semibold">Total Aset NOC</p>
+<h4 class="text-5xl font-bold text-gray-900">{{ $totalItems }}</h4>
+</div>
+<div class="bg-white p-2">
+    <img alt="Total Aset Icon" class="w-16 h-16 object-contain" src="{{ asset('asset/icon/total-aset-noc.svg') }}"/>
+</div>
+</div>
+<!-- Card 2: Peminjaman Aktif -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+<div class="space-y-4">
+<p class="text-gray-900 font-semibold">Peminjaman Aktif</p>
+<h4 class="text-5xl font-bold text-gray-900">{{ $itemsMaintenance ?? 0 }}</h4>
+</div>
+<div class="bg-white p-2">
+    <img alt="Peminjaman Aktif Icon" class="w-16 h-16 object-contain" src="{{ asset('asset/icon/peminjaman-aktif.svg') }}"/>
+</div>
+</div>
+<!-- Card 3: Sisa Barang -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+<div class="space-y-4">
+<p class="text-gray-900 font-semibold">Sisa Barang</p>
+<h4 class="text-5xl font-bold text-gray-900">{{ $itemsBaik }}</h4>
+</div>
+<div class="bg-white p-2">
+    <img alt="Sisa Barang Icon" class="w-16 h-16 object-contain" src="{{ asset('asset/icon/sisa-barang.svg') }}"/>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Ringkasan Section -->
 
-
-</div>
-</div>
-<!-- Metrics Row (Bento Style) -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
-<!-- Card 1: Total Barang -->
-<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden">
-<div class="flex justify-between items-start">
-<div>
-<p class="text-[10px] uppercase font-bold tracking-wider text-outline">Total Barang</p>
-<h2 class="text-2xl font-bold mt-1">{{ $totalItems }}</h2>
-</div>
-<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center">
-<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
-</div>
-</div>
-<div class="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
-</div>
-<!-- Card 2: Kondisi Rusak -->
-<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden">
-<div class="flex justify-between items-start">
-<div>
-<p class="text-[10px] uppercase font-bold tracking-wider text-outline">Kondisi Rusak</p>
-<h2 class="text-2xl font-bold mt-1 text-error">{{ $itemsRusak }}</h2>
-</div>
-<div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center">
-<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
-</div>
-</div>
-<div class="absolute bottom-0 left-0 w-full h-1 bg-error"></div>
-</div>
-<!-- Card 3: Masuk Hari Ini -->
-<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden">
-<div class="flex justify-between items-start">
-<div>
-<p class="text-[10px] uppercase font-bold tracking-wider text-outline">Masuk Hari Ini</p>
-<h2 class="text-2xl font-bold mt-1">{{ $itemsEnteredToday }}</h2>
-</div>
-<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center">
-<span class="material-symbols-outlined text-on-surface-variant" data-icon="move_to_inbox">move_to_inbox</span>
-</div>
-</div>
-<div class="absolute bottom-0 left-0 w-full h-1 bg-outline"></div>
-</div>
-<!-- Card 4: Total Kategori -->
-<div class="bg-white p-4 rounded-xl border border-outline-variant shadow-sm relative overflow-hidden">
-<div class="flex justify-between items-start">
-<div>
-<p class="text-[10px] uppercase font-bold tracking-wider text-outline">Total Kategori</p>
-<h2 class="text-2xl font-bold mt-1">{{ $totalCategories }}</h2>
-</div>
-<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center">
-<span class="material-symbols-outlined text-tertiary" data-icon="category">category</span>
-</div>
-</div>
-<div class="absolute bottom-0 left-0 w-full h-1 bg-tertiary"></div>
-</div>
-</div>
-<!-- Analytics Row -->
-<div class="grid grid-cols-12 gap-lg">
-<!-- Bar Chart: Aktivitas Barang Masuk -->
-<div class="col-span-12 lg:col-span-8 bg-white p-lg rounded-xl border border-outline-variant shadow-sm flex flex-col">
-<div class="flex items-center justify-between mb-4">
-<h3 class="font-h3 text-h3">Aktivitas Barang Masuk</h3>
-<select class="text-body-sm border-gray-200 rounded-lg py-1 px-3 focus:ring-primary focus:border-primary">
-<option>7 Bulan Terakhir</option>
-<option>12 Bulan Terakhir</option>
-</select>
-</div>
-<div class="flex-1 flex items-end justify-between gap-2 px-2 mt-4">
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[40%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">Jan</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[55%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">Feb</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[80%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">Mar</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-primary w-full rounded-t-md h-[95%] shadow-sm transition-all"></div>
-<span class="text-label-md font-bold text-primary">Apr</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[65%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">May</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[45%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">Jun</span>
-</div>
-<div class="flex flex-col justify-end items-center gap-2 w-full h-full">
-<div class="bg-blue-100 w-full rounded-t-md h-[75%] hover:bg-primary transition-all"></div>
-<span class="text-label-md text-outline">Jul</span>
-</div>
-</div>
-</div>
-<!-- Donut Chart: Distribusi Kondisi Barang -->
-<div class="col-span-12 lg:col-span-4 bg-white p-lg rounded-xl border border-outline-variant shadow-sm">
-<h3 class="font-h3 text-h3 mb-3">Distribusi Kondisi</h3>
-<div class="relative flex items-center justify-center h-32 mb-2">
-@php
-    $total = $totalItems > 0 ? $totalItems : 1;
-    $pBaik = ($itemsBaik / $total) * 314.159;
-    $pRusak = ($itemsRusak / $total) * 314.159;
-    $pHilang = ($conditionStats['hilang'] / $total) * 314.159;
-    
-    // Calculate offsets for stacking segments
-    $offsetRusak = 314.159 - $pBaik;
-    $offsetHilang = 314.159 - ($pBaik + $pRusak);
-@endphp
-<svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-    <!-- Background -->
-    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f3f4" stroke-width="18"></circle>
-    
-    <!-- Lainnya/Hilang (Gray) -->
-    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#94a3b8" 
-            stroke-dasharray="314.159" stroke-dashoffset="0" 
-            stroke-width="18"></circle>
-            
-    <!-- Rusak (Red) -->
-    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#ba1a1a" 
-            stroke-dasharray="314.159" stroke-dashoffset="{{ 314.159 - ($pBaik + $pRusak) }}" 
-            stroke-width="18"></circle>
-            
-    <!-- Baik (Blue) -->
-    <circle cx="60" cy="60" r="50" fill="transparent" stroke="#005bbf" 
-            stroke-dasharray="314.159" stroke-dashoffset="{{ 314.159 - $pBaik }}" 
-            stroke-width="18"></circle>
-</svg>
-<div class="absolute inset-0 flex flex-col items-center justify-center">
-<span class="font-bold text-xl">{{ $totalItems }}</span>
-<span class="text-[9px] text-outline uppercase">Total</span>
-</div>
-</div>
-<div class="space-y-1.5">
-<div class="flex items-center justify-between text-xs text-gray-600">
-<div class="flex items-center gap-2">
-<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
-<span>Kondisi Baik</span>
-</div>
-<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($itemsBaik / $totalItems) * 100) : 0 }}%</span>
-</div>
-<div class="flex items-center justify-between text-xs text-gray-600">
-<div class="flex items-center gap-2">
-<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
-<span>Kondisi Rusak</span>
-</div>
-<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($itemsRusak / $totalItems) * 100) : 0 }}%</span>
-</div>
-<div class="flex items-center justify-between text-xs text-gray-600">
-<div class="flex items-center gap-2">
-<span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
-<span>Lainnya (Hilang)</span>
-</div>
-<span class="font-bold text-gray-800">{{ $totalItems > 0 ? round(($conditionStats['hilang'] / $totalItems) * 100) : 0 }}%</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Table Section: Recent Activity -->
-<div class="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-<div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-<h3 class="font-bold text-sm">Aktivitas Terbaru</h3>
-<button class="text-primary text-body-sm font-medium hover:underline">Lihat Semua</button>
+<!-- BEGIN: Activity Table Section -->
+<section data-purpose="activity-table-container">
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<div class="p-6 flex items-center justify-between">
+<h3 class="text-lg font-bold text-gray-800">Aktivitas Terkini</h3>
+<button class="text-[#3F51B5] text-sm font-medium hover:underline">Lihat Semua</button>
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left border-collapse">
-<thead class="bg-surface-container-low text-outline text-[12px] uppercase font-bold tracking-wider">
+<thead class="bg-gray-100 text-gray-700">
 <tr>
-<th class="px-4 py-2">Tanggal</th>
-<th class="px-4 py-2">Nama Barang</th>
-<th class="px-4 py-2">Tipe</th>
-<th class="px-4 py-2">Kuantitas</th>
-<th class="px-4 py-2">Status</th>
-<th class="px-4 py-2 text-right">Aksi</th>
+<th class="px-6 py-4 font-semibold text-center">Tanggal</th>
+<th class="px-6 py-4 font-semibold text-center">Nama Barang</th>
+<th class="px-6 py-4 font-semibold text-center">Tipe</th>
+<th class="px-6 py-4 font-semibold text-center">Kuantitas</th>
+<th class="px-6 py-4 font-semibold text-center">Status</th>
+<th class="px-6 py-4 font-semibold text-center">Aksi</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-gray-50 text-[11px]">
+<tbody class="divide-y divide-gray-100">
 @foreach($recentMovements as $movement)
-<tr class="hover:bg-gray-50/50 transition-colors">
-<td class="px-4 py-2 text-outline">{{ $movement->created_at->format('d M Y') }}</td>
-<td class="px-4 py-2 font-semibold text-on-surface">{{ $movement->item->name ?? 'N/A' }}</td>
-<td class="px-4 py-2 capitalize">{{ $movement->type }}</td>
-<td class="px-4 py-2">{{ $movement->quantity }} Unit</td>
-<td class="px-4 py-2">
+<tr class="hover:bg-gray-50 transition-colors">
+<td class="px-6 py-5 text-center text-gray-600">{{ $movement->created_at->format('H:i d/m/Y') }}</td>
+<td class="px-6 py-5 text-center text-gray-800 font-medium">{{ $movement->item->name ?? 'N/A' }}</td>
+<td class="px-6 py-5 text-center text-gray-600 capitalize">{{ $movement->type }}</td>
+<td class="px-6 py-5 text-center text-gray-600">{{ $movement->quantity }} Unit</td>
+<td class="px-6 py-5 text-center">
     @php
         $badgeClass = match($movement->type) {
-            'masuk' => 'bg-secondary-container text-on-secondary-container',
-            'keluar' => 'bg-error-container text-error',
-            'pindah' => 'bg-primary-container text-on-primary-container',
-            default => 'bg-surface-container-highest text-on-surface-variant'
+            'masuk' => 'bg-[#2ECC71] text-white',
+            'keluar' => 'bg-red-500 text-white',
+            'pindah' => 'bg-[#3F51B5] text-white',
+            default => 'bg-gray-400 text-white'
+        };
+        $badgeText = match($movement->type) {
+            'masuk' => 'Masuk',
+            'keluar' => 'Keluar',
+            'pindah' => 'Dipinjam',
+            default => ucfirst($movement->type)
         };
     @endphp
-<span class="px-2.5 py-0.5 {{ $badgeClass }} rounded-md text-[10px] font-bold uppercase tracking-tight">{{ $movement->type }}</span>
+    <span class="px-4 py-1.5 {{ $badgeClass }} text-xs font-semibold rounded-md">{{ $badgeText }}</span>
 </td>
-<td class="px-4 py-2 text-right">
-<a href="{{ route('items.show', $movement->item_id) }}" class="text-outline hover:text-primary transition-colors">
-<span class="material-symbols-outlined !text-[18px]" data-icon="visibility">visibility</span>
-</a>
+<td class="px-6 py-5 text-center">
+    <a href="{{ route('items.show', $movement->item_id) }}" class="text-gray-400 hover:text-[#3F51B5] transition-colors">
+        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+    </a>
 </td>
 </tr>
 @endforeach
 @if($recentMovements->isEmpty())
 <tr>
-    <td colspan="6" class="px-4 py-8 text-center text-outline italic">Belum ada aktivitas terbaru</td>
+    <td colspan="6" class="px-6 py-10 text-center text-gray-400 italic">Belum ada aktivitas terbaru</td>
 </tr>
 @endif
 </tbody>
 </table>
 </div>
+<!-- Table Footer Padding -->
+<div class="py-4"></div>
 </div>
+</section>
+<!-- END: Activity Table Section -->
+</div>
+<!-- END: Dashboard Content -->
 </main>
-</div>
+<!-- END: Main Content Area -->
 
-<!-- Modal Input Pinjaman -->
-<div id="loanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
-    
-    <!-- Modal Content -->
-    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
-            <h2 class="text-[18px] font-bold text-gray-800">Input Pinjaman</h2>
-            <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[20px]">close</span>
-            </button>
-        </div>
+<!-- Realtime Clock Script -->
+<script>
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const el = document.getElementById('realtime-clock-display');
+        if (el) el.textContent = h + ':' + m + ':' + s;
 
-        <!-- Form -->
-        <form action="{{ route('movements.loan') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
-            @csrf
+        // Update operational status
+        const hour = now.getHours();
+        const statusEl = document.getElementById('operational-status');
+        if (statusEl) {
+            if (hour >= 6 && hour < 15) {
+                statusEl.textContent = 'OPEN';
+                statusEl.className = 'font-bold text-[12px] text-green-400';
+            } else {
+                statusEl.textContent = 'CLOSED';
+                statusEl.className = 'font-bold text-[12px] text-red-400';
+            }
+        }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Phone number input formatting
+    const phoneInput = document.getElementById('borrower_phone_input');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+
+    // Expandable Data Master Menu script
+    function initMasterMenu() {
+        const btnMaster = document.getElementById('btn-data-master');
+        const subMaster = document.getElementById('sub-data-master');
+        const iconMaster = document.getElementById('icon-data-master');
+
+        if (btnMaster && subMaster) {
+            btnMaster.onclick = function() {
+                const isHidden = subMaster.classList.contains('hidden');
+                
+                if (isHidden) {
+                    subMaster.classList.remove('hidden');
+                    subMaster.classList.add('flex');
+                    if (iconMaster) iconMaster.style.transform = 'rotate(180deg)';
+                } else {
+                    subMaster.classList.add('hidden');
+                    subMaster.classList.remove('flex');
+                    if (iconMaster) iconMaster.style.transform = 'rotate(0deg)';
+                }
+            };
             
-            <div class="px-6 py-5 space-y-4 overflow-y-auto">
-                <!-- Nama Lengkap -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
-                    <input type="text" name="borrower_name" required placeholder="Masukkan nama lengkap" 
-                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
-                </div>
+            // Auto expand if current route is within master data
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('categories') || currentPath.includes('locations')) {
+                subMaster.classList.remove('hidden');
+                subMaster.classList.add('flex');
+                if (iconMaster) iconMaster.style.transform = 'rotate(180deg)';
+            }
+        }
+    }
 
-                <!-- ID -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">ID</label>
-                    <input type="text" name="borrower_id" required placeholder="Masukkan ID peminjam" 
-                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
-                </div>
-
-                <!-- No HP -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">No HP</label>
-                    <input type="text" id="borrower_phone_input" name="borrower_phone" required placeholder="Masukan nomor HP *081..." 
-                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
-                </div>
-
-                <!-- Nama Barang -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">Nama Barang</label>
-                    <select name="item_id" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
-                        <option value="" disabled selected>Masukan nama barang</option>
-                        @php /** @var \App\Models\Item $item */ @endphp
-                        @foreach($availableItems ?? [] as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }} (Stok: {{ $item->quantity }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Jumlah -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">Jumlah</label>
-                    <input type="number" name="quantity" required min="1" placeholder="Masukkan jumlah" 
-                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all placeholder:text-gray-400">
-                </div>
-
-                <!-- Tanggal Peminjaman -->
-                <div class="space-y-1.5">
-                    <label class="block text-[13px] font-bold text-gray-700">Tanggal Peminjaman</label>
-                    <input type="date" name="movement_date" required value="{{ date('Y-m-d') }}"
-                           class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-700">
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
-                <button type="button" onclick="document.getElementById('loanModal').classList.add('hidden')" 
-                        class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    Batal
-                </button>
-                <button type="submit" 
-                        class="px-5 py-2 text-[13px] font-bold text-white bg-primary rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-                    Simpan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+    document.addEventListener('DOMContentLoaded', initMasterMenu);
+    if (window.Turbo) {
+        document.addEventListener('turbo:load', initMasterMenu);
+    }
+</script>
 
 </body></html>

@@ -25,7 +25,9 @@ class QrAdminController extends Controller
             ->limit(20)
             ->get();
 
-        return view('qr.admin-panel', compact('activeSessions', 'recentPeminjaman'));
+        $availableItems = \App\Models\Item::where('status', 'tersedia')->orderBy('name')->get();
+
+        return view('qr.admin-panel', compact('activeSessions', 'recentPeminjaman', 'availableItems'));
     }
 
     /**

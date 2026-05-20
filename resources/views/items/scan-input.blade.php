@@ -1,201 +1,242 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Scan & Tambah Barang - ERP NOC</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        #reader video { object-fit: cover !important; transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important; }
+    </style>
+</head>
+<body class="flex min-h-screen bg-[#F8FAFC]">
 
-@section('title', 'Scan & Tambah Barang')
+    @include('partials.sidebar')
 
-@section('content')
-<div class="page-header">
-    <div>
-        <h2>Scan & Tambah Barang</h2>
-        <p>Gunakan kamera untuk scan stiker QR lalu lengkapi data barang</p>
-    </div>
-    <a href="{{ route('items.index') }}" class="btn btn-secondary">
-        <i class="bi bi-arrow-left"></i> Kembali
-    </a>
-</div>
+    <!-- BEGIN: Main Content Area -->
+    <main class="flex-grow flex flex-col h-screen overflow-y-auto">
+        @include('partials.topbar')
 
-<div class="grid-2" style="grid-template-columns: 1fr 1.5fr;">
-    {{-- Scanner Section --}}
-    <div class="card">
-        <div class="card-header" style="background: var(--accent); color: white;">
-            <h2><i class="bi bi-camera" style="color: var(--info);"></i> Camera Scanner</h2>
-            <div id="scannerStatus" style="font-size: 11px; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 5px;">
-                <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></span> AKTIF
+        <!-- BEGIN: Page Content -->
+        <div class="p-10 space-y-8">
+            
+            {{-- Header --}}
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Scan & Tambah Barang</h2>
+                    <p class="text-sm text-gray-500 mt-1">Gunakan kamera untuk scan stiker QR lalu lengkapi data barang</p>
+                </div>
+                <a href="{{ route('items.index') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm border border-gray-200">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    Kembali
+                </a>
             </div>
-        </div>
-        <div class="card-body" style="padding: 0; background: #000; position: relative; min-height: 350px;">
-            <div id="reader" style="width: 100%; height: 350px; overflow: hidden;"></div>
-            <div style="position: absolute; inset: 0; border: 40px solid rgba(0,0,0,0.5); pointer-events: none; display: flex; align-items: center; justify-content: center;">
-                <div style="width: 180px; height: 180px; border: 2px solid rgba(255,255,255,0.4); border-radius: 12px; position: relative;">
-                    <div style="position: absolute; top: -2px; left: -2px; width: 20px; height: 20px; border-top: 4px solid var(--primary); border-left: 4px solid var(--primary); border-radius: 4px 0 0 0;"></div>
-                    <div style="position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; border-top: 4px solid var(--primary); border-right: 4px solid var(--primary); border-radius: 0 4px 0 0;"></div>
-                    <div style="position: absolute; bottom: -2px; left: -2px; width: 20px; height: 20px; border-bottom: 4px solid var(--primary); border-left: 4px solid var(--primary); border-radius: 0 0 0 4px;"></div>
-                    <div style="position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; border-bottom: 4px solid var(--primary); border-right: 4px solid var(--primary); border-radius: 0 0 4px 0;"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                {{-- Scanner Section (Left) --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-2">
+                    <div class="px-6 py-4 bg-gray-900 text-white flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-400">photo_camera</span>
+                            <h2 class="font-bold text-sm">Camera Scanner</h2>
+                        </div>
+                        <div id="scannerStatus" class="flex items-center gap-1.5 text-[10px] font-bold text-green-400">
+                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> AKTIF
+                        </div>
+                    </div>
+                    <div class="relative bg-black h-[350px] w-full">
+                        <div id="reader" class="w-full h-full overflow-hidden"></div>
+                        <div class="absolute inset-0 border-[40px] border-black/50 pointer-events-none flex items-center justify-center">
+                            <div class="w-[180px] h-[180px] border-2 border-white/40 rounded-xl relative">
+                                <div class="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
+                                <div class="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
+                                <div class="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Form Section (Right) --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-3">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#3F51B5]">edit_document</span>
+                        <h2 class="font-bold text-gray-800">Form Input Barang</h2>
+                    </div>
+                    <div class="p-6">
+                        <form id="addItemForm" onsubmit="submitItem(event)" class="space-y-5">
+                            @csrf
+                            
+                            <div id="scanAlert" class="hidden bg-blue-50 border border-blue-100 text-blue-800 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-600 text-[20px]">check_circle</span>
+                                QR Code Terdeteksi! Silakan lengkapi data.
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-[11px] font-bold text-gray-500">KODE BARANG (DARI SCAN)</label>
+                                <input type="text" id="code" name="code" readonly required placeholder="Scan stiker QR untuk mengisi..." 
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-[#3F51B5] focus:outline-none">
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-[11px] font-bold text-gray-500">NAMA BARANG</label>
+                                <input type="text" id="name" name="name" required disabled placeholder="Contoh: Monitor LG 24'"
+                                    class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-[11px] font-bold text-gray-500">KATEGORI</label>
+                                    <select id="category_id" name="category_id" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                        <option value="">-- Pilih --</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[11px] font-bold text-gray-500">KONDISI</label>
+                                    <select id="condition" name="condition" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                        <option value="baik">Baik</option>
+                                        <option value="rusak_ringan">Rusak Ringan</option>
+                                        <option value="rusak_berat">Rusak Berat</option>
+                                        <option value="hilang">Hilang</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-[11px] font-bold text-gray-500">TANGGAL MASUK</label>
+                                    <input type="date" id="purchase_date" name="purchase_date" required disabled value="{{ date('Y-m-d') }}"
+                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-[11px] font-bold text-gray-500">LOKASI LAB</label>
+                                    <select id="location_id" name="location_id" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                        @foreach($locations as $loc)
+                                            <option value="{{ $loc->id }}">{{ $loc->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                                <button type="button" onclick="resetForm()" class="px-6 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Reset</button>
+                                <button type="submit" id="btnSubmit" disabled class="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-[#3F51B5] rounded-xl hover:bg-[#3949AB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="material-symbols-outlined text-[18px]">save</span> Simpan Barang
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
+
         </div>
-    </div>
+    </main>
 
-    {{-- Form Section --}}
-    <div class="card">
-        <div class="card-header">
-            <h2><i class="bi bi-pencil-square" style="color: var(--primary);"></i> Form Input Barang</h2>
-        </div>
-        <div class="card-body">
-            <form id="addItemForm" onsubmit="submitItem(event)">
-                @csrf
-                
-                <div id="scanAlert" style="background: var(--primary-light); color: var(--primary-dark); padding: 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 20px; display: none;">
-                    <i class="bi bi-check-circle-fill"></i> QR Code Terdeteksi! Silakan lengkapi data.
-                </div>
-
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">KODE BARANG (DARI SCAN)</label>
-                    <input type="text" id="code" name="code" readonly required placeholder="Scan stiker QR untuk mengisi..." 
-                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-body); font-family: monospace; font-weight: 700; color: var(--primary);">
-                </div>
-
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">NAMA BARANG</label>
-                    <input type="text" id="name" name="name" required disabled placeholder="Contoh: Monitor LG 24'"
-                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); outline: none;">
-                </div>
-
-                <div class="grid-2" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">KATEGORI</label>
-                        <select id="category_id" name="category_id" required disabled style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: white;">
-                            <option value="">-- Pilih --</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">KONDISI</label>
-                        <select id="condition" name="condition" required disabled style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: white;">
-                            <option value="baik">Baik</option>
-                            <option value="rusak_ringan">Rusak Ringan</option>
-                            <option value="rusak_berat">Rusak Berat</option>
-                            <option value="hilang">Hilang</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid-2" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">TANGGAL MASUK</label>
-                        <input type="date" id="purchase_date" name="purchase_date" required disabled value="{{ date('Y-m-d') }}"
-                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    </div>
-                    <div class="form-group">
-                        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px;">LOKASI LAB</label>
-                        <select id="location_id" name="location_id" required disabled style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: white;">
-                            @foreach($locations as $loc)
-                                <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="resetForm()" class="btn btn-secondary">Reset</button>
-                    <button type="submit" id="btnSubmit" class="btn btn-primary" disabled>
-                        <i class="bi bi-save"></i> Simpan Barang
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-let html5QrCode;
-function startCamera() {
-    html5QrCode = new Html5Qrcode("reader");
-    
-    // Coba kamera belakang dulu (environment), jika gagal coba kamera apa saja (user/laptop)
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        onScanSuccess
-    ).catch(err => {
-        console.warn("Kamera belakang tidak ditemukan, mencoba kamera depan/laptop...", err);
-        // Fallback ke kamera default (biasanya satu-satunya kamera di laptop)
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    let html5QrCode;
+    function startCamera() {
+        html5QrCode = new Html5Qrcode("reader");
+        
+        // Coba kamera belakang dulu (environment), jika gagal coba kamera apa saja (user/laptop)
         html5QrCode.start(
-            { facingMode: "user" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 }, disableFlip: true },
             onScanSuccess
-        ).catch(err2 => {
-            console.error("Gagal memulai kamera:", err2);
-            document.getElementById('scannerStatus').innerHTML = '<span style="color: var(--danger);">Kamera Error/Izin Ditolak</span>';
-            Swal.fire({
-                icon: 'error',
-                title: 'Kamera Tidak Akses',
-                text: 'Pastikan Anda memberikan izin kamera dan tidak ada aplikasi lain yang sedang menggunakan kamera.',
+        ).catch(err => {
+            console.warn("Kamera belakang tidak ditemukan, mencoba kamera depan/laptop...", err);
+            // Fallback ke kamera default (biasanya satu-satunya kamera di laptop)
+            html5QrCode.start(
+                { facingMode: "user" },
+                { fps: 10, qrbox: { width: 250, height: 250 }, disableFlip: true },
+                onScanSuccess
+            ).catch(err2 => {
+                console.error("Gagal memulai kamera:", err2);
+                document.getElementById('scannerStatus').innerHTML = '<span class="text-red-400">Kamera Error/Izin Ditolak</span>';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kamera Tidak Akses',
+                    text: 'Pastikan Anda memberikan izin kamera dan tidak ada aplikasi lain yang sedang menggunakan kamera.',
+                    confirmButtonColor: '#3F51B5'
+                });
             });
         });
-    });
-}
-
-function onScanSuccess(decodedText) {
-    document.getElementById('code').value = decodedText;
-    document.getElementById('scanAlert').style.display = 'block';
-    document.querySelectorAll('#addItemForm input:not([readonly]), #addItemForm select, #addItemForm button').forEach(el => el.disabled = false);
-    playBeep();
-    html5QrCode.pause();
-    document.getElementById('name').focus();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    startCamera();
-});
-
-function resetForm() {
-    document.getElementById('addItemForm').reset();
-    document.getElementById('scanAlert').style.display = 'none';
-    document.querySelectorAll('#addItemForm input:not([readonly]), #addItemForm select, #addItemForm button').forEach(el => el.disabled = true);
-    html5QrCode.resume();
-}
-
-async function submitItem(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true;
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    try {
-        const res = await fetch('{{ route("items.store-scan") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        if (res.ok) {
-            Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data tersimpan.', timer: 1500, showConfirmButton: false });
-            resetForm();
-        } else {
-            Swal.fire({ icon: 'error', title: 'Gagal!', text: result.message || 'Kode QR sudah ada!' });
-        }
-    } catch (err) {
-        Swal.fire('Error', 'Gagal menghubungi server.', 'error');
-    } finally {
-        btn.disabled = false;
     }
-}
 
-function playBeep() {
-    const c = new (window.AudioContext || window.webkitAudioContext)();
-    const o = c.createOscillator(); const g = c.createGain();
-    o.connect(g); g.connect(c.destination); o.frequency.value = 800; o.type = 'sine'; g.gain.value = 0.3;
-    o.start(); setTimeout(() => { o.stop(); c.close(); }, 200);
-}
-</script>
+    function onScanSuccess(decodedText) {
+        document.getElementById('code').value = decodedText;
+        
+        const alertBox = document.getElementById('scanAlert');
+        alertBox.classList.remove('hidden');
+        alertBox.classList.add('flex');
+        
+        document.querySelectorAll('#addItemForm input:not([readonly]), #addItemForm select, #addItemForm button').forEach(el => el.disabled = false);
+        playBeep();
+        html5QrCode.pause();
+        document.getElementById('name').focus();
+    }
 
-<style>
-    #reader video { object-fit: cover; }
-    .hidden { display: none; }
-</style>
-@endsection
+    document.addEventListener('DOMContentLoaded', () => {
+        startCamera();
+    });
+
+    function resetForm() {
+        document.getElementById('addItemForm').reset();
+        
+        const alertBox = document.getElementById('scanAlert');
+        alertBox.classList.add('hidden');
+        alertBox.classList.remove('flex');
+        
+        document.querySelectorAll('#addItemForm input:not([readonly]), #addItemForm select, #addItemForm button').forEach(el => el.disabled = true);
+        html5QrCode.resume();
+    }
+
+    async function submitItem(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const res = await fetch('{{ route("items.store-scan") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data tersimpan.', timer: 1500, showConfirmButton: false });
+                resetForm();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: result.message || 'Kode QR sudah ada!', confirmButtonColor: '#3F51B5' });
+            }
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.', confirmButtonColor: '#3F51B5' });
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function playBeep() {
+        try {
+            const c = new (window.AudioContext || window.webkitAudioContext)();
+            const o = c.createOscillator(); const g = c.createGain();
+            o.connect(g); g.connect(c.destination); o.frequency.value = 800; o.type = 'sine'; g.gain.value = 0.3;
+            o.start(); setTimeout(() => { o.stop(); c.close(); }, 200);
+        } catch(e) {}
+    }
+    </script>
+</body>
+</html>

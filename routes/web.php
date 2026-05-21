@@ -66,11 +66,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('items/scan-input', [ItemController::class, 'scanInput'])->name('items.scan-input');
         Route::post('items/scan-input', [ItemController::class, 'storeScanInput'])->name('items.store-scan');
         
+        // Barang Masuk & Keluar
+        Route::get('items/barang-masuk', [ItemController::class, 'barangMasuk'])->name('items.barang-masuk');
+        Route::get('items/barang-keluar', [ItemController::class, 'barangKeluar'])->name('items.barang-keluar');
+        
         // Barang Elektronik
         Route::resource('items', ItemController::class);
 
         // Pergerakan Barang
         Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
+
+        // Data Peminjaman (Riwayat Detail)
+        Route::get('data-peminjaman', function () {
+            return view('data-pengguna.dataPeminjam');
+        })->name('peminjaman.index');
 
         // --------------------------------------------------------
         // QR LENDING SYSTEM - Admin Panel
@@ -89,4 +98,26 @@ Route::middleware(['scan.token'])->group(function () {
     Route::get('scan/{token}', [QrScanController::class, 'showScanner'])->name('qr.scan');
     Route::get('scan/{token}/lookup/{code}', [QrScanController::class, 'lookupItem'])->name('qr.lookup');
     Route::post('scan/{token}/submit', [QrScanController::class, 'submitPeminjaman'])->name('qr.submit');
+});
+
+// ============================================================
+// DEPLOYMENT ASSISTANT (Hanya untuk Shared Hosting / InfinityFree)
+// ============================================================
+Route::get('/deploy-setup', function () {
+    try {
+        // Hapus cache lama
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        
+        // Buat Storage Link jika belum ada
+        if (!file_exists(public_path('storage'))) {
+            \Illuminate\Support\Facades\Artisan::call('storage:link');
+        }
+        
+        return "<h3>Deployment Setup Berhasil!</h3>
+                <p>1. Cache sistem telah dibersihkan.</p>
+                <p>2. Link Storage ke Public berhasil dibuat.</p>
+                <p>Proyek Anda siap digunakan!";
+    } catch (\Exception $e) {
+        return "<h3>Terjadi Kesalahan saat Deployment Setup:</h3><p>" . $e->getMessage() . "</p>";
+    }
 });

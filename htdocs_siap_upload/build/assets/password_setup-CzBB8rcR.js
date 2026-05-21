@@ -1,0 +1,1 @@
+window.togglePassword=function(e,t){let n=document.getElementById(e),r=document.getElementById(t);n.type===`password`?(n.type=`text`,r.textContent=`visibility_off`):(n.type=`password`,r.textContent=`visibility`)};

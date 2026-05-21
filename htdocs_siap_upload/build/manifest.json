@@ -1,0 +1,68 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-C_nsv0IO.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/css/dashboard.css": {
+    "file": "assets/dashboard-BmnBhAtE.css",
+    "name": "dashboard",
+    "names": [
+      "dashboard.css"
+    ],
+    "src": "resources/css/dashboard.css",
+    "isEntry": true
+  },
+  "resources/css/login.css": {
+    "file": "assets/login-81c0Q3NX.css",
+    "name": "login",
+    "names": [
+      "login.css"
+    ],
+    "src": "resources/css/login.css",
+    "isEntry": true
+  },
+  "resources/css/password_setup.css": {
+    "file": "assets/password_setup-BeuEwKjk.css",
+    "name": "password_setup",
+    "names": [
+      "password_setup.css"
+    ],
+    "src": "resources/css/password_setup.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-Bj12rFCa.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/app_layout.js": {
+    "file": "assets/app_layout-eNI4VbDO.js",
+    "name": "app_layout",
+    "src": "resources/js/app_layout.js",
+    "isEntry": true
+  },
+  "resources/js/dashboard.js": {
+    "file": "assets/dashboard-D4bLMy9o.js",
+    "name": "dashboard",
+    "src": "resources/js/dashboard.js",
+    "isEntry": true
+  },
+  "resources/js/login.js": {
+    "file": "assets/login-Duqf0jyQ.js",
+    "name": "login",
+    "src": "resources/js/login.js",
+    "isEntry": true
+  },
+  "resources/js/password_setup.js": {
+    "file": "assets/password_setup-CzBB8rcR.js",
+    "name": "password_setup",
+    "src": "resources/js/password_setup.js",
+    "isEntry": true
+  }
+}

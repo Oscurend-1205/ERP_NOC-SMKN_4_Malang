@@ -12,10 +12,41 @@
             font-family: 'Inter', sans-serif;
             background-color: #F8FAFC;
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+    <style>
+        html { zoom: 0.9; }
+        /* Fix viewport height when zoomed */
+        .min-h-screen { min-height: calc(100vh / 0.9) !important; }
+        .h-screen { height: calc(100vh / 0.9) !important; }
+        
+        /* Consistent table header styling */
+        table thead {
+            background-color: #e5e7eb !important;
+            border-bottom: 1px solid #d1d5db !important;
+        }
+        table thead th {
+            color: #1f2937 !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            padding: 1rem 1.5rem !important;
+        }
     </style>
 </head>
 <body class="flex min-h-screen bg-[#F8FAFC]">
@@ -27,8 +58,8 @@
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->
-        <div class="p-10 space-y-8">
-            <div class="flex items-center justify-between">
+        <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">QR Peminjaman</h2>
                     <p class="text-sm text-gray-500 mt-1">Kelola sesi peminjaman barang real-time via QR Code</p>
@@ -39,19 +70,13 @@
                         <span class="material-symbols-outlined text-[18px]">add_circle</span>
                         Input Pinjaman
                     </button>
-                    <!-- Generate QR Session Button -->
-                    <button id="btnGenerateQr" onclick="generateQR()" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">qr_code</span>
-                        Generate QR Session
-                    </button>
                 </div>
             </div>
 
             @if($activeSessions->count() > 0)
                 @php 
                     $s = $activeSessions->first(); 
-                    $baseUrl = rtrim(env('APP_URL', url('/')), '/');
-                    $scanUrl = $baseUrl . "/scan/{$s->token}";
+                    $scanUrl = route('qr.scan', ['token' => $s->token]);
                 @endphp
                 <div id="activeSessionData" 
                      data-token="{{ $s->token }}" 
@@ -61,7 +86,7 @@
                      class="hidden"></div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
                 {{-- LEFT COLUMN: QR & Settings --}}
                 <div class="space-y-6 lg:col-span-1">
@@ -75,7 +100,7 @@
                             
                             <div id="qrPlaceholder" class="py-10 text-gray-400 text-sm flex flex-col items-center">
                                 <span class="material-symbols-outlined text-[64px] mb-4 opacity-30">qr_code</span>
-                                <p>Belum ada QR aktif.<br>Klik tombol di atas untuk memulai.</p>
+                                <p>Belum ada QR aktif.<br>Klik tombol di bawah untuk memulai.</p>
                             </div>
                             
                             <div id="qrActive" class="hidden w-full">
@@ -95,6 +120,12 @@
                                     Batalkan Sesi Sekarang
                                 </button>
                             </div>
+
+                            <!-- Generate QR Session Button -->
+                            <button id="btnGenerateQr" onclick="generateQR()" class="mt-6 flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
+                                <span class="material-symbols-outlined text-[18px]">qr_code</span>
+                                Generate QR Session
+                            </button>
                         </div>
                     </div>
 
@@ -457,5 +488,8 @@
         }
     });
     </script>
+    @include('components.accessibility-button')
 </body>
 </html>
+
+

@@ -37,9 +37,9 @@ class QrAdminController extends Controller
     {
         $minutes = $request->input('expiry_minutes', 10);
         $session = ScanSession::generateToken(Auth::id(), $minutes);
-        // Gunakan APP_URL dari .env agar QR selalu mengarah ke IP lokal (bukan 127.0.0.1)
-        $baseUrl = rtrim(env('APP_URL', url('/')), '/');
-        $scanUrl = $baseUrl . "/scan/{$session->token}";
+        
+        // Gunakan fungsi route() agar URL yang dihasilkan sesuai dengan domain/IP yang sedang diakses
+        $scanUrl = route('qr.scan', ['token' => $session->token]);
 
         return response()->json([
             'success' => true,

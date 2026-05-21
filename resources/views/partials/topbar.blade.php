@@ -3,14 +3,20 @@
     $isOpen = ($currentHour >= 6 && $currentHour < 15);
 @endphp
 <!-- BEGIN: Header -->
-<header class="flex items-center justify-between px-10 py-6 bg-white shadow-sm sticky top-0 z-10" data-purpose="top-header">
-<div>
-    <h2 class="text-2xl font-bold text-[#111827]">{{ Auth::user()->role ?? 'Super Admin' }}</h2>
-    <p class="text-xs text-gray-500 mt-0.5">Selamat datang, {{ Auth::user()->name ?? 'Admin' }}</p>
+<header class="flex items-center justify-between px-4 md:px-10 py-3 md:py-4 bg-white shadow-sm sticky top-0 z-10" data-purpose="top-header">
+<div class="flex items-center gap-3">
+    <!-- Hamburger Menu (Mobile Only) -->
+    <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none">
+        <span class="material-symbols-outlined text-[24px]">menu</span>
+    </button>
+    <div>
+        <h2 class="text-base md:text-xl font-bold text-[#111827]">{{ Auth::user()->role ?? 'Super Admin' }}</h2>
+        <p class="text-[10px] md:text-xs text-gray-500 mt-0.5">Selamat datang, {{ Auth::user()->name ?? 'Admin' }}</p>
+    </div>
 </div>
-<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-3 md:space-x-4">
     <!-- Realtime Clock & Status -->
-    <div class="bg-[#0B0E37] border border-gray-700 px-4 py-1.5 rounded-lg text-white font-mono text-sm flex items-center gap-3 shadow-inner">
+    <div class="hidden md:flex bg-[#0B0E37] border border-gray-700 px-4 py-1.5 rounded-lg text-white font-mono text-sm items-center gap-3 shadow-inner">
         <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
         <span class="text-gray-600 font-normal">|</span>
         <span id="operational-status" class="font-bold text-[12px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">

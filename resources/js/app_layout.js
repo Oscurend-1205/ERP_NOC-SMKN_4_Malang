@@ -4,11 +4,16 @@
  */
 
 window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    if (sidebar && overlay) {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+    const sidebar = document.getElementById('mainSidebar') || document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop') || document.getElementById('sidebarOverlay');
+    
+    // Only allow toggle on mobile (width < 768px)
+    if (sidebar && window.innerWidth < 768) {
+        sidebar.classList.toggle('sidebar-mobile-open');
+        
+        if (backdrop) {
+            backdrop.classList.toggle('hidden');
+        }
     }
 }
 

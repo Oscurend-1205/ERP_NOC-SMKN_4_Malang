@@ -2,7 +2,7 @@
 <div id="sidebarBackdrop" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
 <!-- BEGIN: Sidebar -->
-<aside id="mainSidebar" class="fixed inset-y-0 left-0 md:relative md:translate-x-0 transform -translate-x-full transition-transform duration-300 w-64 bg-[#0B0E37] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">
+<aside id="mainSidebar" class="fixed inset-y-0 left-0 md:sticky md:top-0 h-full md:h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#0B0E37] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">
 <style>
     /* Custom Scrollbar for Sidebar */
     #sidebar-nav-container {
@@ -34,7 +34,7 @@
 <img alt="SMKN 4 MALANG NOC Logo" class="w-[210px] h-auto object-contain" src="{{ asset('asset/noc-smkn4.svg') }}"/>
 </div>
 <!-- Navigation Menu -->
-<nav id="sidebar-nav-container" class="mt-1 flex-grow px-4 space-y-2 overflow-y-auto">
+<nav id="sidebar-nav-container" class="mt-1 flex-grow px-4 space-y-2 overflow-y-auto overflow-x-hidden">
 <!-- Active Item: Beranda -->
 <a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('dashboard') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('dashboard') }}">
 <div class="w-8 flex justify-center items-center flex-shrink-0">
@@ -52,10 +52,10 @@
 <!-- Data Master -->
 @if(Auth::user()->role === 'Superadmin')
 <div class="flex flex-col">
-<button type="button" id="btn-data-master" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-colors {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') ? 'text-white font-medium' : 'text-gray-400 hover:text-white' }} border-none cursor-pointer bg-transparent text-left relative z-10">
-<div class="flex items-center space-x-3 pointer-events-none">
+<button type="button" id="btn-data-master" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-colors {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') ? 'text-white font-medium' : 'text-gray-400 hover:text-white' }} border-none cursor-pointer bg-transparent text-left relative z-10">
+<div class="flex items-center space-x-2 pointer-events-none">
 <div class="w-8 flex justify-center items-center flex-shrink-0">
-<svg class="w-[27px] h-[27px] flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<svg class="w-[24px] h-[24px] flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 </div>
@@ -63,13 +63,14 @@
 </div>
 <span id="icon-data-master" class="material-symbols-outlined text-[18px] text-white transition-transform duration-300 pointer-events-none">expand_more</span>
 </button>
-<div id="sub-data-master" class="hidden flex-col gap-1 pl-16 mt-1 overflow-hidden transition-all duration-300">
+<div id="sub-data-master" class="hidden flex-col gap-1 pl-12 pr-2 mt-1 overflow-hidden transition-all duration-300">
+<a href="{{ route('users.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('users.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Data User</a>
 <a href="{{ route('locations.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('locations.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Data Ruangan</a>
+<a href="{{ route('jurusan.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('jurusan.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Data Jurusan</a>
 <a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Data Supplier</a>
-<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Data Jurusan</a>
-<a href="{{ route('categories.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Data Kategori Barang</a>
-<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Data Kondisi Barang</a>
-<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Manajemen Asal Barang</a>
+<a href="{{ route('categories.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Kategori Barang</a>
+<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Kondisi Barang</a>
+<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Asal Barang</a>
 </div>
 </div>
 @endif
@@ -86,13 +87,6 @@
 <img src="{{ asset('asset/icon/data-peminjaman.svg') }}" alt="Data Peminjaman" class="w-7 h-7 flex-shrink-0 object-contain brightness-0 invert"/>
 </div>
 <span>Data Peminjaman</span>
-</a>
-<!-- Data Pengguna -->
-<a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('users.*') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('users.index') }}">
-<div class="w-8 flex justify-center items-center flex-shrink-0">
-<span class="material-symbols-outlined text-[24px] text-white">group</span>
-</div>
-<span>Data Pengguna</span>
 </a>
 <!-- Mutasi Barang -->
 <a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('movements.*') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('movements.index') }}">
@@ -136,7 +130,7 @@
             btnDataMaster.dataset.initialized = 'true';
 
             // Check if we are on a Data Master page
-            const isDataMasterActive = {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') ? 'true' : 'false' }};
+            const isDataMasterActive = {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') ? 'true' : 'false' }};
             
             if (isDataMasterActive) {
                 subDataMaster.classList.remove('hidden');

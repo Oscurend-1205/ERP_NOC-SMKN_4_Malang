@@ -964,7 +964,7 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-[#F8FAFC] overflow-x-hidden">
+<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
     {{-- Sidebar & Topbar Partials --}}
     @include('partials.sidebar')
 

@@ -11,7 +11,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::latest()->paginate(10);
-        return view('data-pengguna.dataPengguna', compact('users'));
+        return view('data-master.dataUser', compact('users'));
     }
 
     public function store(Request $request)

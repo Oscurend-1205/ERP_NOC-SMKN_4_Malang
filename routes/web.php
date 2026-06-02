@@ -42,8 +42,13 @@ Route::middleware(['auth'])->group(function () {
         // Kategori Barang (Data Master)
         Route::resource('categories', CategoryController::class)->except(['show']);
 
-        // Lokasi Laboratorium (Data Master)
+        // Lokasi Laboratorium (Data Master / Data Ruangan)
         Route::resource('locations', LocationController::class)->except(['show']);
+
+        // Data Jurusan (Data Master)
+        Route::get('data-jurusan', function () {
+            return view('data-master.dataJurusan');
+        })->name('jurusan.index');
 
         // Manajemen Pengguna (hanya Superadmin yang bisa tambah)
         Route::post('data-pengguna', [UserController::class, 'store'])->name('users.store');

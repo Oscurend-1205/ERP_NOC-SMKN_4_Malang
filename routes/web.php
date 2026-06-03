@@ -40,7 +40,19 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------------
     Route::middleware(['role:Superadmin'])->group(function () {
         // Kategori Barang (Data Master)
-        Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::get('kategori-barang', function () {
+            return view('data-master.kategoriBarang');
+        })->name('categories.index');
+
+        // Data Supplier (Data Master)
+        Route::get('data-supplier', function () {
+            return view('data-master.dataSupplier');
+        })->name('supplier.index');
+
+        // Kondisi Barang (Data Master)
+        Route::get('kondisi-barang', function () {
+            return view('data-master.kondisiBarang');
+        })->name('kondisi.index');
 
         // Lokasi Laboratorium (Data Master / Data Ruangan)
         Route::resource('locations', LocationController::class)->except(['show']);
@@ -78,8 +90,8 @@ Route::middleware(['auth'])->group(function () {
         // Barang Elektronik
         Route::resource('items', ItemController::class);
 
-        // Pergerakan Barang
-        Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
+        // Pergerakan Barang (Mutasi) dihapus sesuai permintaan
+        // Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
 
         // Data Peminjaman (Riwayat Detail)
         Route::get('data-peminjaman', function () {

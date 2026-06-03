@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Kategori Barang')
+@section('title', 'Kondisi Barang')
 
 @section('content')
 <!-- BEGIN: Page Title & Action -->
 <div class="flex justify-between items-start mb-6">
     <div>
-        <h1 class="text-3xl font-bold text-slate-900">Kategori Barang</h1>
-        <p class="text-sm text-slate-500 mt-1">Kelola data kategori barang.</p>
+        <h1 class="text-3xl font-bold text-slate-900">Kondisi Barang</h1>
+        <p class="text-sm text-slate-500 mt-1">Kelola data kondisi barang.</p>
     </div>
     @if(auth()->user()->role === 'Superadmin')
     <button class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
-        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Kategori
+        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Kondisi
     </button>
     @endif
 </div>
@@ -25,7 +25,7 @@
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                 <i class="w-4 h-4" data-lucide="search"></i>
             </span>
-            <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kategori barang...">
+            <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kondisi barang...">
         </div>
         <div class="flex items-center space-x-3">
             <button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
@@ -43,7 +43,8 @@
             <thead class="bg-slate-50/50">
                 <tr>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">No</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Kategori</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Kondisi</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Preview Label</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Keterangan</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Status</th>
                     @if(auth()->user()->role === 'Superadmin')
@@ -55,8 +56,13 @@
                 <!-- Row 1 -->
                 <tr class="table-row-hover transition-colors">
                     <td class="px-6 py-4 text-sm text-slate-600">1</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Networking Equipment</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Router, Switch, Access Point, Firewall</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Baik</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                            Baik
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">Barang dapat berfungsi 100% normal tanpa cacat.</td>
                     <td class="px-6 py-4 text-center">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                             <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
@@ -74,8 +80,13 @@
                 <!-- Row 2 -->
                 <tr class="bg-slate-50/30 table-row-hover transition-colors">
                     <td class="px-6 py-4 text-sm text-slate-600">2</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Cabling & Accessories</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">UTP/STP Cable, Fiber Optic, Connectors, Patch Cord</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Kurang Baik</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-100">
+                            Kurang Baik
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">Berfungsi namun ada minor cacat fisik atau performa menurun.</td>
                     <td class="px-6 py-4 text-center">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                             <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
@@ -93,8 +104,13 @@
                 <!-- Row 3 -->
                 <tr class="table-row-hover transition-colors">
                     <td class="px-6 py-4 text-sm text-slate-600">3</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Server Components</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">RAM, HDD/SSD Enterprise, CPU, Power Supply</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Rusak Berat</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                            Rusak Berat
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">Barang tidak dapat digunakan sama sekali dan perlu dihapus (afkir).</td>
                     <td class="px-6 py-4 text-center">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                             <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
@@ -112,11 +128,16 @@
                 <!-- Row 4 -->
                 <tr class="bg-slate-50/30 table-row-hover transition-colors">
                     <td class="px-6 py-4 text-sm text-slate-600">4</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Peripherals</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Monitor, Keyboard, Mouse, UPS, Printer</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Dalam Perbaikan</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                            Dalam Perbaikan
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">Sedang dalam proses service atau garansi vendor.</td>
                     <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                            <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span> Non-Aktif
                         </span>
                     </td>
                     @if(auth()->user()->role === 'Superadmin')

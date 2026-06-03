@@ -45,7 +45,11 @@
             font-weight: 700 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.05em !important;
-            padding: 1rem 1.5rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+        /* Elegant minimalist table cells */
+        table tbody td {
+            padding: 0.5rem 1rem !important;
         }
     </style>
 </head>

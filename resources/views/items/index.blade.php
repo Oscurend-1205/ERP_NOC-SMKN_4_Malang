@@ -45,16 +45,20 @@
             font-weight: 700 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.05em !important;
-            padding: 1rem 1.5rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+        /* Elegant minimalist table cells */
+        table tbody td {
+            padding: 0.5rem 1rem !important;
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-[#F8FAFC]">
+<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
 
     @include('partials.sidebar')
 
     <!-- BEGIN: Main Content Area -->
-    <main class="grow flex flex-col h-screen overflow-y-auto">
+    <main class="grow flex flex-col h-screen overflow-y-auto transition-all duration-300 w-full min-w-0">
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->

@@ -126,7 +126,7 @@ class QrScanController extends Controller
             'success' => true,
             'message' => 'Peminjaman berhasil dicatat!',
             'data' => [
-                'id' => $peminjaman->id,
+                'id' => $peminjaman->id_pinjam,
                 'nama' => $peminjaman->nama_peminjam,
                 'kelas' => $peminjaman->kelas,
                 'barang' => $item->name,

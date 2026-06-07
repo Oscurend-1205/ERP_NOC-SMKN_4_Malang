@@ -18,6 +18,12 @@
     {{-- Material Symbols --}}
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
+    {{-- Lucide Icons (Global - loaded once for PJAX compatibility) --}}
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    {{-- QRCode.js (Global - loaded once for PJAX compatibility) --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRec0enTMOyNq/tv309Zv4s2l3uO21GfBnjzgtfA0ZlS0QO+YvA4n27I4/sM7nQx9NfS42XQ8U7zB1qjD7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     {{-- Tailwind CSS CDN (Disable Preflight to prevent breaking native styles) --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -977,7 +983,7 @@
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->
-        <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
             {{-- Flash Messages --}}
             @if(session('success'))
                 <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
@@ -1011,8 +1017,24 @@
         </div>
     </main>
 
-    @vite(['resources/js/app_layout.js'])
+    @vite(['resources/js/app_layout.js', 'resources/js/turbo-navigation.js'])
     @stack('scripts')
+
+    {{-- Global Lucide icon initialization --}}
+    <script>
+        // Initialize Lucide icons on first page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        });
+        // Re-initialize Lucide icons after every PJAX navigation
+        document.addEventListener('pjax:complete', function() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        });
+    </script>
 
     @include('components.accessibility-button')
 </body>

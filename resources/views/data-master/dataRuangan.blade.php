@@ -10,10 +10,9 @@
 <p class="text-sm text-slate-500 mt-1">Kelola daftar ruangan yang ada.</p>
 </div>
 @if(auth()->user()->role === 'Superadmin')
-<button class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
-<i class="w-4 h-4 mr-2" data-lucide="plus"></i>
-          Tambah Ruangan
-        </button>
+    <button class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
+        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Ruangan
+    </button>
 @endif
 </div>
 <!-- BEGIN: Data Table Container -->
@@ -152,11 +151,4 @@
 </section>
 <!-- END: Table Container Card -->
 
-@push('scripts')
-<script src="https://unpkg.com/lucide@latest"></script>
-<script data-purpose="lucide-icon-init">
-    // Initialize icons
-    lucide.createIcons();
-</script>
-@endpush
 @endsection

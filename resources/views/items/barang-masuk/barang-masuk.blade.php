@@ -40,7 +40,7 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-[#F8FAFC]">
+<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
 
     @include('partials.sidebar')
 
@@ -49,7 +49,7 @@
         @include('partials.topbar')
 
         <!-- BEGIN: Main Page Content -->
-        <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6" data-purpose="main-layout">
+        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6" data-purpose="main-layout">
             {{-- Header --}}
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -177,6 +177,7 @@
         <!-- END: Main Page Content -->
     </main>
     <!-- END: Main Content Area -->
+    @vite(['resources/js/turbo-navigation.js'])
     @include('components.accessibility-button')
 </body>
 </html>

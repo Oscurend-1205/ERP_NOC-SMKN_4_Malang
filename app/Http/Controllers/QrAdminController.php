@@ -26,8 +26,10 @@ class QrAdminController extends Controller
             ->get();
 
         $availableItems = \App\Models\Item::where('status', 'tersedia')->orderBy('name')->get();
+        $users = \App\Models\User::select('name', 'role')->orderBy('name')->get();
+        $jurusans = \App\Models\Jurusan::select('name')->orderBy('name')->get();
 
-        return view('qr.admin-panel', compact('activeSessions', 'recentPeminjaman', 'availableItems'));
+        return view('qr.admin-panel', compact('activeSessions', 'recentPeminjaman', 'availableItems', 'users', 'jurusans'));
     }
 
     /**
@@ -65,7 +67,7 @@ class QrAdminController extends Controller
 
         $data = $query->limit(20)->get()->map(function ($p) {
             return [
-                'id' => $p->id,
+                'id' => $p->id_pinjam,
                 'nama_peminjam' => $p->nama_peminjam,
                 'kelas' => $p->kelas,
                 'item_name' => $p->item->name ?? '-',

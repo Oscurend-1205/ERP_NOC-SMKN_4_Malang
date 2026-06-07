@@ -43,7 +43,7 @@
     @include('partials.topbar')
 
     <!-- BEGIN: Page Content -->
-    <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+    <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
         <!-- Header Section -->
         <div class="flex justify-between items-end">
             <div>
@@ -150,6 +150,7 @@
     </div>
 </main>
 
+@vite(['resources/js/turbo-navigation.js'])
 @include('components.accessibility-button')
 </body>
 </html>

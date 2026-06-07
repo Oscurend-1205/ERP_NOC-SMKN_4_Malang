@@ -51,7 +51,7 @@
         }
     </style>
 </head>
-<body class="flex min-h-screen bg-[#F8FAFC]">
+<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
 
     @include('partials.sidebar')
 
@@ -60,7 +60,7 @@
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->
-        <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
             
             {{-- Header --}}
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -105,40 +105,40 @@
                         <span class="material-symbols-outlined text-[#3F51B5]">edit_document</span>
                         <h2 class="font-bold text-gray-800">Form Input Barang</h2>
                     </div>
-                    <div class="p-6">
-                        <form id="addItemForm" onsubmit="submitItem(event)" class="space-y-5">
+                    <div class="p-4 md:p-5">
+                        <form id="addItemForm" onsubmit="submitItem(event)" class="flex flex-col gap-3.5">
                             @csrf
                             
-                            <div id="scanAlert" class="hidden bg-blue-50 border border-blue-100 text-blue-800 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2">
-                                <span class="material-symbols-outlined text-blue-600 text-[20px]">check_circle</span>
+                            <div id="scanAlert" class="hidden bg-blue-50 border border-blue-100 text-blue-800 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-600 text-[16px]">check_circle</span>
                                 QR Code Terdeteksi! Silakan lengkapi data.
                             </div>
 
-                            <div class="space-y-1.5">
-                                <label class="block text-[11px] font-bold text-gray-500">KODE BARANG (DARI SCAN)</label>
-                                <input type="text" id="code" name="code" readonly required placeholder="Scan stiker QR untuk mengisi..." 
-                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-[#3F51B5] focus:outline-none">
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-bold text-gray-500 tracking-wide">KODE BARANG (DARI SCAN)</label>
+                                <input type="text" id="code" name="code" readonly required placeholder="Scan stiker QR..." 
+                                    class="w-full px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg font-mono font-bold text-[#3F51B5] focus:outline-none">
                             </div>
 
-                            <div class="space-y-1.5">
-                                <label class="block text-[11px] font-bold text-gray-500">NAMA BARANG</label>
+                            <div class="space-y-1">
+                                <label class="block text-[10px] font-bold text-gray-500 tracking-wide">NAMA BARANG</label>
                                 <input type="text" id="name" name="name" required disabled placeholder="Contoh: Monitor LG 24'"
-                                    class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                    class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#3F51B5] focus:border-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div class="space-y-1.5">
-                                    <label class="block text-[11px] font-bold text-gray-500">KATEGORI</label>
-                                    <select id="category_id" name="category_id" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-gray-500 tracking-wide">KATEGORI</label>
+                                    <select id="category_id" name="category_id" required disabled class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
                                         <option value="">-- Pilih --</option>
                                         @foreach($categories as $cat)
                                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-[11px] font-bold text-gray-500">KONDISI</label>
-                                    <select id="condition" name="condition" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-gray-500 tracking-wide">KONDISI</label>
+                                    <select id="condition" name="condition" required disabled class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
                                         <option value="baik">Baik</option>
                                         <option value="rusak_ringan">Rusak Ringan</option>
                                         <option value="rusak_berat">Rusak Berat</option>
@@ -147,15 +147,15 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div class="space-y-1.5">
-                                    <label class="block text-[11px] font-bold text-gray-500">TANGGAL MASUK</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-gray-500 tracking-wide">TANGGAL MASUK</label>
                                     <input type="date" id="purchase_date" name="purchase_date" required disabled value="{{ date('Y-m-d') }}"
-                                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                        class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="block text-[11px] font-bold text-gray-500">LOKASI LAB</label>
-                                    <select id="location_id" name="location_id" required disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
+                                <div class="space-y-1">
+                                    <label class="block text-[10px] font-bold text-gray-500 tracking-wide">LOKASI LAB</label>
+                                    <select id="location_id" name="location_id" required disabled class="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#3F51B5] outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400">
                                         @foreach($locations as $loc)
                                             <option value="{{ $loc->id }}">{{ $loc->name }}</option>
                                         @endforeach
@@ -163,10 +163,10 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
-                                <button type="button" onclick="resetForm()" class="px-6 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Reset</button>
-                                <button type="submit" id="btnSubmit" disabled class="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-[#3F51B5] rounded-xl hover:bg-[#3949AB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span class="material-symbols-outlined text-[18px]">save</span> Simpan Barang
+                            <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 mt-4">
+                                <button type="button" onclick="resetForm()" class="px-4 py-1.5 text-[12px] font-bold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Reset</button>
+                                <button type="submit" id="btnSubmit" disabled class="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span class="material-symbols-outlined text-[16px]">save</span> Simpan
                                 </button>
                             </div>
                         </form>
@@ -273,6 +273,7 @@
         } catch(e) {}
     }
     </script>
+    @vite(['resources/js/turbo-navigation.js'])
     @include('components.accessibility-button')
 </body>
 </html>

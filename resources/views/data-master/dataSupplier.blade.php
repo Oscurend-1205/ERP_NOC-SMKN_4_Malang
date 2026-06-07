@@ -19,47 +19,22 @@
 
 <!-- BEGIN: Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-    <!-- Total Supplier -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
         <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mr-4 flex-shrink-0">
             <i data-lucide="factory" class="w-6 h-6"></i>
         </div>
         <div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Supplier</p>
-            <p class="text-2xl font-bold text-slate-800 mt-1">124</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $suppliers->total() }}</p>
         </div>
     </div>
-    
-    <!-- Supplier Aktif -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
         <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mr-4 flex-shrink-0">
             <i data-lucide="check-circle" class="w-6 h-6"></i>
         </div>
         <div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Supplier Aktif</p>
-            <p class="text-2xl font-bold text-slate-800 mt-1">118</p>
-        </div>
-    </div>
-    
-    <!-- Pengiriman -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
-        <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mr-4 flex-shrink-0">
-            <i data-lucide="truck" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight mb-0.5">Pengiriman Bulan Ini</p>
-            <p class="text-2xl font-bold text-slate-800">42</p>
-        </div>
-    </div>
-    
-    <!-- Update Terakhir -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
-        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mr-4 flex-shrink-0">
-            <i data-lucide="clock" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Update Terakhir</p>
-            <p class="text-sm font-bold text-slate-800 mt-1">2 Jam Lalu</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $suppliers->total() }}</p>
         </div>
     </div>
 </div>
@@ -102,138 +77,55 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <!-- Row 1 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">1</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">PT. Media Teknologi Nusantara</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Budi Setiawan</td>
+                @forelse($suppliers as $supplier)
+                <tr class="{{ $loop->even ? 'bg-slate-50/30' : '' }} table-row-hover transition-colors">
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $loop->iteration + $suppliers->firstItem() - 1 }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $supplier->name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $supplier->pic ?? '-' }}</td>
                     <td class="px-6 py-4 text-sm text-slate-600">
+                        @if($supplier->phone)
                         <div class="flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> +62 812-3456-7890
+                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> {{ $supplier->phone }}
                         </div>
+                        @else
+                        -
+                        @endif
                     </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">sales@mediatech.id</td>
-                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">Jl. Sudirman No. 45, Jakarta Pusat</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $supplier->email ?? '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">{{ $supplier->address ?? '-' }}</td>
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
                             <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <form action="{{ route('supplier.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus supplier ini?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </form>
                         </div>
                     </td>
                     @endif
                 </tr>
-                <!-- Row 2 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">2</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Indo Computer Solution</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Siti Aminah</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> +62 856-7890-1234
+                @empty
+                <tr>
+                    <td colspan="{{ auth()->user()->role === 'Superadmin' ? 7 : 6 }}" class="px-6 py-10 text-center text-slate-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mb-3"></i>
+                            <p class="text-sm font-medium">Belum ada data supplier</p>
+                            <p class="text-xs mt-1 text-slate-400">Data supplier yang ditambahkan akan muncul di sini</p>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">support@indecomp.co.id</td>
-                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">Ruko Grand Palace Kav. 12, Malang</td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
                 </tr>
-                <!-- Row 3 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">3</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Global Network Hardware</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Rendi Wijaya</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> +62 811-2233-4455
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">admin@globalnet.com</td>
-                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">Kawasan industri Pulogadung Block C, Jakarta</td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 4 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">4</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Malang Fiber Optic</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Dewi Lestari</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> +62 878-1122-3344
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">contact@malangfiber.net</td>
-                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">Jl. Ijen No. 100, Malang</td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 5 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">5</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">E-Katalog Tech Store</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Andi Prasetyo</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-green-500"></i> +62 813-5566-7788
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">sales@ekatalogtech.com</td>
-                    <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">Jl. Gajah Mada No. 8, Surabaya</td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
     
     <!-- Table Pagination -->
-    <div class="px-6 py-4 flex items-center justify-between border-t border-slate-100">
-        <p class="text-xs text-slate-500">Menampilkan 1-5 dari 24 data</p>
-        <div class="flex items-center space-x-2">
-            <button class="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30" disabled>
-                <i class="w-4 h-4" data-lucide="chevron-left"></i>
-            </button>
-            <button class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-900 rounded text-xs font-bold">1</button>
-            <button class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 text-slate-600 rounded text-xs">2</button>
-            <button class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 text-slate-600 rounded text-xs">3</button>
-            <button class="p-2 text-slate-600 hover:text-slate-800">
-                <i class="w-4 h-4" data-lucide="chevron-right"></i>
-            </button>
-        </div>
+    <div class="px-6 py-4 border-t border-slate-100">
+        {{ $suppliers->links() }}
     </div>
 </section>
 <!-- END: Data Table Section -->
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-    });
-</script>
-@endpush
 @endsection

@@ -45,114 +45,56 @@
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">No</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Kategori</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Keterangan</th>
-                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Jumlah Barang</th>
                     @if(auth()->user()->role === 'Superadmin')
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <!-- Row 1 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">1</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Networking Equipment</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Router, Switch, Access Point, Firewall</td>
+                @forelse($categories as $category)
+                <tr class="{{ $loop->even ? 'bg-slate-50/30' : '' }} table-row-hover transition-colors">
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $loop->iteration + $categories->firstItem() - 1 }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $category->name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $category->description ?? '-' }}</td>
                     <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                            {{ $category->items_count }} Barang
                         </span>
                     </td>
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
                             <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <form action="{{ route('categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kategori ini?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </form>
                         </div>
                     </td>
                     @endif
                 </tr>
-                <!-- Row 2 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">2</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Cabling & Accessories</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">UTP/STP Cable, Fiber Optic, Connectors, Patch Cord</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
-                        </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                @empty
+                <tr>
+                    <td colspan="{{ auth()->user()->role === 'Superadmin' ? 5 : 4 }}" class="px-6 py-10 text-center text-slate-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mb-3"></i>
+                            <p class="text-sm font-medium">Belum ada data kategori</p>
+                            <p class="text-xs mt-1 text-slate-400">Kategori yang ditambahkan akan muncul di sini</p>
                         </div>
                     </td>
-                    @endif
                 </tr>
-                <!-- Row 3 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">3</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Server Components</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">RAM, HDD/SSD Enterprise, CPU, Power Supply</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
-                        </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 4 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">4</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Peripherals</td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Monitor, Keyboard, Mouse, UPS, Printer</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
-                        </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
     
     <!-- Table Pagination -->
-    <div class="px-6 py-4 flex items-center justify-between border-t border-slate-100">
-        <p class="text-xs text-slate-500">Menampilkan 1-4 dari 4 data</p>
-        <div class="flex items-center space-x-2">
-            <button class="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30" disabled>
-                <i class="w-4 h-4" data-lucide="chevron-left"></i>
-            </button>
-            <button class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-900 rounded text-xs font-bold">1</button>
-            <button class="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30" disabled>
-                <i class="w-4 h-4" data-lucide="chevron-right"></i>
-            </button>
-        </div>
+    <div class="px-6 py-4 border-t border-slate-100">
+        {{ $categories->links() }}
     </div>
 </section>
 <!-- END: Data Table Section -->
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-    });
-</script>
-@endpush
 @endsection

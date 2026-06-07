@@ -2,10 +2,6 @@
 
 @section('title', 'Dashboard')
 
-@push('scripts')
-<!-- ApexCharts CDN -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-@endpush
 
 @section('content')
     <!-- BEGIN: Ringkasan Section -->
@@ -157,31 +153,10 @@
     </section>
     <!-- END: Activity Table Section -->
 
+<!-- ApexCharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-    // Realtime Clock
-    function updateClock() {
-        const now = new Date();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
-        const el = document.getElementById('realtime-clock-display');
-        if (el) el.textContent = h + ':' + m + ':' + s;
-
-        const hour = now.getHours();
-        const statusEl = document.getElementById('operational-status');
-        if (statusEl) {
-            if (hour >= 6 && hour < 15) {
-                statusEl.textContent = 'OPEN';
-                statusEl.className = 'font-bold text-[12px] text-green-400';
-            } else {
-                statusEl.textContent = 'CLOSED';
-                statusEl.className = 'font-bold text-[12px] text-red-400';
-            }
-        }
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
+(function() {
     // Phone number input formatting
     const phoneInput = document.getElementById('borrower_phone_input');
     if (phoneInput) {
@@ -191,7 +166,7 @@
     }
 
     // Initialize ApexCharts
-    document.addEventListener('DOMContentLoaded', function() {
+    function initDashboardCharts() {
         // Bar Chart
         var barOptions = {
             series: [{
@@ -233,6 +208,10 @@
             }
         };
         if(document.querySelector("#barChart")) {
+            // Check if chart is already rendered to avoid duplicates
+            if(document.querySelector("#barChart").innerHTML !== "") {
+                document.querySelector("#barChart").innerHTML = "";
+            }
             var barChart = new ApexCharts(document.querySelector("#barChart"), barOptions);
             barChart.render();
         }
@@ -290,9 +269,25 @@
             tooltip: { enabled: true }
         };
         if(document.querySelector("#donutChart")) {
+            if(document.querySelector("#donutChart").innerHTML !== "") {
+                document.querySelector("#donutChart").innerHTML = "";
+            }
             var donutChart = new ApexCharts(document.querySelector("#donutChart"), donutOptions);
             donutChart.render();
         }
-    });
+    }
+    
+    // Call initialization with retry (waiting for CDN to load)
+    let chartRetries = 0;
+    function tryInitCharts() {
+        if (typeof ApexCharts !== 'undefined') {
+            initDashboardCharts();
+        } else if (chartRetries < 20) {
+            chartRetries++;
+            setTimeout(tryInitCharts, 100);
+        }
+    }
+    tryInitCharts();
+})();
 </script>
 @endsection

@@ -57,14 +57,6 @@
             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
         @enderror
     </div>
-    <div class="flex items-center justify-between">
-        <div class="flex items-center">
-            <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded">
-            <label for="remember" class="ml-2 block text-sm text-slate-600 dark:text-slate-400">
-                Ingat Saya
-            </label>
-        </div>
-    </div>
     <button class="w-full bg-primary hover:bg-opacity-90 text-white font-semibold py-3 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] focus:ring-4 focus:ring-primary/30" type="submit">
         Masuk
     </button>

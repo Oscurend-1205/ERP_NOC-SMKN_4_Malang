@@ -9,10 +9,37 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$zipFile = 'project.zip'; // Nama file zip yang diupload
+$zipFile = 'project.zip'; // Nama file zip yang diupload/digabung
+
+// Cek apakah ada file part-nya
+$partNum = 1;
+$partFile = sprintf("%s.%03d", $zipFile, $partNum);
+
+if (file_exists($partFile)) {
+    echo "Ditemukan file zip terpecah. Sedang menggabungkan...<br>";
+    $out = fopen($zipFile, 'wb');
+    if (!$out) {
+        die("Error: Tidak dapat membuat file {$zipFile} untuk penggabungan.");
+    }
+    
+    while (file_exists($partFile)) {
+        echo "Menggabungkan {$partFile}...<br>";
+        $in = fopen($partFile, 'rb');
+        if ($in) {
+            while (!feof($in)) {
+                fwrite($out, fread($in, 8192));
+            }
+            fclose($in);
+        }
+        $partNum++;
+        $partFile = sprintf("%s.%03d", $zipFile, $partNum);
+    }
+    fclose($out);
+    echo "Penggabungan selesai!<br><br>";
+}
 
 if (!file_exists($zipFile)) {
-    die("Error: File <b>{$zipFile}</b> tidak ditemukan di server. Pastikan Anda sudah menguploadnya langsung ke folder htdocs.");
+    die("Error: File <b>{$zipFile}</b> tidak ditemukan di server. Pastikan Anda sudah menguploadnya atau mengupload part-partnya (project.zip.001, dst) langsung ke folder htdocs.");
 }
 
 $zip = new ZipArchive;

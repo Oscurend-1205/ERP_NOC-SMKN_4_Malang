@@ -62,7 +62,7 @@
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->
-        <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
             {{-- Flash Messages --}}
             @if(session('success'))
                 <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
@@ -231,7 +231,6 @@
                 @endif
             </div>
 
-        </div>
     </main>
 
     <!-- Modal Tambah Barang (Tailwind Styled) -->
@@ -410,6 +409,7 @@
     </div>
 
     <script>
+    (function() {
         // Modal functions
         window.toggleAddBarangModal = function(show) {
             const modal = document.getElementById('addBarangModal');
@@ -529,8 +529,10 @@
                 });
             }
         });
+    })();
     </script>
-
+    </div> <!-- END PJAX CONTENT -->
+    @vite(['resources/js/turbo-navigation.js'])
     @include('components.accessibility-button')
 </body>
 </html>

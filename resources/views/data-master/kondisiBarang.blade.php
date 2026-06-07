@@ -53,127 +53,69 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <!-- Row 1 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">1</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Baik</td>
+                @forelse($kondisis as $kondisi)
+                @php
+                    $colorMap = [
+                        'green' => ['bg' => 'bg-green-50', 'text' => 'text-green-700', 'border' => 'border-green-100'],
+                        'yellow' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-700', 'border' => 'border-yellow-100'],
+                        'red' => ['bg' => 'bg-red-50', 'text' => 'text-red-600', 'border' => 'border-red-100'],
+                        'blue' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-100'],
+                    ];
+                    $c = $colorMap[$kondisi->label_color] ?? $colorMap['green'];
+                @endphp
+                <tr class="{{ $loop->even ? 'bg-slate-50/30' : '' }} table-row-hover transition-colors">
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $loop->iteration + $kondisis->firstItem() - 1 }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $kondisi->name }}</td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            Baik
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $c['bg'] }} {{ $c['text'] }} border {{ $c['border'] }}">
+                            {{ $kondisi->name }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Barang dapat berfungsi 100% normal tanpa cacat.</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ $kondisi->description ?? '-' }}</td>
                     <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
-                        </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 2 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">2</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Kurang Baik</td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-100">
-                            Kurang Baik
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Berfungsi namun ada minor cacat fisik atau performa menurun.</td>
-                    <td class="px-6 py-4 text-center">
+                        @if($kondisi->is_active)
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                             <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
                         </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 3 -->
-                <tr class="table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">3</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Rusak Berat</td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
-                            Rusak Berat
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Barang tidak dapat digunakan sama sekali dan perlu dihapus (afkir).</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
-                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Aktif
-                        </span>
-                    </td>
-                    @if(auth()->user()->role === 'Superadmin')
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-                <!-- Row 4 -->
-                <tr class="bg-slate-50/30 table-row-hover transition-colors">
-                    <td class="px-6 py-4 text-sm text-slate-600">4</td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">Dalam Perbaikan</td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                            Dalam Perbaikan
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">Sedang dalam proses service atau garansi vendor.</td>
-                    <td class="px-6 py-4 text-center">
+                        @else
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
                             <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span> Non-Aktif
                         </span>
+                        @endif
                     </td>
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
                             <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <button class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <form action="{{ route('kondisi.destroy', $kondisi->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kondisi ini?');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </form>
                         </div>
                     </td>
                     @endif
                 </tr>
+                @empty
+                <tr>
+                    <td colspan="{{ auth()->user()->role === 'Superadmin' ? 6 : 5 }}" class="px-6 py-10 text-center text-slate-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mb-3"></i>
+                            <p class="text-sm font-medium">Belum ada data kondisi barang</p>
+                            <p class="text-xs mt-1 text-slate-400">Data kondisi yang ditambahkan akan muncul di sini</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
     
     <!-- Table Pagination -->
-    <div class="px-6 py-4 flex items-center justify-between border-t border-slate-100">
-        <p class="text-xs text-slate-500">Menampilkan 1-4 dari 4 data</p>
-        <div class="flex items-center space-x-2">
-            <button class="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30" disabled>
-                <i class="w-4 h-4" data-lucide="chevron-left"></i>
-            </button>
-            <button class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-900 rounded text-xs font-bold">1</button>
-            <button class="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30" disabled>
-                <i class="w-4 h-4" data-lucide="chevron-right"></i>
-            </button>
-        </div>
+    <div class="px-6 py-4 border-t border-slate-100">
+        {{ $kondisis->links() }}
     </div>
 </section>
 <!-- END: Data Table Section -->
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-    });
-</script>
-@endpush
 @endsection

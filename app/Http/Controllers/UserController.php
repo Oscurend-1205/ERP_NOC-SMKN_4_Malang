@@ -19,13 +19,13 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
-            'role' => 'required|string|in:Superadmin,Admin,Staff,User',
-            'password' => 'required|string|min:8',
+            'email' => 'required|string|max:255', // Digunakan untuk menyimpan Kelas (format non-email)
+            'role' => 'required|string|in:Superadmin,Admin,Siswa,Guru',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
-        $validated['is_active'] = $request->has('is_active');
+        $validated['user_code'] = 'USR-' . (\App\Models\User::max('id') + 1);
+        $validated['password'] = Hash::make('password123'); // Default password
+        $validated['is_active'] = $request->has('is_active') ? true : true; // Aktif default jika dari form
 
         User::create($validated);
 

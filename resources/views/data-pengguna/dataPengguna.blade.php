@@ -43,7 +43,7 @@
     @include('partials.topbar')
 
     <!-- BEGIN: Page Content -->
-    <div class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+    <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
         @php
             $currentHour = now()->format('H');
             $isOpen = ($currentHour >= 6 && $currentHour < 15);
@@ -154,7 +154,6 @@
                 @endif
             </div>
         </div>
-    </div>
 </main>
 
 <!-- Modal Tambah User (100% Exact Match) -->
@@ -239,8 +238,9 @@
         </form>
     </div>
 </div>
-
+<!-- END PJAX CONTENT -->
 @vite(['resources/js/dashboard.js'])
+@vite(['resources/js/turbo-navigation.js'])
 @include('components.accessibility-button')
 </body>
 </html>

@@ -14,7 +14,8 @@ export default defineConfig({
                 'resources/js/login.js',
                 'resources/js/dashboard.js',
                 'resources/js/app_layout.js',
-                'resources/js/password_setup.js'
+                'resources/js/password_setup.js',
+                'resources/js/turbo-navigation.js'
             ],
             refresh: true,
         }),

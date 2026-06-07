@@ -8,6 +8,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Peminjaman extends Model
 {
     protected $table = 'peminjaman';
+    protected $primaryKey = 'id_pinjam';
+
+    /**
+     * Get the route key for the model (for route model binding).
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'id_pinjam';
+    }
 
     protected $fillable = [
         'nama_peminjam',

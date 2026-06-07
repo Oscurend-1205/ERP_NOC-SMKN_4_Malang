@@ -40,30 +40,44 @@ Route::middleware(['auth'])->group(function () {
     // --------------------------------------------------------
     Route::middleware(['role:Superadmin'])->group(function () {
         // Kategori Barang (Data Master)
-        Route::get('kategori-barang', function () {
-            return view('data-master.kategoriBarang');
-        })->name('categories.index');
+        Route::resource('kategori-barang', \App\Http\Controllers\CategoryController::class)
+            ->names('categories')
+            ->parameters(['kategori-barang' => 'category'])
+            ->except(['show', 'create', 'edit']);
 
         // Data Supplier (Data Master)
-        Route::get('data-supplier', function () {
-            return view('data-master.dataSupplier');
-        })->name('supplier.index');
+        Route::resource('data-supplier', \App\Http\Controllers\SupplierController::class)
+            ->names('supplier')
+            ->parameters(['data-supplier' => 'supplier'])
+            ->except(['show', 'create', 'edit']);
 
         // Kondisi Barang (Data Master)
-        Route::get('kondisi-barang', function () {
-            return view('data-master.kondisiBarang');
-        })->name('kondisi.index');
+        Route::resource('kondisi-barang', \App\Http\Controllers\KondisiBarangController::class)
+            ->names('kondisi')
+            ->parameters(['kondisi-barang' => 'kondisi'])
+            ->except(['show', 'create', 'edit']);
+
+        // Asal Barang (Data Master)
+        Route::resource('asal-barang', \App\Http\Controllers\AsalBarangController::class)
+            ->names('asal')
+            ->parameters(['asal-barang' => 'asal'])
+            ->except(['show', 'create', 'edit']);
 
         // Lokasi Laboratorium (Data Master / Data Ruangan)
         Route::resource('locations', LocationController::class)->except(['show']);
 
         // Data Jurusan (Data Master)
-        Route::get('data-jurusan', function () {
-            return view('data-master.dataJurusan');
-        })->name('jurusan.index');
+        Route::resource('data-jurusan', \App\Http\Controllers\JurusanController::class)
+            ->names('jurusan')
+            ->parameters(['data-jurusan' => 'jurusan'])
+            ->except(['show', 'create', 'edit']);
 
         // Manajemen Pengguna (hanya Superadmin yang bisa tambah)
         Route::post('data-pengguna', [UserController::class, 'store'])->name('users.store');
+        
+        // Pengaturan Sistem
+        Route::get('settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings/reset', [\App\Http\Controllers\SettingController::class, 'resetSystem'])->name('settings.reset');
     });
 
     // --------------------------------------------------------
@@ -73,8 +87,8 @@ Route::middleware(['auth'])->group(function () {
         // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         
-        // Pinjaman Barang (Aksi dari Dashboard)
-        Route::post('pinjaman', [ItemMovementController::class, 'storeLoan'])->name('movements.loan');
+        // Pinjaman Barang (Aksi dari Dashboard/Modal)
+        Route::post('pinjaman', [\App\Http\Controllers\PeminjamanController::class, 'storeManual'])->name('movements.loan');
         
         // Lihat Data Pengguna
         Route::get('data-pengguna', [UserController::class, 'index'])->name('users.index');
@@ -94,9 +108,9 @@ Route::middleware(['auth'])->group(function () {
         // Route::resource('movements', ItemMovementController::class)->only(['index', 'create', 'store']);
 
         // Data Peminjaman (Riwayat Detail)
-        Route::get('data-peminjaman', function () {
-            return view('data-pengguna.dataPeminjam');
-        })->name('peminjaman.index');
+        Route::get('data-peminjaman', [\App\Http\Controllers\PeminjamanController::class, 'index'])->name('peminjaman.index');
+        Route::post('data-peminjaman/{peminjaman}/return', [\App\Http\Controllers\PeminjamanController::class, 'returnItem'])->name('peminjaman.return');
+        Route::delete('data-peminjaman/{peminjaman}', [\App\Http\Controllers\PeminjamanController::class, 'destroy'])->name('peminjaman.destroy');
 
         // --------------------------------------------------------
         // QR LENDING SYSTEM - Admin Panel

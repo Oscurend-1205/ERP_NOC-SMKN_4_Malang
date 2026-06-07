@@ -36,14 +36,14 @@
 <!-- Navigation Menu -->
 <nav id="sidebar-nav-container" class="mt-1 flex-grow px-4 space-y-2 overflow-y-auto overflow-x-hidden">
 <!-- Active Item: Beranda -->
-<a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('dashboard') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('dashboard') }}">
+<a data-no-pjax="true" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('dashboard') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('dashboard') }}">
 <div class="w-8 flex justify-center items-center flex-shrink-0">
 <img src="{{ asset('asset/icon/beranda.svg') }}" alt="Beranda" class="w-[25px] h-[25px] flex-shrink-0 object-contain brightness-0 invert"/>
 </div>
 <span>Beranda</span>
 </a>
 <!-- Input Pinjaman -->
-<a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('qr.*') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('qr.admin') }}">
+<a data-no-pjax="true" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('qr.*') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('qr.admin') }}">
 <div class="w-8 flex justify-center items-center flex-shrink-0">
 <img src="{{ asset('asset/icon/peminjaman.svg') }}" alt="QR Peminjaman" class="w-[25px] h-[25px] flex-shrink-0 object-contain brightness-0 invert"/>
 </div>
@@ -52,7 +52,7 @@
 <!-- Data Master -->
 @if(Auth::user()->role === 'Superadmin')
 <div class="flex flex-col">
-<button type="button" id="btn-data-master" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-colors {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') || request()->routeIs('supplier.*') || request()->routeIs('kondisi.*') ? 'text-white font-medium' : 'text-gray-400 hover:text-white' }} border-none cursor-pointer bg-transparent text-left relative z-10">
+<button type="button" id="btn-data-master" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-colors {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') || request()->routeIs('supplier.*') || request()->routeIs('kondisi.*') || request()->routeIs('asal.*') ? 'text-white font-medium' : 'text-gray-400 hover:text-white' }} border-none cursor-pointer bg-transparent text-left relative z-10">
 <div class="flex items-center space-x-2 pointer-events-none">
 <div class="w-8 flex justify-center items-center flex-shrink-0">
 <svg class="w-[24px] h-[24px] flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -70,7 +70,7 @@
 <a href="{{ route('supplier.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('supplier.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Data Supplier</a>
 <a href="{{ route('categories.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('categories.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Kategori Barang</a>
 <a href="{{ route('kondisi.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('kondisi.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Kondisi Barang</a>
-<a href="#" class="py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">Asal Barang</a>
+<a href="{{ route('asal.index') }}" class="py-2 text-sm font-medium {{ request()->routeIs('asal.*') ? 'text-white font-bold' : 'text-gray-400 hover:text-white' }} transition-colors">Asal Barang</a>
 </div>
 </div>
 @endif
@@ -88,6 +88,16 @@
 </div>
 <span>Data Peminjaman</span>
 </a>
+
+<!-- Setting (Superadmin Only) -->
+@if(Auth::user()->role === 'Superadmin')
+<a class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors {{ request()->routeIs('settings.*') ? 'bg-[#3A3D5C] text-white font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}" href="{{ route('settings.index') }}">
+<div class="w-8 flex justify-center items-center flex-shrink-0">
+<span class="material-symbols-outlined text-[24px] text-white">settings</span>
+</div>
+<span>Pengaturan</span>
+</a>
+@endif
 
 </nav>
 
@@ -124,7 +134,7 @@
             btnDataMaster.dataset.initialized = 'true';
 
             // Check if we are on a Data Master page
-            const isDataMasterActive = {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') || request()->routeIs('supplier.*') || request()->routeIs('kondisi.*') ? 'true' : 'false' }};
+            const isDataMasterActive = {{ request()->routeIs('locations.*') || request()->routeIs('categories.*') || request()->routeIs('users.*') || request()->routeIs('jurusan.*') || request()->routeIs('supplier.*') || request()->routeIs('kondisi.*') || request()->routeIs('asal.*') ? 'true' : 'false' }};
             
             if (isDataMasterActive) {
                 subDataMaster.classList.remove('hidden');

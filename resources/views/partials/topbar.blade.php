@@ -3,7 +3,7 @@
     $isOpen = ($currentHour >= 6 && $currentHour < 15);
 @endphp
 <!-- BEGIN: Header -->
-<header class="flex items-center justify-between px-4 md:px-10 py-3 md:py-4 bg-white shadow-sm sticky top-0 z-10" data-purpose="top-header">
+<header class="flex items-center justify-between px-4 md:px-10 py-3 md:py-4 bg-white shadow-sm sticky top-0 z-40" data-purpose="top-header">
 <div class="flex items-center gap-3">
     <!-- Hamburger Menu (Mobile Only) -->
     <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none">
@@ -37,3 +37,31 @@
 </div>
 </header>
 <!-- END: Header -->
+
+<script>
+    // Realtime Clock - Attached directly to topbar to ensure it runs anywhere topbar is included
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        const el = document.getElementById('realtime-clock-display');
+        if (el) el.textContent = h + ':' + m + ':' + s;
+
+        const hour = now.getHours();
+        const statusEl = document.getElementById('operational-status');
+        if (statusEl) {
+            if (hour >= 6 && hour < 15) {
+                statusEl.textContent = 'OPEN';
+                statusEl.className = 'font-bold text-[12px] text-green-400';
+            } else {
+                statusEl.textContent = 'CLOSED';
+                statusEl.className = 'font-bold text-[12px] text-red-400';
+            }
+        }
+    }
+    // Initialize immediately
+    updateClock();
+    // Update every second
+    setInterval(updateClock, 1000);
+</script>

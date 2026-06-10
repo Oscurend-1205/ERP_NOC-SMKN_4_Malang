@@ -10,7 +10,7 @@
         <p class="text-sm text-slate-500 mt-1">Kelola data kondisi barang.</p>
     </div>
     @if(auth()->user()->role === 'Superadmin')
-    <button class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
+    <button onclick="document.getElementById('addKondisiModal').classList.remove('hidden')" class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
         <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Kondisi
     </button>
     @endif
@@ -86,7 +86,7 @@
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
-                            <button class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="openEditKondisiModal({{ $kondisi->id }}, '{{ addslashes($kondisi->name) }}', '{{ $kondisi->label_color }}', '{{ addslashes($kondisi->description ?? '') }}')" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                             <form action="{{ route('kondisi.destroy', $kondisi->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kondisi ini?');" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -118,4 +118,109 @@
 </section>
 <!-- END: Data Table Section -->
 
+<!-- Modal Tambah Kondisi -->
+<div id="addKondisiModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addKondisiModal').classList.add('hidden')"></div>
+    
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Tambah Kondisi Barang</h2>
+            <button type="button" onclick="document.getElementById('addKondisiModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('kondisi.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Kondisi</label>
+                    <input type="text" name="name" required placeholder="Contoh: Baik, Rusak Ringan..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Warna Label</label>
+                    <select name="label_color" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="green">Hijau (Baik / Normal)</option>
+                        <option value="yellow">Kuning (Peringatan / Sedang)</option>
+                        <option value="red">Merah (Rusak / Bahaya)</option>
+                        <option value="blue">Biru (Info / Lainnya)</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Keterangan</label>
+                    <textarea name="description" rows="3" placeholder="Penjelasan mengenai kondisi ini" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('addKondisiModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<!-- Modal Edit Kondisi -->
+<div id="editKondisiModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editKondisiModal').classList.add('hidden')"></div>
+    
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Edit Kondisi Barang</h2>
+            <button type="button" onclick="document.getElementById('editKondisiModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form id="editKondisiForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            @method('PUT')
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Kondisi</label>
+                    <input type="text" id="edit_kondisi_name" name="name" required placeholder="Contoh: Baik, Rusak Ringan..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Warna Label</label>
+                    <select id="edit_kondisi_label_color" name="label_color" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="green">Hijau (Baik / Normal)</option>
+                        <option value="yellow">Kuning (Peringatan / Sedang)</option>
+                        <option value="red">Merah (Rusak / Bahaya)</option>
+                        <option value="blue">Biru (Info / Lainnya)</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Keterangan</label>
+                    <textarea id="edit_kondisi_description" name="description" rows="3" placeholder="Penjelasan mengenai kondisi ini" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('editKondisiModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditKondisiModal(id, name, labelColor, description) {
+        document.getElementById('editKondisiForm').action = `/kondisi-barang/${id}`;
+        document.getElementById('edit_kondisi_name').value = name;
+        document.getElementById('edit_kondisi_label_color').value = labelColor;
+        document.getElementById('edit_kondisi_description').value = description;
+        document.getElementById('editKondisiModal').classList.remove('hidden');
+    }
+</script>
+@endpush

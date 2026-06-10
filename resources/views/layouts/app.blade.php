@@ -1014,11 +1014,14 @@
             @endif
 
             @yield('content')
+            
+            {{-- Stack scripts and modals inside pjax-content so they are updated on navigation --}}
+            @stack('scripts')
+            @stack('modals')
         </div>
     </main>
 
     @vite(['resources/js/app_layout.js', 'resources/js/turbo-navigation.js'])
-    @stack('scripts')
 
     {{-- Global Lucide icon initialization --}}
     <script>
@@ -1034,6 +1037,120 @@
                 lucide.createIcons();
             }
         });
+    </script>
+
+    {{-- AJAX Modal Form Handler for Data Master --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', initAjaxModals);
+        document.addEventListener('pjax:complete', initAjaxModals);
+        document.addEventListener('turbo:load', initAjaxModals);
+
+        function initAjaxModals() {
+            const modals = document.querySelectorAll('div[id$="Modal"]');
+            modals.forEach(modal => {
+                const form = modal.querySelector('form');
+                if (!form || form.dataset.ajaxInitialized) return;
+                
+                // Only apply to POST/PUT forms that are not marked with data-no-ajax
+                if (form.method.toUpperCase() === 'GET' || form.dataset.noAjax) return;
+                
+                form.dataset.ajaxInitialized = 'true';
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Simpan';
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...</span>';
+                        submitBtn.disabled = true;
+                    }
+
+                    // Clear previous errors
+                    form.querySelectorAll('.validation-error').forEach(el => el.remove());
+                    form.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500'));
+
+                    try {
+                        const formData = new FormData(form);
+                        const response = await fetch(form.action, {
+                            method: form.method || 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (response.status === 422) {
+                            const data = await response.json();
+                            // Show validation errors
+                            for (const field in data.errors) {
+                                const input = form.querySelector(`[name="${field}"]`);
+                                if (input) {
+                                    input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                                    const errorEl = document.createElement('p');
+                                    errorEl.className = 'validation-error text-red-500 text-xs mt-1 font-medium';
+                                    errorEl.textContent = data.errors[field][0];
+                                    input.parentNode.appendChild(errorEl);
+                                }
+                            }
+                        } else if (response.ok) {
+                            // Success! Fetch the returned HTML (which is the redirected page)
+                            const html = await response.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+
+                            // Replace table content
+                            const newTable = doc.querySelector('table tbody');
+                            const currentTable = document.querySelector('table tbody');
+                            if (newTable && currentTable) {
+                                currentTable.innerHTML = newTable.innerHTML;
+                            }
+
+                            // Replace pagination
+                            const newPagination = doc.querySelector('[data-purpose="table-pagination"]') || doc.querySelector('.px-6.py-4.border-t');
+                            const currentPagination = document.querySelector('[data-purpose="table-pagination"]') || document.querySelector('.px-6.py-4.border-t');
+                            if (newPagination && currentPagination) {
+                                currentPagination.innerHTML = newPagination.innerHTML;
+                            }
+
+                            // Replace flash messages
+                            const newFlashes = Array.from(doc.querySelectorAll('#pjax-content > .bg-green-50, #pjax-content > .bg-red-50'));
+                            const pjaxContent = document.getElementById('pjax-content');
+                            
+                            if (pjaxContent) {
+                                // Remove old flashes
+                                pjaxContent.querySelectorAll(':scope > .bg-green-50, :scope > .bg-red-50').forEach(el => el.remove());
+                                
+                                // Insert new flashes at the top
+                                newFlashes.reverse().forEach(flash => {
+                                    pjaxContent.insertBefore(flash, pjaxContent.firstChild);
+                                });
+                            }
+
+                            // Re-init lucide icons if available
+                            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                                lucide.createIcons();
+                            }
+
+                            // Hide modal and reset form
+                            modal.classList.add('hidden');
+                            form.reset();
+                        } else {
+                            alert('Terjadi kesalahan sistem. Status: ' + response.status);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('Gagal terhubung ke server.');
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.innerHTML = originalBtnText;
+                            submitBtn.disabled = false;
+                        }
+                    }
+                });
+            });
+        }
     </script>
 
     @include('components.accessibility-button')

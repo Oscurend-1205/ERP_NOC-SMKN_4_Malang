@@ -90,8 +90,12 @@
 @if(auth()->user()->role === 'Superadmin')
 <td class="px-6 py-4 text-center">
 <div class="flex justify-center space-x-3">
-<button class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
-<button class="text-red-400 hover:text-red-600"><i class="w-4 h-4" data-lucide="trash-2"></i></button>
+<button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}')" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
+<form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?');" class="inline">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i class="w-4 h-4" data-lucide="trash-2"></i></button>
+</form>
 </div>
 </td>
 @endif
@@ -177,3 +181,82 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<!-- Modal Edit User -->
+<div id="editUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editUserModal').classList.add('hidden')"></div>
+    
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Edit User</h2>
+            <button type="button" onclick="document.getElementById('editUserModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Form Body -->
+        <form id="editUserForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            @method('PUT')
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                
+                <!-- Nama Lengkap -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Lengkap</label>
+                    <input type="text" id="edit_user_name" name="name" required placeholder="Masukkan nama lengkap" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- NISN/NUPTK -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">NISN/NUPTK</label>
+                    <input type="text" id="edit_user_username" name="username" required placeholder="Masukkan NISN atau NUPTK" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- Kelas -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Kelas</label>
+                    <input type="text" id="edit_user_email" name="email" required placeholder="Contoh: XII RPL 1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- Jabatan -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Jabatan</label>
+                    <select id="edit_user_role" name="role" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="" disabled selected hidden>Pilih Jabatan</option>
+                        <option value="Superadmin">Superadmin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Siswa">Siswa</option>
+                        <option value="Guru">Guru</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('editUserModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditUserModal(id, name, username, email, role) {
+        document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
+        document.getElementById('edit_user_name').value = name;
+        document.getElementById('edit_user_username').value = username;
+        document.getElementById('edit_user_email').value = email;
+        document.getElementById('edit_user_role').value = role;
+        document.getElementById('editUserModal').classList.remove('hidden');
+    }
+</script>
+@endpush

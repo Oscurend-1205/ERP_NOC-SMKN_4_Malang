@@ -11,6 +11,12 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'prefix',
+        'last_code_number',
+    ];
+
+    protected $casts = [
+        'last_code_number' => 'integer',
     ];
 
     /**

@@ -253,6 +253,10 @@
                 // Swap the content
                 content.innerHTML = newContent.innerHTML;
 
+                // Clear PJAX init guards so page scripts re-initialize
+                delete content.dataset.itemsInitialized;
+                delete content.dataset.pageInitialized;
+
                 // Update page title
                 const newTitle = doc.querySelector('title');
                 if (newTitle) {
@@ -313,23 +317,26 @@
             // Find all script tags in the new content and execute them
             const scripts = container.querySelectorAll('script');
             scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                
-                // Copy attributes
-                Array.from(oldScript.attributes).forEach(attr => {
-                    newScript.setAttribute(attr.name, attr.value);
-                });
-
                 if (oldScript.src) {
                     // External script — only load if not already loaded
                     if (!document.querySelector(`script[src="${oldScript.src}"]`)) {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
                         newScript.src = oldScript.src;
                         document.body.appendChild(newScript);
                     }
                 } else {
-                    // Inline script — execute it
-                    newScript.textContent = oldScript.textContent;
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                    // Inline script — execute directly via eval for PJAX reliability
+                    try {
+                        const code = oldScript.textContent;
+                        if (code && code.trim()) {
+                            (new Function(code))();
+                        }
+                    } catch(e) {
+                        console.error('[PJAX] Script execution error:', e);
+                    }
                 }
             });
 

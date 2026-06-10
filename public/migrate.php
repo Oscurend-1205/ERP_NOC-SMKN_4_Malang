@@ -116,6 +116,61 @@ if ($action === 'import_full' && $dbConnected) {
     }
 }
 
+// === AKSI: IMPORT UPLOADED SQL ===
+if ($action === 'import_upload' && $dbConnected && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_FILES['sql_file']) && $_FILES['sql_file']['error'] === UPLOAD_ERR_OK) {
+        $uploadedFile = $_FILES['sql_file']['tmp_name'];
+        try {
+            $sql = file_get_contents($uploadedFile);
+            
+            // Hilangkan baris CREATE DATABASE dan USE
+            $sql = preg_replace('/CREATE DATABASE.*?;\s*/is', '', $sql);
+            $sql = preg_replace('/USE `.*?`;\s*/i', '', $sql);
+            
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+            
+            // Pecah per statement
+            $statements = array_filter(array_map('trim', explode(';', $sql)));
+            $executed = 0;
+            $errors = [];
+            
+            foreach ($statements as $stmt) {
+                $stmt = trim($stmt);
+                if (empty($stmt) || $stmt === 'COMMIT') continue;
+                if (preg_match('/^(--|\/\*|SET FOREIGN_KEY_CHECKS|START TRANSACTION|COMMIT)/i', $stmt)) continue;
+                
+                try {
+                    $pdo->exec($stmt);
+                    $executed++;
+                } catch (PDOException $e) {
+                    $errors[] = substr($stmt, 0, 80) . "... → " . $e->getMessage();
+                }
+            }
+            
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+            
+            $status = 'success';
+            $message = "Upload & Import selesai! {$executed} statement berhasil dieksekusi.";
+            if (count($errors) > 0) {
+                $message .= "<br><br><b>Warning (" . count($errors) . " error):</b><br>";
+                foreach (array_slice($errors, 0, 10) as $err) {
+                    $message .= "<code class='block text-xs mt-1 bg-red-50 p-1 rounded'>" . htmlspecialchars($err) . "</code>";
+                }
+            }
+            
+            // Refresh daftar tabel
+            $stmt = $pdo->query("SHOW TABLES");
+            $tableList = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            $status = 'error';
+            $message = "Error saat import upload: " . $e->getMessage();
+        }
+    } else {
+        $status = 'error';
+        $message = "Gagal mengupload file. Pastikan Anda memilih file SQL yang valid.";
+    }
+}
+
 // === AKSI: DROP ALL TABLES ===
 if ($action === 'drop_all' && $dbConnected) {
     try {
@@ -290,6 +345,23 @@ if ($action === 'migrate_new' && $dbConnected) {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Drop All
                 </a>
+            </div>
+
+            <!-- Card 4: Upload & Import -->
+            <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 flex flex-col md:col-span-3">
+                <span class="inline-block bg-purple-100 text-purple-700 text-[10px] font-bold px-2.5 py-1 rounded-full mb-3 w-fit">UPLOAD SQL LOKAL</span>
+                <h3 class="font-bold text-slate-800 text-sm">Upload & Update Database</h3>
+                <p class="text-xs text-slate-500 mt-2">Unggah file <b>.sql</b> dari komputer lokal Anda untuk memperbarui tabel dan data di database server.</p>
+                
+                <form action="?action=import_upload" method="POST" enctype="multipart/form-data" class="mt-4 flex flex-col sm:flex-row gap-3 items-end">
+                    <div class="flex-1 w-full">
+                        <input type="file" name="sql_file" accept=".sql" required class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer border border-slate-200 rounded-lg bg-white">
+                    </div>
+                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin mengeksekusi file SQL ini?')" class="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-sm text-sm whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        Upload & Import
+                    </button>
+                </form>
             </div>
         </div>
 

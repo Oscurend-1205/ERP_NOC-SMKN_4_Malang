@@ -123,12 +123,16 @@
                             @if(Auth::user()->role === 'Superadmin')
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                                    <button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? '1' : '0' }})" class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors">
                                         <span class="material-symbols-outlined !text-[18px]" data-icon="edit">edit</span>
                                     </button>
-                                    <button class="p-1 text-error hover:bg-error-container/20 rounded transition-colors">
-                                        <span class="material-symbols-outlined !text-[18px]" data-icon="delete">delete</span>
-                                    </button>
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1 text-error hover:bg-error-container/20 rounded transition-colors">
+                                            <span class="material-symbols-outlined !text-[18px]" data-icon="delete">delete</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                             @endif
@@ -154,7 +158,6 @@
                 @endif
             </div>
         </div>
-</main>
 
 <!-- Modal Tambah User (100% Exact Match) -->
 <div id="addUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -238,9 +241,206 @@
         </form>
     </div>
 </div>
+
+<!-- Modal Edit User -->
+<div id="editUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editUserModal').classList.add('hidden')"></div>
+    
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+            <h2 class="text-[18px] font-bold text-gray-900">Edit User</h2>
+            <button onclick="document.getElementById('editUserModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Form Body -->
+        <form id="editUserForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            @method('PUT')
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                
+                <!-- Nama Lengkap -->
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
+                    <input type="text" id="edit_user_name" name="name" required placeholder="Masukkan nama lengkap" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                </div>
+
+                <!-- Username -->
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-gray-700">Username</label>
+                    <input type="text" id="edit_user_username" name="username" required placeholder="Masukkan username" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-gray-700">Email</label>
+                    <input type="email" id="edit_user_email" name="email" required placeholder="email@contoh.com" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400">
+                </div>
+
+                <!-- Role -->
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-gray-700">Role</label>
+                    <select id="edit_user_role" name="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white shadow-sm appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234b5563%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;">
+                        <option value="" disabled selected hidden>Pilih Role</option>
+                        <option value="Superadmin">Superadmin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Staff">Staff</option>
+                        <option value="User">User</option>
+                    </select>
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-gray-700">Password Baru (Opsional)</label>
+                    <input type="password" name="password" placeholder="Kosongkan jika tidak diubah" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 tracking-widest text-lg h-9">
+                </div>
+
+                <!-- Status Akun Toggle -->
+                <div class="flex items-center justify-between pt-1">
+                    <div>
+                        <label class="block text-[13px] font-bold text-gray-700">Status Akun</label>
+                        <p class="text-[13px] text-gray-500 mt-0.5">Aktifkan user ini agar dapat login.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="edit_user_is_active" name="is_active" value="1" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#005bbf]"></div>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('editUserModal').classList.add('hidden')" class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-[13px] font-bold text-white bg-primary rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditUserModal(id, name, username, email, role, isActive) {
+        document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
+        document.getElementById('edit_user_name').value = name;
+        document.getElementById('edit_user_username').value = username;
+        document.getElementById('edit_user_email').value = email;
+        document.getElementById('edit_user_role').value = role;
+        document.getElementById('edit_user_is_active').checked = isActive === 1;
+        document.getElementById('editUserModal').classList.remove('hidden');
+    }
+</script>
+    </div>
+</main>
 <!-- END PJAX CONTENT -->
 @vite(['resources/js/dashboard.js'])
 @vite(['resources/js/turbo-navigation.js'])
+
+<script>
+    document.addEventListener('DOMContentLoaded', initAjaxModals);
+    document.addEventListener('pjax:complete', initAjaxModals);
+    document.addEventListener('turbo:load', initAjaxModals);
+
+    function initAjaxModals() {
+        const modals = document.querySelectorAll('div[id$="Modal"]');
+        modals.forEach(modal => {
+            const form = modal.querySelector('form');
+            if (!form || form.dataset.ajaxInitialized) return;
+            
+            if (form.method.toUpperCase() === 'GET' || form.dataset.noAjax) return;
+            
+            form.dataset.ajaxInitialized = 'true';
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Simpan';
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...</span>';
+                    submitBtn.disabled = true;
+                }
+
+                form.querySelectorAll('.validation-error').forEach(el => el.remove());
+                form.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500'));
+
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.status === 422) {
+                        const data = await response.json();
+                        for (const field in data.errors) {
+                            const input = form.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                                const errorEl = document.createElement('p');
+                                errorEl.className = 'validation-error text-red-500 text-xs mt-1 font-medium';
+                                errorEl.textContent = data.errors[field][0];
+                                input.parentNode.appendChild(errorEl);
+                            }
+                        }
+                    } else if (response.ok) {
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        const newTable = doc.querySelector('table tbody');
+                        const currentTable = document.querySelector('table tbody');
+                        if (newTable && currentTable) {
+                            currentTable.innerHTML = newTable.innerHTML;
+                        }
+
+                        const newPagination = doc.querySelector('.px-4.py-3.bg-white.border-t');
+                        const currentPagination = document.querySelector('.px-4.py-3.bg-white.border-t');
+                        if (newPagination && currentPagination) {
+                            currentPagination.innerHTML = newPagination.innerHTML;
+                        }
+
+                        // Handle flash messages
+                        const newFlashes = Array.from(doc.querySelectorAll('#pjax-content > .bg-green-50, #pjax-content > .bg-red-50'));
+                        const pjaxContent = document.getElementById('pjax-content');
+                        
+                        if (pjaxContent) {
+                            pjaxContent.querySelectorAll(':scope > .bg-green-50, :scope > .bg-red-50').forEach(el => el.remove());
+                            newFlashes.reverse().forEach(flash => {
+                                pjaxContent.insertBefore(flash, pjaxContent.firstChild);
+                            });
+                        }
+
+                        modal.classList.add('hidden');
+                        form.reset();
+                    } else {
+                        alert('Terjadi kesalahan sistem. Status: ' + response.status);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Gagal terhubung ke server.');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                }
+            });
+        });
+    }
+</script>
+
 @include('components.accessibility-button')
 </body>
 </html>

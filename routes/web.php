@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\QrAdminController;
 use App\Http\Controllers\QrScanController;
+use App\Http\Controllers\DbSeederController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,12 +73,17 @@ Route::middleware(['auth'])->group(function () {
             ->parameters(['data-jurusan' => 'jurusan'])
             ->except(['show', 'create', 'edit']);
 
-        // Manajemen Pengguna (hanya Superadmin yang bisa tambah)
+        // Manajemen Pengguna (hanya Superadmin yang bisa tambah/edit/hapus)
         Route::post('data-pengguna', [UserController::class, 'store'])->name('users.store');
+        Route::put('data-pengguna/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('data-pengguna/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         
         // Pengaturan Sistem
         Route::get('settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
         Route::post('settings/reset', [\App\Http\Controllers\SettingController::class, 'resetSystem'])->name('settings.reset');
+
+        // Hapus Barang Masuk (Superadmin only)
+        Route::delete('items/barang-masuk/{movement}', [ItemController::class, 'destroyBarangMasuk'])->name('items.barang-masuk.destroy');
     });
 
     // --------------------------------------------------------
@@ -99,9 +105,11 @@ Route::middleware(['auth'])->group(function () {
         
         // Barang Masuk & Keluar
         Route::get('items/barang-masuk', [ItemController::class, 'barangMasuk'])->name('items.barang-masuk');
+        Route::post('items/barang-masuk', [ItemController::class, 'storeBarangMasuk'])->name('items.barang-masuk.store');
         Route::get('items/barang-keluar', [ItemController::class, 'barangKeluar'])->name('items.barang-keluar');
         
         // Barang Elektronik
+        Route::get('items/units', [ItemController::class, 'units'])->name('items.units');
         Route::resource('items', ItemController::class);
 
         // Pergerakan Barang (Mutasi) dihapus sesuai permintaan
@@ -152,3 +160,8 @@ Route::get('/deploy-setup', function () {
         return "<h3>Terjadi Kesalahan saat Deployment Setup:</h3><p>" . $e->getMessage() . "</p>";
     }
 });
+
+// ============================================================
+// DATABASE RESET & SEEDER (Bisa diakses langsung via URL)
+// ============================================================
+Route::get('/reset-database', [DbSeederController::class, 'resetAndSeed']);

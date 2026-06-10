@@ -9,8 +9,8 @@
 <h1 class="text-3xl font-bold text-slate-900">Data Master Jurusan</h1>
 <p class="text-sm text-slate-500 mt-1">Kelola daftar program keahlian dan jurusan sekolah.</p>
 </div>
-@if(auth()->user()->role === 'Superadmin')
-    <button class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
+    @if(auth()->user()->role === 'Superadmin')
+    <button onclick="document.getElementById('addJurusanModal').classList.remove('hidden')" class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
         <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Jurusan
     </button>
 @endif
@@ -70,7 +70,7 @@
 @if(auth()->user()->role === 'Superadmin')
 <td class="px-6 py-4 text-center">
 <div class="flex justify-center space-x-3">
-<button class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
+<button onclick="openEditJurusanModal({{ $jurusan->id }}, '{{ addslashes($jurusan->name) }}', '{{ addslashes($jurusan->description ?? '') }}', {{ $jurusan->is_active ? '1' : '0' }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
 <form action="{{ route('jurusan.destroy', $jurusan->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jurusan ini?');" class="inline">
     @csrf
     @method('DELETE')
@@ -101,4 +101,105 @@
 </section>
 <!-- END: Table Container Card -->
 
+<!-- Modal Tambah Jurusan -->
+<div id="addJurusanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addJurusanModal').classList.add('hidden')"></div>
+    
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Tambah Jurusan</h2>
+            <button type="button" onclick="document.getElementById('addJurusanModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('jurusan.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Jurusan</label>
+                    <input type="text" name="name" required placeholder="Masukkan nama jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Keterangan</label>
+                    <textarea name="description" rows="3" placeholder="Penjelasan atau detail jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Status</label>
+                    <select name="is_active" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="1">Aktif</option>
+                        <option value="0">Nonaktif</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('addJurusanModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<!-- Modal Edit Jurusan -->
+<div id="editJurusanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editJurusanModal').classList.add('hidden')"></div>
+    
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Edit Jurusan</h2>
+            <button type="button" onclick="document.getElementById('editJurusanModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form id="editJurusanForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            @method('PUT')
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Jurusan</label>
+                    <input type="text" id="edit_jurusan_name" name="name" required placeholder="Masukkan nama jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Keterangan</label>
+                    <textarea id="edit_jurusan_description" name="description" rows="3" placeholder="Penjelasan atau detail jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Status</label>
+                    <select id="edit_jurusan_is_active" name="is_active" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="1">Aktif</option>
+                        <option value="0">Nonaktif</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('editJurusanModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditJurusanModal(id, name, description, isActive) {
+        document.getElementById('editJurusanForm').action = `/data-jurusan/${id}`;
+        document.getElementById('edit_jurusan_name').value = name;
+        document.getElementById('edit_jurusan_description').value = description;
+        document.getElementById('edit_jurusan_is_active').value = isActive;
+        document.getElementById('editJurusanModal').classList.remove('hidden');
+    }
+</script>
+@endpush

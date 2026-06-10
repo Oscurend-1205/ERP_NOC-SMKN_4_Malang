@@ -148,6 +148,7 @@
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kode</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Barang</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Merek</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Lokasi</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Qty</th>
@@ -161,13 +162,14 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="py-4 px-6 text-sm text-gray-500 text-center">{{ $items->firstItem() + $i }}</td>
                                     <td class="py-4 px-6">
-                                        <code class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono">{{ $item->code }}</code>
+                                        <code class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono font-bold">{{ $item->prefix }}</code>
                                     </td>
                                     <td class="py-4 px-6 font-semibold text-sm text-gray-800">{{ $item->name }}</td>
                                     <td class="py-4 px-6 text-sm text-gray-600">{{ $item->brand ?? '-' }}</td>
+                                    <td class="py-4 px-6 text-sm text-gray-600">{{ $item->model ?? '-' }}</td>
                                     <td class="py-4 px-6 text-sm text-gray-600">{{ $item->category->name }}</td>
                                     <td class="py-4 px-6 text-sm text-gray-600">{{ $item->location->name }}</td>
-                                    <td class="py-4 px-6 text-sm font-semibold text-gray-800 text-center">{{ $item->quantity }}</td>
+                                    <td class="py-4 px-6 text-sm font-bold text-[#3F51B5] text-center bg-indigo-50/50">{{ $item->total_stock }}</td>
                                     <td class="py-4 px-6">
                                         @php
                                             $condClass = match($item->condition) {
@@ -198,16 +200,9 @@
                                     </td>
                                     <td class="py-4 px-6">
                                         <div class="flex items-center justify-center gap-2">
-                                            <a href="{{ route('items.edit', $item) }}" class="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
-                                                <span class="material-symbols-outlined text-[20px]">edit</span>
-                                            </a>
-                                            <form action="{{ route('items.destroy', $item) }}" method="POST" onsubmit="return confirm('Yakin hapus barang ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
-                                                    <span class="material-symbols-outlined text-[20px]">delete</span>
-                                                </button>
-                                            </form>
+                                            <button type="button" onclick="openUnitsModal('{{ $item->name }}', '{{ $item->location_id }}', '{{ $item->condition }}', '{{ $item->status }}', '{{ $item->prefix }}')" class="px-3 py-1.5 text-[#3F51B5] bg-indigo-50 hover:bg-[#3F51B5] hover:text-white rounded-lg transition-colors flex items-center gap-1.5 font-bold text-xs border border-indigo-100 shadow-sm" title="Lihat Daftar Unit">
+                                                <span class="material-symbols-outlined text-[16px]">list_alt</span> Rincian Unit
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -255,6 +250,37 @@
             <form id="addBarangForm" action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
                 <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                    <!-- Tipe Input Toggle -->
+                    <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <label class="block text-[13px] font-semibold text-gray-700 mb-2">Tipe Input Barang</label>
+                        <div class="flex items-center space-x-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="item_type" value="new" checked class="form-radio h-4 w-4 text-[#3F51B5] focus:ring-[#3F51B5] border-gray-300">
+                                <span class="ml-2 text-sm text-gray-700 font-medium">Barang Baru</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="item_type" value="existing" class="form-radio h-4 w-4 text-[#3F51B5] focus:ring-[#3F51B5] border-gray-300">
+                                <span class="ml-2 text-sm text-gray-700 font-medium">Barang Sudah Ada</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pilih Barang (Existing) -->
+                    <div id="existing_item_selector" class="mb-4 hidden">
+                        <label class="block text-[13px] font-semibold text-gray-700 mb-1.5">Pilih Barang yang Sudah Ada <span class="text-red-500">*</span></label>
+                        <select id="existing_item_id" class="w-full border rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white shadow-sm cursor-pointer">
+                            <option value="">-- Pilih Barang --</option>
+                            @if(isset($existingItems))
+                                @foreach($existingItems as $existing)
+                                    <option value="{{ $existing->name }}" data-brand="{{ $existing->brand }}" data-model="{{ $existing->model }}" data-category="{{ $existing->category_id }}">
+                                        {{ $existing->name }} {{ $existing->brand ? ' - '.$existing->brand : '' }} {{ $existing->model ? ' ('.$existing->model.')' : '' }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <p class="text-[11px] text-gray-500 mt-1.5">Merek, Model, dan Kategori akan terisi otomatis sesuai barang yang dipilih. Kode Inventaris akan di-generate berurutan otomatis.</p>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Nama Barang -->
                         <div class="space-y-1.5">
@@ -265,11 +291,9 @@
                         </div>
 
                         <!-- Kode Inventaris -->
-                        <div class="space-y-1.5">
+                        <div class="space-y-1.5 hidden">
                             <label class="block text-[13px] font-semibold text-gray-700">Kode Inventaris <span class="text-red-500">*</span></label>
-                            <input type="text" name="code" required placeholder="Contoh: INV-00001" value="{{ old('code') }}" 
-                                class="w-full border rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm {{ $errors->has('code') ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
-                            @error('code') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            <input type="hidden" name="code" value="AUTO-GENERATED">
                         </div>
 
                         <!-- Serial Number -->
@@ -408,131 +432,91 @@
         </div>
     </div>
 
+    <!-- Modal QR Code Barang -->
+    <div id="qrCodeModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop Blur -->
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeQrModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-[400px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+                <div class="overflow-hidden">
+                    <h2 class="text-lg font-bold text-gray-900">QR Code Barang</h2>
+                    <p id="qrModalSubtitle" class="text-xs text-gray-500 mt-0.5 truncate max-w-[280px]">Generate QR Code</p>
+                </div>
+                <button onclick="closeQrModal()" class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Form Body -->
+            <div class="px-6 py-8 flex flex-col items-center justify-center bg-gray-50/50">
+                <!-- Wrapper id untuk div QR Code -->
+                <div id="itemQrContainer" class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 flex items-center justify-center min-w-[232px] min-h-[232px]">
+                    <!-- QR akan di-render di sini -->
+                </div>
+                <div id="qrCodeText" class="text-lg font-bold text-[#3F51B5] font-mono tracking-widest bg-[#E8EAF6] px-4 py-1.5 rounded-lg mb-2"></div>
+                <p class="text-[11px] text-gray-500 text-center px-4 mt-2">Cetak atau download QR ini dan tempelkan pada fisik barang untuk discan saat peminjaman.</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-center gap-3">
+                <button type="button" onclick="downloadQrCode()" class="w-full flex justify-center items-center gap-2 px-5 py-2.5 text-[14px] font-bold text-white bg-[#3F51B5] rounded-xl hover:bg-[#3949AB] transition-colors shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-[#3F51B5]">
+                    <span class="material-symbols-outlined text-[20px]">download</span>
+                    Download QR Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rincian Unit -->
+    <div id="unitsModal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeUnitsModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-[800px] bg-white rounded-2xl shadow-2xl flex flex-col font-sans max-h-[90vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white rounded-t-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Daftar Unit Barang Spesifik</h2>
+                    <p id="unitsModalSubtitle" class="text-xs text-gray-500 mt-0.5">Memuat...</p>
+                </div>
+                <button onclick="closeUnitsModal()" class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 bg-gray-50">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-6 overflow-y-auto bg-gray-50 flex-1 rounded-b-2xl">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-12 text-center">No</th>
+                                <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Kode Spesifik</th>
+                                <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Cetak QR & Kelola</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unitsTableBody" class="divide-y divide-gray-100">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-    (function() {
-        // Modal functions
-        window.toggleAddBarangModal = function(show) {
-            const modal = document.getElementById('addBarangModal');
-            if (modal) {
-                if (show) {
-                    modal.classList.remove('hidden');
-                } else {
-                    modal.classList.add('hidden');
-                }
-            }
-        }
-
-        // Close modal on escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                toggleAddBarangModal(false);
-            }
-        });
-
-        // Format rupiah helper
-        function formatRupiah(value) {
-            if (!value) return '';
-            let clean = value.toString().replace(/\D/g, '');
-            return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const priceInput = document.getElementById('purchase_price_input');
-            const addForm = document.getElementById('addBarangForm');
-
-            if (priceInput) {
-                if (priceInput.value) {
-                    priceInput.value = formatRupiah(priceInput.value);
-                }
-                priceInput.addEventListener('input', function(e) {
-                    e.target.value = formatRupiah(e.target.value);
-                });
-            }
-
-            if (addForm) {
-                addForm.addEventListener('submit', function(e) {
-                    if (priceInput) {
-                        priceInput.value = priceInput.value.replace(/\./g, '');
-                    }
-                });
-            }
-
-            const form = document.getElementById('filterForm');
-            const tableContainer = document.getElementById('tableContainer');
-            let debounceTimer;
-
-            // Handle submission and changes
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                fetchFilteredData();
-            });
-
-            // Listen to select changes
-            form.querySelectorAll('select').forEach(select => {
-                select.addEventListener('change', fetchFilteredData);
-            });
-
-            // Listen to search input with debounce
-            const searchInput = form.querySelector('input[name="search"]');
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(fetchFilteredData, 500);
-                });
-            }
-
-            // Also intercept pagination links to load via AJAX
-            document.addEventListener('click', function (e) {
-                const target = e.target.closest('.pagination a');
-                // The pagination links in Laravel might not have .pagination class by default in Tailwind, 
-                // but we can check if it's an anchor inside the tableContainer's pagination area.
-                const pageLink = e.target.closest('#tableContainer a[href*="page="]');
-                if (pageLink) {
-                    e.preventDefault();
-                    fetchFilteredData(pageLink.href);
-                }
-            });
-
-            function fetchFilteredData(url = null) {
-                if (!url) {
-                    const formData = new FormData(form);
-                    const params = new URLSearchParams(formData);
-                    url = `${form.action}?${params.toString()}`;
-                }
-
-                // Show basic loading state
-                tableContainer.style.opacity = '0.5';
-                tableContainer.style.pointerEvents = 'none';
-
-                // Update browser URL without reloading
-                window.history.pushState({}, '', url);
-
-                fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newTableContainer = doc.getElementById('tableContainer');
-                    
-                    if (newTableContainer) {
-                        tableContainer.innerHTML = newTableContainer.innerHTML;
-                    }
-                })
-                .catch(error => console.error('Error fetching data:', error))
-                .finally(() => {
-                    tableContainer.style.opacity = '1';
-                    tableContainer.style.pointerEvents = 'auto';
-                });
-            }
-        });
-    })();
+        // Pass Blade-injected values to the external JS module
+        window._itemsConfig = {
+            unitsRoute: "{{ route('items.units') }}",
+            csrfToken: "{{ csrf_token() }}"
+        };
     </script>
     </div> <!-- END PJAX CONTENT -->
-    @vite(['resources/js/turbo-navigation.js'])
+    @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
     @include('components.accessibility-button')
 </body>
 </html>

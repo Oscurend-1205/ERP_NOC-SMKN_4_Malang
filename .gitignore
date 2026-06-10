@@ -1,4 +1,8 @@
 *.log
+project.zip.001
+project.zip
+buat_zip.php
+unzip.php
 .DS_Store
 .env
 .env.backup

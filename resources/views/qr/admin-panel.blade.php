@@ -284,21 +284,24 @@
 
                         <!-- No HP -->
                         <div class="space-y-1.5 text-left">
-                            <label class="block text-[13px] font-bold text-gray-700">No HP</label>
-                            <input type="text" id="borrower_phone_input" name="borrower_phone" required placeholder="Masukan nomor HP *081..." 
+                            <label class="block text-[13px] font-bold text-gray-700">No HP (Opsional)</label>
+                            <input type="text" id="borrower_phone_input" name="borrower_phone" placeholder="Masukan nomor HP *081..." 
                                 class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
                         </div>
 
-                        <!-- Nama Barang -->
+                        <!-- Nama Barang & Hidden Item ID -->
                         <div class="space-y-1.5 text-left">
                             <label class="block text-[13px] font-bold text-gray-700">Nama Barang</label>
-                            <select name="item_id" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
-                                <option value="" disabled selected>Masukan nama barang</option>
-                                @php /** @var \App\Models\Item $item */ @endphp
-                                @foreach($availableItems ?? [] as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }} (Stok: {{ $item->quantity }})</option>
+                            @php
+                                $groupedItems = collect($availableItems ?? [])->groupBy('name');
+                            @endphp
+                            <select id="item_name_select" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
+                                <option value="" disabled selected>Pilih nama barang</option>
+                                @foreach($groupedItems as $name => $items)
+                                    <option value="{{ $name }}">{{ $name }} (Stok Total: {{ $items->sum('quantity') }})</option>
                                 @endforeach
                             </select>
+                            <input type="hidden" id="hidden_item_id" name="item_id" required>
                         </div>
 
                         <!-- ID Barang -->
@@ -645,17 +648,47 @@ if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
         const itemsData = @json($availableItems ?? []);
         const codeInput = document.getElementById('item_code_input');
         const codeDropdown = document.getElementById('items_code_autocomplete_dropdown');
+        const nameSelect = document.getElementById('item_name_select');
+        const hiddenItemId = document.getElementById('hidden_item_id');
+
+        if (nameSelect && codeInput) {
+            nameSelect.addEventListener('change', function() {
+                const selectedName = this.value;
+                const firstAvailable = itemsData.find(i => i.name === selectedName);
+                if (firstAvailable) {
+                    codeInput.value = firstAvailable.code;
+                    if (hiddenItemId) hiddenItemId.value = firstAvailable.id;
+                } else {
+                    codeInput.value = '';
+                    if (hiddenItemId) hiddenItemId.value = '';
+                }
+            });
+        }
 
         if (codeInput && codeDropdown) {
+            codeInput.addEventListener('focus', function() {
+                triggerAutocomplete(this.value);
+            });
+            
             codeInput.addEventListener('input', function() {
-                const val = this.value.toLowerCase();
+                triggerAutocomplete(this.value);
+            });
+
+            function triggerAutocomplete(val) {
+                val = val.toLowerCase();
                 codeDropdown.innerHTML = '';
-                if (!val) {
-                    codeDropdown.classList.add('hidden');
-                    return;
+                
+                let matches = itemsData;
+                
+                // If a name is selected, filter by that name
+                if (nameSelect && nameSelect.value) {
+                    matches = matches.filter(i => i.name === nameSelect.value);
                 }
                 
-                const matches = itemsData.filter(i => i.code.toLowerCase().includes(val) || i.name.toLowerCase().includes(val));
+                if (val) {
+                    matches = matches.filter(i => i.code.toLowerCase().includes(val) || i.name.toLowerCase().includes(val));
+                }
+
                 if (matches.length > 0) {
                     matches.forEach(i => {
                         const div = document.createElement('div');
@@ -668,6 +701,12 @@ if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
                         
                         div.onclick = function() {
                             codeInput.value = i.code;
+                            if (hiddenItemId) {
+                                hiddenItemId.value = i.id;
+                            }
+                            if (nameSelect) {
+                                nameSelect.value = i.name;
+                            }
                             codeDropdown.classList.add('hidden');
                         };
                         codeDropdown.appendChild(div);
@@ -676,7 +715,7 @@ if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
                 } else {
                     codeDropdown.classList.add('hidden');
                 }
-            });
+            }
 
             document.addEventListener('click', function(e) {
                 if (e.target !== codeInput && e.target !== codeDropdown) {

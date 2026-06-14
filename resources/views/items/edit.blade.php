@@ -44,6 +44,7 @@
                         <label class="block text-sm font-bold text-slate-700" for="code">Kode Inventaris <span class="text-red-500">*</span></label>
                         <input type="text" name="code" id="code" required placeholder="Contoh: INV-00001" value="{{ old('code', $item->code) }}" 
                             class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 shadow-sm transition-all font-mono">
+                        <input type="hidden" name="sub_prefix" value="{{ old('sub_prefix', $item->sub_prefix) }}">
                         @error('code') <div class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</div> @enderror
                     </div>
 

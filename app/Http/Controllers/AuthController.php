@@ -31,18 +31,33 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        // Cek apakah user ada dan aktif
+        $user = User::where('email', $credentials['email'])->first();
 
-            $user = Auth::user();
-
-            return redirect()->route('dashboard')
-                ->with('success', 'Selamat datang kembali, ' . $user->name . '!');
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => 'Email yang Anda masukkan tidak ditemukan.',
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => 'Email atau kata sandi yang Anda masukkan salah.',
-        ]);
+        if (!$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak aktif. Hubungi administrator.',
+            ]);
+        }
+
+        if (!Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => 'Kata sandi yang Anda masukkan salah.',
+            ]);
+        }
+
+        // Login berhasil — set session
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard'))
+            ->with('success', 'Selamat datang kembali, ' . $user->name . '!');
     }
 
     /**

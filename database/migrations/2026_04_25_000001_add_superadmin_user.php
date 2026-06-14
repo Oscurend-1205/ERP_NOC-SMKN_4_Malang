@@ -12,15 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Cek apakah superadmin sudah ada
-        $existing = DB::table('users')->where('email', 'superadmin@noc.smkn4malang.sch.id')->first();
+        // Superadmin account (user_code is set later by modify_primary_keys migration)
+        $superadmin = DB::table('users')->where('email', 'superadmin@noc.smkn4malang.sch.id')->first();
 
-        if (!$existing) {
+        if (!$superadmin) {
             DB::table('users')->insert([
                 'name' => 'Super Admin NOC',
                 'username' => 'superadmin',
                 'email' => 'superadmin@noc.smkn4malang.sch.id',
-                'password' => Hash::make('SuperAdmin@2026'),
+                'password' => Hash::make('Superadmin2026'),
                 'role' => 'Superadmin',
                 'is_active' => true,
                 'created_at' => now(),
@@ -28,10 +28,21 @@ return new class extends Migration
             ]);
         }
 
-        // Update role admin yang sudah ada menjadi 'Admin' (pastikan konsisten)
-        DB::table('users')
-            ->where('email', 'admin@noc.smkn4malang.sch.id')
-            ->update(['role' => 'Admin']);
+        // Admin account (user_code is set later by modify_primary_keys migration)
+        $admin = DB::table('users')->where('email', 'admin@noc.smkn4malang.sch.id')->first();
+
+        if (!$admin) {
+            DB::table('users')->insert([
+                'name' => 'Admin NOC',
+                'username' => 'admin',
+                'email' => 'admin@noc.smkn4malang.sch.id',
+                'password' => Hash::make('Admin2026'),
+                'role' => 'Admin',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     /**
@@ -41,6 +52,10 @@ return new class extends Migration
     {
         DB::table('users')
             ->where('email', 'superadmin@noc.smkn4malang.sch.id')
+            ->delete();
+
+        DB::table('users')
+            ->where('email', 'admin@noc.smkn4malang.sch.id')
             ->delete();
     }
 };

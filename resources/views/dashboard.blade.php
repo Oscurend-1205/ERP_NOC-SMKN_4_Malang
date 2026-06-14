@@ -55,10 +55,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Aktivitas Barang Masuk</h2>
-                    <select class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-500 outline-none bg-white cursor-pointer hover:border-gray-300 transition-colors">
-                        <option>This Year</option>
-                        <option>Last Year</option>
-                    </select>
+                    <span class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-500 bg-white">Tahun {{ $currentYear }}</span>
                 </div>
                 <div class="p-6">
                     <div id="barChart" class="w-full h-[200px]"></div>
@@ -72,15 +69,28 @@
                 </div>
                 <div class="p-6 flex flex-col items-center justify-center">
                     <div id="donutChart" class="w-full flex justify-center"></div>
-                    <div class="flex justify-center gap-6 mt-3">
+                    @php
+                        $totalKondisi = array_sum($conditionStats) ?: 1;
+                        $kondisiLabels = [
+                            'baik' => 'Baik',
+                            'rusak_ringan' => 'Rusak Ringan',
+                            'rusak_berat' => 'Rusak Berat',
+                            'hilang' => 'Hilang',
+                        ];
+                        $kondisiColors = [
+                            'baik' => '#1A73E8',
+                            'rusak_ringan' => '#F9A825',
+                            'rusak_berat' => '#B85D19',
+                            'hilang' => '#D32F2F',
+                        ];
+                    @endphp
+                    <div class="flex flex-wrap justify-center gap-4 mt-3">
+                        @foreach($conditionStats as $key => $val)
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#1A73E8] inline-block"></span>
-                            <span class="text-xs font-medium text-gray-500">Baru (75%)</span>
+                            <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: {{ $kondisiColors[$key] }}"></span>
+                            <span class="text-xs font-medium text-gray-500">{{ $kondisiLabels[$key] }} ({{ round(($val / $totalKondisi) * 100) }}%)</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#B85D19] inline-block"></span>
-                            <span class="text-xs font-medium text-gray-500">Bekas (25%)</span>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -165,13 +175,21 @@
         });
     }
 
+    // Chart Data from Database
+    const monthlyIncomingData = {!! json_encode($monthlyData) !!};
+    const conditionStatsData = {!! json_encode($conditionStats) !!};
+    const monthLabels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+    const kondisiLabels = { baik: 'Baik', rusak_ringan: 'Rusak Ringan', rusak_berat: 'Rusak Berat', hilang: 'Hilang' };
+    const kondisiColors = { baik: '#1A73E8', rusak_ringan: '#F9A825', rusak_berat: '#B85D19', hilang: '#D32F2F' };
+
     // Initialize ApexCharts
     function initDashboardCharts() {
-        // Bar Chart
+        // Bar Chart - Aktivitas Barang Masuk per Bulan
         var barOptions = {
             series: [{
                 name: 'Barang Masuk',
-                data: [30, 55, 80, 45, 110, 75, 35]
+                data: monthlyIncomingData
             }],
             chart: {
                 type: 'bar',
@@ -189,10 +207,10 @@
             dataLabels: { enabled: false },
             stroke: { show: false },
             xaxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                categories: monthLabels,
                 axisBorder: { show: false },
                 axisTicks: { show: false },
-                labels: { style: { colors: '#9CA3AF', fontSize: '12px' } }
+                labels: { style: { colors: '#9CA3AF', fontSize: '11px' } }
             },
             yaxis: { show: false },
             grid: {
@@ -208,7 +226,6 @@
             }
         };
         if(document.querySelector("#barChart")) {
-            // Check if chart is already rendered to avoid duplicates
             if(document.querySelector("#barChart").innerHTML !== "") {
                 document.querySelector("#barChart").innerHTML = "";
             }
@@ -216,16 +233,26 @@
             barChart.render();
         }
 
-        // Donut Chart
+        // Donut Chart - Distribusi Kondisi Barang
+        var donutLabels = [];
+        var donutSeries = [];
+        var donutColors = [];
+        for (var key in conditionStatsData) {
+            donutLabels.push(kondisiLabels[key] || key);
+            donutSeries.push(conditionStatsData[key]);
+            donutColors.push(kondisiColors[key] || '#999');
+        }
+        var totalKondisi = donutSeries.reduce(function(a, b) { return a + b; }, 0);
+
         var donutOptions = {
-            series: [75, 25],
-            labels: ['Baru', 'Bekas'],
+            series: donutSeries,
+            labels: donutLabels,
             chart: {
                 type: 'donut',
                 height: 180,
                 fontFamily: 'Inter, sans-serif'
             },
-            colors: ['#1A73E8', '#B85D19'],
+            colors: donutColors,
             plotOptions: {
                 pie: {
                     donut: {
@@ -251,7 +278,7 @@
                             total: {
                                 show: true,
                                 showAlways: true,
-                                label: '245',
+                                label: '' + totalKondisi,
                                 fontSize: '24px',
                                 fontWeight: 700,
                                 color: '#1F2937',
@@ -266,7 +293,15 @@
             dataLabels: { enabled: false },
             legend: { show: false },
             stroke: { width: 0 },
-            tooltip: { enabled: true }
+            tooltip: {
+                enabled: true,
+                y: {
+                    formatter: function(val, opts) {
+                        var pct = totalKondisi > 0 ? Math.round((val / totalKondisi) * 100) : 0;
+                        return val + ' Unit (' + pct + '%)';
+                    }
+                }
+            }
         };
         if(document.querySelector("#donutChart")) {
             if(document.querySelector("#donutChart").innerHTML !== "") {

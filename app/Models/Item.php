@@ -11,11 +11,15 @@ class Item extends Model
     protected $fillable = [
         'name',
         'code',
+        'sub_prefix',
         'serial_number',
         'brand',
         'model',
         'category_id',
         'location_id',
+        'supplier_id',
+        'asal_barang_id',
+        'kondisi_barang_id',
         'quantity',
         'condition',
         'status',
@@ -52,6 +56,26 @@ class Item extends Model
     public function movements(): HasMany
     {
         return $this->hasMany(ItemMovement::class);
+    }
+
+    public function movementFrom()
+    {
+        return $this->hasMany(ItemMovement::class, 'item_id', 'id')->where('type', 'out');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    public function asalBarang()
+    {
+        return $this->belongsTo(AsalBarang::class, 'asal_barang_id');
+    }
+
+    public function kondisiBarang()
+    {
+        return $this->belongsTo(KondisiBarang::class, 'kondisi_barang_id');
     }
 
     /**

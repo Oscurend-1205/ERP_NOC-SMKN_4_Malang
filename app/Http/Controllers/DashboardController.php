@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Item;
 use App\Models\ItemMovement;
 use App\Models\Location;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -60,6 +61,20 @@ class DashboardController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
+        // Data Chart: Barang Masuk per Bulan (tahun ini)
+        $currentYear = now()->year;
+        $monthlyIncoming = ItemMovement::selectRaw('MONTH(created_at) as month, SUM(quantity) as total')
+            ->where('type', 'masuk')
+            ->whereYear('created_at', $currentYear)
+            ->groupByRaw('MONTH(created_at)')
+            ->pluck('total', 'month');
+
+        // Format data bulan Jan-Des (bulan 1-12), default 0
+        $monthlyData = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthlyData[] = (int) ($monthlyIncoming[$m] ?? 0);
+        }
+
         // Data barang untuk modal Pinjaman
         $availableItems = Item::where('quantity', '>', 0)->get();
 
@@ -76,7 +91,9 @@ class DashboardController extends Controller
             'itemsByLocation',
             'conditionStats',
             'itemsEnteredToday',
-            'availableItems'
+            'availableItems',
+            'monthlyData',
+            'currentYear'
         ));
     }
 }

@@ -1,11 +1,13 @@
 -- ============================================================
 -- ERP NOC - SMKN 4 Malang
--- Unified Database Schema
--- Generated: 2026-05-21
+-- Unified Database Schema (Structure Only — No Seed Data)
+-- Generated: 2026-06-11
 -- Database: erp_noc_smkn4malang
 -- ============================================================
 -- This is the SINGLE source of truth for the database schema.
 -- All tables used by the Laravel application are included here.
+-- All latest migration changes are incorporated.
+-- NO INSERT data (fresh/empty tables on deploy).
 -- ============================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -30,30 +32,27 @@ USE `erp_noc_smkn4malang`;
 -- -----------------------------------------------------------
 -- Table: users (Auth & User Management)
 -- Model: App\Models\User
+-- Migrations: 0001_01_01_000000, 2026_04_23_181050,
+--             2026_05_21_234440 (user_code), 2026_06_07_232903 (drop email unique)
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `username` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email_verified_at` datetime DEFAULT NULL,
+  `role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Admin',
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `remember_token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
-  `username` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Admin',
-  `is_active` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `users_email_unique` (`email`),
+  UNIQUE KEY `users_user_code_unique` (`user_code`),
   UNIQUE KEY `users_username_unique` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`, `username`, `role`, `is_active`) VALUES
-(1, 'Admin NOC', 'admin@noc.smkn4malang.sch.id', '2026-04-23 14:56:43', '$2y$12$6v/dUIqiBjS6hMfnt56n3O9jl/wRV9rYabgecks/st4vmNi5MVSgK', 'mxPUu6cSD3ZQfN1GrenJzNvThFEi8XIuK8f34yzzZsxQ8iaKRgN41rCoYSAJ', '2026-04-23 14:56:44', '2026-04-23 15:31:57', NULL, 'Admin', 1),
-(2, 'Andika Galon Lima Liter', 'andika@gmail.com', NULL, '$2y$12$/.NBAODTvaRxqsPJ.ruEYeHMc5pWmyILBG17ar8asrHz/zZZUecMC', NULL, '2026-04-23 18:21:29', '2026-04-23 18:21:29', 'Adidika', 'User', 1),
-(3, 'Bagus Ganteng', 'bagus@example.com', NULL, '$2y$12$ewMkrwuzmWhRyGFNWtixB.SBxfmXW0JNHQlKAhEUOZ0mhiiTGdGk.', NULL, '2026-04-24 06:38:24', '2026-04-24 06:38:24', 'gusgus', 'User', 1),
-(4, 'Superadmin NOC', 'superadmin@noc.smkn4malang.sch.id', NULL, '$2y$12$6v/dUIqiBjS6hMfnt56n3O9jl/wRV9rYabgecks/st4vmNi5MVSgK', NULL, '2026-04-25 18:48:00', '2026-04-25 18:48:00', 'superadmin', 'Superadmin', 1);
 
 -- -----------------------------------------------------------
 -- Table: sessions (Laravel Session)
@@ -166,6 +165,7 @@ CREATE TABLE `migrations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Migration records so Laravel knows which migrations have been applied
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (1, '0001_01_01_000000_create_users_table', 1),
 (2, '0001_01_01_000001_create_cache_table', 1),
@@ -177,7 +177,27 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (8, '2026_04_23_181050_add_details_to_users_table', 2),
 (9, '2026_04_25_000001_add_superadmin_user', 3),
 (10, '2026_04_25_200001_create_scan_sessions_table', 3),
-(11, '2026_04_25_200002_create_peminjaman_table', 3);
+(11, '2026_04_25_200002_create_peminjaman_table', 3),
+(12, '2026_05_21_234440_modify_primary_keys_for_deployment', 4),
+(13, '2026_06_03_191113_create_jurusans_table', 5),
+(14, '2026_06_03_191837_create_suppliers_table', 5),
+(15, '2026_06_03_191842_create_kondisi_barangs_table', 5),
+(16, '2026_06_03_191848_create_asal_barangs_table', 5),
+(17, '2026_06_07_232903_drop_email_unique_from_users_table', 6),
+(18, '2026_06_08_172433_add_penanggung_jawab_to_locations_table', 7),
+(19, '2026_06_10_000001_add_prefix_and_last_code_number_to_categories_table', 8),
+(20, '2026_06_10_000002_add_missing_columns_to_jurusans_table', 8),
+(21, '2026_06_12_000001_add_sub_prefix_to_items_table', 9),
+(22, '2026_06_12_000002_add_fk_columns_to_items_and_kondisi_kembali_to_peminjaman', 9),
+(23, '2026_06_12_000003_add_keterangan_and_foto_kembali_to_peminjaman', 9);
+
+-- ============================================================
+-- DEFAULT USER ACCOUNTS (Admin & Superadmin)
+-- Passwords match password.txt credentials
+-- ============================================================
+INSERT INTO `users` (`user_code`, `name`, `username`, `email`, `role`, `password`, `is_active`, `created_at`, `updated_at`) VALUES
+('USR-001', 'Super Admin NOC', 'superadmin', 'superadmin@noc.smkn4malang.sch.id', 'Superadmin', '$2y$10$Fw7wR0Fdj6ex0xPAnpbEm.k5gjZJDUPg3op9uidWzgYp6Lo81JeMO', 1, NOW(), NOW()),
+('USR-002', 'Admin NOC', 'admin', 'admin@noc.smkn4malang.sch.id', 'Admin', '$2y$10$HjjtLnVuGcz7o.x/06jZEe0UhxmsyKvHyYNvb9IciZl0A2sTWT6Mu', 1, NOW(), NOW());
 
 -- ============================================================
 -- 2. APPLICATION TABLES (Inventaris & Manajemen Barang)
@@ -186,39 +206,33 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 -- -----------------------------------------------------------
 -- Table: categories (Kategori Barang)
 -- Model: App\Models\Category
+-- Migrations: 2026_04_23_000001, 2026_06_10_000001 (prefix, last_code_number)
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `prefix` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_code_number` int UNSIGNED NOT NULL DEFAULT '0',
   `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `categories_slug_unique` (`slug`)
+  UNIQUE KEY `categories_slug_unique` (`slug`),
+  UNIQUE KEY `categories_prefix_unique` (`prefix`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Router', 'router', 'Perangkat router untuk jaringan', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(2, 'Switch', 'switch', 'Perangkat switch jaringan', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(3, 'Access Point', 'access-point', 'Perangkat wireless access point', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(4, 'Kabel & Konektor', 'kabel-konektor', 'Kabel UTP, STP, Fiber Optic, dan konektor', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(5, 'Server', 'server', 'Perangkat server dan rack', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(6, 'Komputer', 'komputer', 'PC Desktop dan workstation', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(7, 'Monitor', 'monitor', 'Monitor dan display', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(8, 'Tools & Alat Ukur', 'tools-alat-ukur', 'Tang crimping, LAN tester, multimeter, dll', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(9, 'Peripheral', 'peripheral', 'Keyboard, mouse, headset, dll', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(10, 'Lainnya', 'lainnya', 'Perangkat lain yang tidak masuk kategori di atas', '2026-04-23 14:56:44', '2026-04-23 14:56:44');
 
 -- -----------------------------------------------------------
 -- Table: locations (Lokasi / Ruangan)
 -- Model: App\Models\Location
+-- Migrations: 2026_04_23_000002, 2026_06_08_172433 (penanggung_jawab)
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `locations`;
 CREATE TABLE `locations` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `penanggung_jawab` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
   `created_at` datetime DEFAULT NULL,
@@ -227,28 +241,26 @@ CREATE TABLE `locations` (
   UNIQUE KEY `locations_code_unique` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `locations` (`id`, `name`, `code`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Lab Jaringan 1', 'LAB-JR1', 'Laboratorium Jaringan Dasar', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(2, 'Lab Jaringan 2', 'LAB-JR2', 'Laboratorium Jaringan Lanjut', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(3, 'Lab Komputer 1', 'LAB-KP1', 'Laboratorium Komputer Umum', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(4, 'Lab Server', 'LAB-SVR', 'Ruang Server NOC', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(5, 'Gudang NOC', 'GDG-NOC', 'Gudang penyimpanan peralatan NOC', '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(6, 'Ruang Instruktur', 'RNG-INS', 'Ruang kerja instruktur', '2026-04-23 14:56:44', '2026-04-23 14:56:44');
-
 -- -----------------------------------------------------------
 -- Table: items (Inventaris Barang)
 -- Model: App\Models\Item
+-- Migration: 2026_04_23_000003, 2026_05_21_234440 (code varchar 50),
+--            2026_06_12_000001 (sub_prefix), 2026_06_12_000002 (fk columns)
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `items`;
 CREATE TABLE `items` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sub_prefix` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `serial_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `brand` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `model` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `category_id` bigint UNSIGNED NOT NULL,
   `location_id` bigint UNSIGNED NOT NULL,
+  `supplier_id` bigint UNSIGNED DEFAULT NULL,
+  `asal_barang_id` bigint UNSIGNED DEFAULT NULL,
+  `kondisi_barang_id` bigint UNSIGNED DEFAULT NULL,
   `quantity` bigint UNSIGNED NOT NULL DEFAULT '1',
   `condition` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'baik',
   `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'tersedia',
@@ -262,25 +274,20 @@ CREATE TABLE `items` (
   UNIQUE KEY `items_code_unique` (`code`),
   KEY `fk_items_category_id` (`category_id`),
   KEY `fk_items_location_id` (`location_id`),
+  KEY `fk_items_supplier_id` (`supplier_id`),
+  KEY `fk_items_asal_barang_id` (`asal_barang_id`),
+  KEY `fk_items_kondisi_barang_id` (`kondisi_barang_id`),
   CONSTRAINT `fk_items_category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_items_location_id` FOREIGN KEY (`location_id`) REFERENCES `locations` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_items_location_id` FOREIGN KEY (`location_id`) REFERENCES `locations` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_items_supplier_id` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_items_asal_barang_id` FOREIGN KEY (`asal_barang_id`) REFERENCES `asal_barangs` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_items_kondisi_barang_id` FOREIGN KEY (`kondisi_barang_id`) REFERENCES `kondisi_barangs` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO `items` (`id`, `name`, `code`, `serial_number`, `brand`, `model`, `category_id`, `location_id`, `quantity`, `condition`, `status`, `purchase_date`, `purchase_price`, `notes`, `image`, `created_at`, `updated_at`) VALUES
-(1, 'MikroTik RB750Gr3', 'INV-00001', NULL, 'MikroTik', 'RB750Gr3', 1, 1, 5, 'baik', 'tersedia', NULL, '850000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(2, 'Cisco Catalyst 2960', 'INV-00002', NULL, 'Cisco', 'Catalyst 2960-24TT', 2, 1, 3, 'baik', 'tersedia', NULL, '5500000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(3, 'TP-Link EAP245', 'INV-00003', NULL, 'TP-Link', 'EAP245 V3', 3, 2, 4, 'baik', 'tersedia', NULL, '1200000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(4, 'Kabel UTP Cat6 305m', 'INV-00004', NULL, 'Belden', 'Cat6 UTP', 4, 5, 10, 'baik', 'tersedia', NULL, '1800000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(5, 'Dell PowerEdge T340', 'INV-00005', NULL, 'Dell', 'PowerEdge T340', 5, 4, 1, 'baik', 'tersedia', NULL, '25000000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(6, 'PC Desktop Lenovo V530', 'INV-00006', NULL, 'Lenovo', 'V530 Tower', 6, 3, 20, 'baik', 'tersedia', NULL, '8500000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(7, 'Monitor LG 22MK430H', 'INV-00007', NULL, 'LG', '22MK430H', 7, 3, 20, 'baik', 'tersedia', NULL, '1500000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(8, 'Tang Crimping RJ45', 'INV-00008', NULL, 'AMP', 'Crimping Tool', 8, 1, 15, 'rusak_ringan', 'tersedia', NULL, '150000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(9, 'MikroTik CCR1009', 'INV-00009', NULL, 'MikroTik', 'CCR1009-7G-1C-1S+', 1, 4, 1, 'baik', 'tersedia', NULL, '7500000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44'),
-(10, 'Cisco Router 2901', 'INV-00010', NULL, 'Cisco', '2901/K9', 1, 2, 2, 'rusak_berat', 'maintenance', NULL, '12000000.00', NULL, NULL, '2026-04-23 14:56:44', '2026-04-23 14:56:44');
 
 -- -----------------------------------------------------------
 -- Table: item_movements (Riwayat Pergerakan Barang)
 -- Model: App\Models\ItemMovement
+-- Migration: 2026_04_23_000004
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `item_movements`;
 CREATE TABLE `item_movements` (
@@ -309,7 +316,7 @@ CREATE TABLE `item_movements` (
 -- -----------------------------------------------------------
 -- Table: scan_sessions (Sesi QR Scan)
 -- Model: App\Models\ScanSession
--- Migration: 2026_04_25_200001_create_scan_sessions_table
+-- Migration: 2026_04_25_200001
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `scan_sessions`;
 CREATE TABLE `scan_sessions` (
@@ -329,11 +336,12 @@ CREATE TABLE `scan_sessions` (
 -- -----------------------------------------------------------
 -- Table: peminjaman (Data Peminjaman Barang via QR)
 -- Model: App\Models\Peminjaman
--- Migration: 2026_04_25_200002_create_peminjaman_table
+-- Migrations: 2026_04_25_200002, 2026_05_21_234440 (id -> id_pinjam),
+--             2026_06_12_000002 (kondisi_saat_kembali)
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `peminjaman`;
 CREATE TABLE `peminjaman` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_pinjam` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `nama_peminjam` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `kelas` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `item_id` bigint UNSIGNED NOT NULL,
@@ -342,10 +350,13 @@ CREATE TABLE `peminjaman` (
   `waktu_pinjam` timestamp NULL DEFAULT NULL,
   `waktu_kembali` timestamp NULL DEFAULT NULL,
   `status` enum('dipinjam','dikembalikan') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'dipinjam',
+  `kondisi_saat_kembali` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `keterangan_kembali` text COLLATE utf8mb4_unicode_ci,
+  `foto_kembali` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `catatan` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id_pinjam`),
   KEY `peminjaman_session_token_index` (`session_token`),
   KEY `peminjaman_status_index` (`status`),
   CONSTRAINT `peminjaman_item_id_foreign` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE
@@ -354,6 +365,7 @@ CREATE TABLE `peminjaman` (
 -- -----------------------------------------------------------
 -- Table: jurusans (Data Jurusan)
 -- Model: App\Models\Jurusan
+-- Migrations: 2026_06_03_191113, 2026_06_10_000002
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `jurusans`;
 CREATE TABLE `jurusans` (
@@ -369,6 +381,7 @@ CREATE TABLE `jurusans` (
 -- -----------------------------------------------------------
 -- Table: suppliers (Data Supplier)
 -- Model: App\Models\Supplier
+-- Migration: 2026_06_03_191837
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `suppliers`;
 CREATE TABLE `suppliers` (
@@ -387,6 +400,7 @@ CREATE TABLE `suppliers` (
 -- -----------------------------------------------------------
 -- Table: asal_barangs (Data Asal Barang)
 -- Model: App\Models\AsalBarang
+-- Migration: 2026_06_03_191848
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `asal_barangs`;
 CREATE TABLE `asal_barangs` (
@@ -402,6 +416,7 @@ CREATE TABLE `asal_barangs` (
 -- -----------------------------------------------------------
 -- Table: kondisi_barangs (Data Kondisi Barang)
 -- Model: App\Models\KondisiBarang
+-- Migration: 2026_06_03_191842
 -- -----------------------------------------------------------
 DROP TABLE IF EXISTS `kondisi_barangs`;
 CREATE TABLE `kondisi_barangs` (

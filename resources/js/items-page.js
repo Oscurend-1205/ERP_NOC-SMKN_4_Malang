@@ -11,7 +11,7 @@
 // ============================================
 
 // --- Units Modal ---
-window.openUnitsModal = async function(name, location_id, condition, status, prefix) {
+window.openUnitsModal = async function(name, brand, model, category_id, sub_prefix) {
     const modal = document.getElementById('unitsModal');
     if (!modal) return;
     
@@ -19,46 +19,72 @@ window.openUnitsModal = async function(name, location_id, condition, status, pre
     const tbody = document.getElementById('unitsTableBody');
     if (!subtitle || !tbody) return;
     
-    subtitle.textContent = `Menampilkan rincian unit unik untuk kelompok ${prefix} (${name})`;
-    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10"><span class="material-symbols-outlined animate-spin text-[32px] text-gray-400 mb-2">progress_activity</span><div class="text-sm text-gray-500 font-medium">Memuat data unit...</div></td></tr>`;
+    subtitle.textContent = `Menampilkan rincian unit untuk ${name} (${brand} ${model})`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10"><span class="material-symbols-outlined animate-spin text-[32px] text-gray-400 mb-2">progress_activity</span><div class="text-sm text-gray-500 font-medium">Memuat data unit...</div></td></tr>`;
     
     modal.classList.remove('hidden');
 
     try {
         const config = window._itemsConfig || {};
         const unitsUrl = config.unitsRoute || '/items/units';
-        const url = `${unitsUrl}?name=${encodeURIComponent(name)}&location_id=${location_id}&condition=${condition}&status=${status}`;
+        const url = `${unitsUrl}?name=${encodeURIComponent(name)}&brand=${encodeURIComponent(brand)}&model=${encodeURIComponent(model)}&category_id=${encodeURIComponent(category_id)}&sub_prefix=${encodeURIComponent(sub_prefix || '')}`;
         const res = await fetch(url);
         const data = await res.json();
         const csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
         
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500 text-sm">Data unit tidak ditemukan.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500 text-sm">Data unit tidak ditemukan.</td></tr>`;
             return;
         }
 
         data.forEach((unit, index) => {
+            // Condition badge
+            const condLabels = { baik: 'Baik', rusak_ringan: 'Rusak Ringan', rusak_berat: 'Rusak Berat', hilang: 'Hilang' };
+            const condColors = { baik: 'bg-green-50 text-green-700 border-green-200', rusak_ringan: 'bg-amber-50 text-amber-700 border-amber-200', rusak_berat: 'bg-red-50 text-red-700 border-red-200', hilang: 'bg-gray-50 text-gray-600 border-gray-200' };
+            const condLabel = condLabels[unit.condition] || unit.condition || '-';
+            const condClass = condColors[unit.condition] || 'bg-gray-50 text-gray-600 border-gray-200';
+
+            // Status badge
+            const statusLabels = { tersedia: 'Tersedia', dipinjam: 'Dipinjam', maintenance: 'Maintenance', dimusnahkan: 'Dimusnahkan' };
+            const statusColors = { tersedia: 'bg-green-50 text-green-700 border-green-200', dipinjam: 'bg-blue-50 text-blue-700 border-blue-200', maintenance: 'bg-orange-50 text-orange-700 border-orange-200', dimusnahkan: 'bg-red-50 text-red-700 border-red-200' };
+            const statusLabel = statusLabels[unit.status] || unit.status || '-';
+            const statusClass = statusColors[unit.status] || 'bg-gray-50 text-gray-600 border-gray-200';
+
+            // Purchase date
+            const purchaseDate = unit.purchase_date ? new Date(unit.purchase_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+
+            // Location
+            const locationName = (unit.location && unit.location.name) ? unit.location.name : '-';
+
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-gray-50 transition-colors';
+            tr.className = 'hover:bg-blue-50/40 transition-colors';
             tr.innerHTML = `
-                <td class="py-4 px-4 text-sm text-gray-500 text-center font-medium">${index + 1}</td>
-                <td class="py-4 px-4">
-                    <code class="text-[13px] bg-[#E8EAF6] text-[#3F51B5] px-2.5 py-1.5 rounded-md border border-indigo-100 font-mono font-bold tracking-wider shadow-sm">${unit.code}</code>
+                <td class="py-2.5 px-3 text-xs text-gray-400 text-center font-semibold">${index + 1}</td>
+                <td class="py-2.5 px-3">
+                    <div class="flex items-center gap-1.5">
+                        <code class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-mono font-bold tracking-wide">${unit.code}</code>
+                        ${unit.sub_prefix ? `<span class="text-[9px] font-bold text-indigo-500 bg-indigo-50/70 px-1.5 py-0.5 rounded border border-indigo-100">${unit.sub_prefix}</span>` : ''}
+                    </div>
                 </td>
-                <td class="py-4 px-4 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <button type="button" onclick="openQrModal('${unit.code}', '${unit.name}')" class="p-2 text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 rounded-lg transition-all shadow-sm border border-indigo-100 hover:border-transparent flex items-center gap-1.5 font-bold text-xs" title="Generate & Download QR Code">
-                            <span class="material-symbols-outlined text-[16px]">qr_code</span> Cetak QR
+                <td class="py-2.5 px-3 text-[11px] text-gray-500 font-mono tracking-wide">${unit.serial_number || '<span class="text-gray-300">—</span>'}</td>
+                <td class="py-2.5 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border ${condClass}">${condLabel}</span></td>
+                <td class="py-2.5 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border ${statusClass}">${statusLabel}</span></td>
+                <td class="py-2.5 px-3 text-center text-[11px] text-gray-600 font-medium">${locationName}</td>
+                <td class="py-2.5 px-3 text-[11px] text-gray-500 text-center">${purchaseDate}</td>
+                <td class="py-2.5 px-3 text-center">
+                    <div class="flex items-center justify-center gap-1">
+                        <button type="button" onclick="openQrModal('${unit.code}', '${unit.name}')" class="w-7 h-7 flex items-center justify-center text-indigo-500 hover:text-white bg-indigo-50 hover:bg-indigo-600 rounded-md transition-all border border-indigo-100 hover:border-indigo-600" title="QR Code">
+                            <span class="material-symbols-outlined text-[14px]">qr_code_2</span>
                         </button>
-                        <a href="/items/${unit.id}/edit" class="p-2 text-amber-600 hover:text-white bg-amber-50 hover:bg-amber-500 rounded-lg transition-all shadow-sm border border-amber-100 hover:border-transparent" title="Edit Unit Spesifik">
-                            <span class="material-symbols-outlined text-[16px]">edit</span>
+                        <a href="/items/${unit.id}/edit" class="w-7 h-7 flex items-center justify-center text-amber-500 hover:text-white bg-amber-50 hover:bg-amber-500 rounded-md transition-all border border-amber-100 hover:border-amber-500" title="Edit">
+                            <span class="material-symbols-outlined text-[14px]">edit</span>
                         </a>
-                        <form action="/items/${unit.id}" method="POST" onsubmit="return confirm('Yakin hapus unit ${unit.code} secara permanen?')" class="inline">
+                        <form action="/items/${unit.id}" method="POST" onsubmit="return confirm('Yakin hapus unit ${unit.code}?')" class="inline">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="p-2 text-red-600 hover:text-white bg-red-50 hover:bg-red-500 rounded-lg transition-all shadow-sm border border-red-100 hover:border-transparent" title="Hapus Unit">
-                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                            <button type="submit" class="w-7 h-7 flex items-center justify-center text-red-400 hover:text-white bg-red-50 hover:bg-red-500 rounded-md transition-all border border-red-100 hover:border-red-500" title="Hapus">
+                                <span class="material-symbols-outlined text-[14px]">delete</span>
                             </button>
                         </form>
                     </div>
@@ -69,7 +95,7 @@ window.openUnitsModal = async function(name, location_id, condition, status, pre
 
     } catch(e) {
         console.error(e);
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-red-500 text-sm font-medium">Gagal mengambil data unit. Silakan coba lagi.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-red-500 text-sm font-medium">Gagal mengambil data unit. Silakan coba lagi.</td></tr>`;
     }
 };
 
@@ -163,6 +189,67 @@ window.toggleAddBarangModal = function(show) {
     }
 };
 
+// --- Quick Category Modal ---
+window.openQuickCategoryModal = function() {
+    document.getElementById('qc_name').value = '';
+    document.getElementById('qc_prefix').value = '';
+    document.getElementById('qc_error').classList.add('hidden');
+    document.getElementById('quickCategoryModal').classList.remove('hidden');
+    document.getElementById('qc_name').focus();
+};
+
+window.closeQuickCategoryModal = function() {
+    document.getElementById('quickCategoryModal').classList.add('hidden');
+};
+
+// --- Code Preview Logic ---
+function updateCodePreview() {
+    const select = document.getElementById('addBarangCategoryId');
+    const subPrefixInput = document.getElementById('addBarangSubPrefix');
+    const previewText = document.getElementById('codePreviewText');
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    if (!select || !previewText) return;
+
+    const categoryId = select.value;
+    if (!categoryId) {
+        previewText.textContent = 'Pilih kategori terlebih dahulu';
+        previewText.className = 'font-mono font-bold text-gray-400 tracking-wider';
+        return;
+    }
+
+    const config = window._itemsConfig || {};
+    const categories = config.categoriesData || [];
+    const cat = categories.find(c => c.id == categoryId);
+
+    if (!cat || !cat.prefix) {
+        previewText.textContent = 'Kategori tidak memiliki prefix';
+        previewText.className = 'font-mono font-bold text-red-400 tracking-wider';
+        return;
+    }
+
+    const nextNumber = (cat.last_code_number || 0) + 1;
+    const subPrefix = subPrefixInput ? subPrefixInput.value.trim().toUpperCase() : '';
+    const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+    let code = cat.prefix;
+    if (subPrefix) {
+        code += '-' + subPrefix;
+    }
+    code += '-' + String(nextNumber).padStart(4, '0');
+
+    if (quantity > 1) {
+        let lastCode = cat.prefix;
+        if (subPrefix) {
+            lastCode += '-' + subPrefix;
+        }
+        lastCode += '-' + String(nextNumber + quantity - 1).padStart(4, '0');
+        previewText.textContent = code + '  ...  ' + lastCode;
+    } else {
+        previewText.textContent = code;
+    }
+    previewText.className = 'font-mono font-bold text-indigo-600 tracking-wider';
+}
+
 // Close modals on Escape key (register only once)
 if (!window._itemsEscapeListenerRegistered) {
     window._itemsEscapeListenerRegistered = true;
@@ -171,6 +258,7 @@ if (!window._itemsEscapeListenerRegistered) {
             if (typeof window.toggleAddBarangModal === 'function') window.toggleAddBarangModal(false);
             if (typeof window.closeQrModal === 'function') window.closeQrModal();
             if (typeof window.closeUnitsModal === 'function') window.closeUnitsModal();
+            if (typeof window.closeQuickCategoryModal === 'function') window.closeQuickCategoryModal();
         }
     });
 }
@@ -193,6 +281,115 @@ function initItemsPage() {
 
     const priceInput = document.getElementById('purchase_price_input');
     const addForm = document.getElementById('addBarangForm');
+    const inputSubPrefix = document.getElementById('addBarangSubPrefix');
+
+    // --- Auto-derive sub_prefix from brand ---
+    function deriveSubPrefix(brand) {
+        if (!brand || !brand.trim()) return '';
+        const clean = brand.trim();
+        // If brand has multiple words, take first letter of each (up to 3)
+        const words = clean.split(/[\s-]+/).filter(w => w.length > 0);
+        if (words.length >= 2) {
+            return words.slice(0, 3).map(w => w[0].toUpperCase()).join('');
+        }
+        // Single word: first 3 chars uppercase
+        return clean.substring(0, 3).toUpperCase();
+    }
+
+    const brandInput = document.querySelector('input[name="brand"]');
+    if (brandInput && inputSubPrefix) {
+        brandInput.addEventListener('input', function() {
+            // Only auto-derive in "new" mode
+            const itemType = document.querySelector('input[name="item_type"]:checked');
+            if (!itemType || itemType.value === 'new') {
+                inputSubPrefix.value = deriveSubPrefix(brandInput.value);
+                updateCodePreview();
+            }
+        });
+    }
+
+    // --- Code preview on category change ---
+    const categorySelect = document.getElementById('addBarangCategoryId');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', updateCodePreview);
+        // Trigger on init if already selected
+        if (categorySelect.value) updateCodePreview();
+    }
+
+    // --- Update code preview when quantity changes ---
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    if (quantityInput) {
+        quantityInput.addEventListener('input', updateCodePreview);
+    }
+
+    // --- Quick Category Form Submit ---
+    const qcForm = document.getElementById('quickCategoryForm');
+    if (qcForm) {
+        qcForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const config = window._itemsConfig || {};
+            const name = document.getElementById('qc_name').value.trim();
+            const prefix = document.getElementById('qc_prefix').value.trim().toUpperCase();
+            const errDiv = document.getElementById('qc_error');
+            const submitBtn = document.getElementById('qc_submit');
+
+            errDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span> Menyimpan...';
+
+            try {
+                const res = await fetch(config.quickCategoryRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ name, prefix }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    const errMsg = data.errors
+                        ? Object.values(data.errors).flat().join(', ')
+                        : (data.message || 'Gagal menyimpan kategori');
+                    throw new Error(errMsg);
+                }
+
+                // Add new option to category dropdown
+                const select = document.getElementById('addBarangCategoryId');
+                if (select) {
+                    const opt = new Option(data.category.name, data.category.id, true, true);
+                    opt.dataset.prefix = data.category.prefix;
+                    select.add(opt);
+                }
+
+                // Update categoriesData cache
+                if (config.categoriesData) {
+                    config.categoriesData.push({
+                        id: data.category.id,
+                        name: data.category.name,
+                        prefix: data.category.prefix,
+                        last_code_number: 0,
+                    });
+                }
+
+                // Update preview
+                updateCodePreview();
+
+                // Close modal
+                window.closeQuickCategoryModal();
+
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">save</span> Simpan Kategori';
+            }
+        });
+    }
 
     // --- Toggle Item Type Logic ---
     const itemTypeRadios = document.querySelectorAll('input[name="item_type"]');
@@ -202,6 +399,7 @@ function initItemsPage() {
     const inputBrand = document.querySelector('input[name="brand"]');
     const inputModel = document.querySelector('input[name="model"]');
     const selectCategory = document.querySelector('select[name="category_id"]');
+    // inputSubPrefix already declared at top of initItemsPage()
 
     function toggleItemType() {
         if (!existingItemSelector || !inputName || !inputBrand || !inputModel || !selectCategory) return;
@@ -222,6 +420,7 @@ function initItemsPage() {
             inputBrand.value = '';
             inputModel.value = '';
             selectCategory.value = '';
+            if (inputSubPrefix) inputSubPrefix.value = '';
             if (existingItemSelect) existingItemSelect.value = '';
         } else {
             existingItemSelector.classList.add('hidden');
@@ -238,7 +437,9 @@ function initItemsPage() {
             inputBrand.value = '';
             inputModel.value = '';
             selectCategory.value = '';
+            if (inputSubPrefix) inputSubPrefix.value = '';
         }
+        updateCodePreview();
     }
 
     if (itemTypeRadios.length > 0) {
@@ -253,12 +454,18 @@ function initItemsPage() {
                 inputBrand.value = selectedOption.dataset.brand || '';
                 inputModel.value = selectedOption.dataset.model || '';
                 selectCategory.value = selectedOption.dataset.category || '';
+                if (inputSubPrefix) {
+                    inputSubPrefix.value = selectedOption.dataset.subPrefix || '';
+                }
+                selectCategory.dispatchEvent(new Event('change'));
             } else {
                 inputName.value = '';
                 inputBrand.value = '';
                 inputModel.value = '';
                 selectCategory.value = '';
+                if (inputSubPrefix) inputSubPrefix.value = '';
             }
+            updateCodePreview();
         });
     }
 

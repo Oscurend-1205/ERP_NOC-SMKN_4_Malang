@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Peminjaman;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PeminjamanController extends Controller
 {
@@ -35,20 +36,47 @@ class PeminjamanController extends Controller
         return redirect()->back()->with('success', 'Data peminjaman berhasil dihapus.');
     }
 
-    public function returnItem(Peminjaman $peminjaman)
+    public function returnItem(Request $request, Peminjaman $peminjaman)
     {
         if ($peminjaman->status === 'dipinjam') {
-            $peminjaman->update([
-                'status' => 'dikembalikan',
-                'waktu_kembali' => now(),
+            $request->validate([
+                'kondisi_saat_kembali' => 'nullable|string|in:baik,rusak_ringan,rusak_berat,hilang',
+                'keterangan_kembali' => 'nullable|string|max:1000',
+                'foto_kembali' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            // Kembalikan stok barang
+            $kondisi = $request->input('kondisi_saat_kembali');
+            $keterangan = $request->input('keterangan_kembali');
+            $fotoPath = null;
+
+            // Handle photo upload
+            if ($request->hasFile('foto_kembali')) {
+                $fotoPath = $request->file('foto_kembali')->store('pengembalian', 'public');
+            }
+
+            $updateData = [
+                'status' => 'dikembalikan',
+                'waktu_kembali' => now(),
+                'kondisi_saat_kembali' => $kondisi,
+                'keterangan_kembali' => $keterangan,
+            ];
+
+            if ($fotoPath) {
+                $updateData['foto_kembali'] = $fotoPath;
+            }
+
+            $peminjaman->update($updateData);
+
+            // Kembalikan stok barang dan update kondisi
             $item = $peminjaman->item;
             if ($item) {
                 $item->increment('quantity', 1);
                 if ($item->status === 'dipinjam') {
                     $item->update(['status' => 'tersedia']);
+                }
+                // Update kondisi barang berdasarkan kondisi saat dikembalikan
+                if ($kondisi) {
+                    $item->update(['condition' => $kondisi]);
                 }
             }
 

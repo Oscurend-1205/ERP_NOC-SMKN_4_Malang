@@ -12,9 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('jurusans', function (Blueprint $table) {
-            $table->string('name')->after('id');
-            $table->text('description')->nullable()->after('name');
-            $table->boolean('is_active')->default(true)->after('description');
+            // Only add columns if they don't already exist
+            if (!Schema::hasColumn('jurusans', 'name')) {
+                $table->string('name');
+            }
+            if (!Schema::hasColumn('jurusans', 'description')) {
+                $table->text('description')->nullable();
+            }
+            if (!Schema::hasColumn('jurusans', 'is_active')) {
+                $table->boolean('is_active')->default(true);
+            }
         });
     }
 

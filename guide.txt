@@ -1,0 +1,19 @@
+email: admin@noc.smkn4malang.sch.id
+password: Admin2026
+
+email: superadmin@noc.smkn4malang.sch.id
+password: Superadmin2026
+
+- Untuk mereset DB tanpa data tiruan (seperti biasa): akses /mod-db.php?key=reset123
+- Untuk mereset DB sekaligus memasukkan data tiruan : akses /mod-db.php?key=reset123&seed=true atau cukup klik tombol Beri Dummy Data yang muncul setelah langkah pertama.
+
+Deployment Steps
+Upload these 2 files to InfinityFree:
+config/database.php → replace the existing one
+public/fix-strict-mode.php → new file
+Visit in browser:
+https://your-domain.com/fix-strict-mode.php
+Verify it shows green checkmarks
+Delete fix-strict-mode.php from the server for security
+Clear config cache by visiting:
+https://your-domain.com/deploy-setup

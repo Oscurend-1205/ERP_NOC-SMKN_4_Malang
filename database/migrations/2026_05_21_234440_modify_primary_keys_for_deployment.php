@@ -15,28 +15,35 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = Schema::getConnection()->getDriverName();
+
         // 1. Update 'users' table
         // We will add 'user_code' and make it PK. 
         // Note: For existing data, we need to populate it first.
         Schema::table('users', function (Blueprint $table) {
-            $table->string('user_code', 50)->nullable()->after('id');
+            $table->string('user_code', 50)->nullable();
         });
         
-        // Sync user_code with username or id for existing data
-        DB::statement("UPDATE users SET user_code = CONCAT('USR-', id)");
-        
+        // Sync user_code with id for existing data (cross-database compatible)
+        $users = DB::table('users')->get();
+        foreach ($users as $user) {
+            DB::table('users')->where('id', $user->id)->update(['user_code' => 'USR-' . $user->id]);
+        }
+
+        // Make user_code NOT NULL (MySQL only - SQLite doesn't support ALTER COLUMN)
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY user_code VARCHAR(50) NOT NULL");
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->string('user_code', 50)->nullable(false)->change();
             $table->unique('user_code');
         });
 
         // 2. Update 'items' table
-        // 'code' is already unique. We will keep it as unique but the request asks for it as PK.
-        // In Laravel/Eloquent, it's often better to keep 'id' as surrogate PK for relations, 
-        // but to satisfy the request strictly for the database layer:
-        Schema::table('items', function (Blueprint $table) {
-            $table->string('code', 50)->change(); // Ensure length
-        });
+        // 'code' is already unique. Keep as-is, no change needed for SQLite.
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE items MODIFY code VARCHAR(50) NOT NULL");
+        }
 
         // 3. Update 'peminjaman' table
         Schema::table('peminjaman', function (Blueprint $table) {
@@ -74,6 +81,7 @@ return new class extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
+            $table->dropUnique(['user_code']);
             $table->dropColumn('user_code');
         });
     }

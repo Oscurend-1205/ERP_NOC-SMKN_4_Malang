@@ -1,0 +1,173 @@
+@startuml ERP NOC SMKN 4 Malang - Chen ERD
+
+!theme plain
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor AliceBlue
+  BorderColor DarkSlateBlue
+  RoundCorner 5
+}
+skinparam relationship {
+  Color DarkSlateBlue
+}
+
+' Define Entities (Tables)
+entity "users" as users {
+  *id : bigint unsigned <<PK>>
+  --
+  *user_code : varchar(50) <<UK>>
+  *name : varchar(255)
+  username : varchar(255) <<UK>>
+  *email : varchar(255)
+  email_verified_at : datetime
+  *role : varchar(255)
+  *password : varchar(255)
+  *is_active : tinyint(1)
+  remember_token : varchar(255)
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "categories" as categories {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  *prefix : varchar(10) <<UK>>
+  *last_code_number : int unsigned
+  *slug : varchar(255) <<UK>>
+  description : text
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "locations" as locations {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  penanggung_jawab : varchar(255)
+  *code : varchar(255) <<UK>>
+  description : text
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "items" as items {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  *code : varchar(50) <<UK>>
+  serial_number : varchar(255)
+  brand : varchar(255)
+  model : varchar(255)
+  *category_id : bigint unsigned <<FK>>
+  *location_id : bigint unsigned <<FK>>
+  *quantity : bigint unsigned
+  *condition : varchar(255)
+  *status : varchar(255)
+  purchase_date : date
+  purchase_price : decimal(15,2)
+  notes : text
+  image : varchar(255)
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "item_movements" as item_movements {
+  *id : bigint unsigned <<PK>>
+  --
+  *item_id : bigint unsigned <<FK>>
+  *user_id : bigint unsigned <<FK>>
+  *type : varchar(255)
+  from_location_id : bigint unsigned <<FK>>
+  to_location_id : bigint unsigned <<FK>>
+  *quantity : bigint unsigned
+  notes : text
+  *movement_date : date
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "scan_sessions" as scan_sessions {
+  *id : bigint unsigned <<PK>>
+  --
+  *token : varchar(64) <<UK>>
+  *created_by : bigint unsigned <<FK>>
+  expired_at : timestamp
+  *is_used : tinyint(1)
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "peminjaman" as peminjaman {
+  *id_pinjam : bigint unsigned <<PK>>
+  --
+  *nama_peminjam : varchar(255)
+  *kelas : varchar(255)
+  *item_id : bigint unsigned <<FK>>
+  *item_code : varchar(255)
+  *session_token : varchar(64)
+  waktu_pinjam : timestamp
+  waktu_kembali : timestamp
+  *status : enum('dipinjam','dikembalikan')
+  catatan : text
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "jurusans" as jurusans {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  description : text
+  *is_active : tinyint(1)
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "suppliers" as suppliers {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  pic : varchar(255)
+  phone : varchar(255)
+  email : varchar(255)
+  address : text
+  *is_active : tinyint(1)
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "asal_barangs" as asal_barangs {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  description : text
+  *is_active : tinyint(1)
+  created_at : datetime
+  updated_at : datetime
+}
+
+entity "kondisi_barangs" as kondisi_barangs {
+  *id : bigint unsigned <<PK>>
+  --
+  *name : varchar(255)
+  label_color : varchar(255)
+  description : text
+  *is_active : tinyint(1)
+  created_at : datetime
+  updated_at : datetime
+}
+
+' Define Relationships (Chen Notation)
+users ||--o{ item_movements : "melakukan"
+users ||--o{ scan_sessions : "membuat"
+categories ||--|{ items : "memiliki"
+locations ||--|{ items : "menyimpan"
+locations ||--o{ item_movements : "dari (optional)"
+locations ||--o{ item_movements : "ke (optional)"
+items ||--|{ item_movements : "bergerak"
+items ||--|{ peminjaman : "dipinjam"
+scan_sessions ||--o{ peminjaman : "digunakan untuk"
+
+@enduml

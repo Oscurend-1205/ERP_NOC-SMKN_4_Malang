@@ -61,6 +61,23 @@
                         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                         Kembali
                     </a>
+                    {{-- Export Dropdown --}}
+                    <div class="relative">
+                        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all shadow-sm active:scale-95 text-sm">
+                            <span class="material-symbols-outlined text-[18px]">download</span>
+                            Export
+                        </button>
+                        <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                            <a href="{{ route('export.barang-masuk.csv') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <span class="material-symbols-outlined text-[18px] text-green-600">table_chart</span>
+                                Excel (CSV)
+                            </a>
+                            <a href="{{ route('export.barang-masuk.print') }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
+                                PDF (Cetak)
+                            </a>
+                        </div>
+                    </div>
                     <button onclick="document.getElementById('addBarangMasukModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Tambah Barang Masuk
@@ -338,6 +355,13 @@
             document.getElementById('detail_user').textContent = user || '-';
             document.getElementById('detailModal').classList.remove('hidden');
         }
+        // Close export dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('exportMenu');
+            if (menu && !menu.classList.contains('hidden') && !e.target.closest('.relative')) {
+                menu.classList.add('hidden');
+            }
+        });
     </script>
 
     @vite(['resources/js/turbo-navigation.js'])

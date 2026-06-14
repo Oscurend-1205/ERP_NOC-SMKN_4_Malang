@@ -11,7 +11,8 @@ class UserController extends Controller
     public function index()
     {
         $users = User::latest()->paginate(10);
-        return view('data-master.dataUser', compact('users'));
+        $totalUsers = User::count();
+        return view('data-master.dataUser', compact('users', 'totalUsers'));
     }
 
     public function store(Request $request)
@@ -25,7 +26,7 @@ class UserController extends Controller
 
         $validated['user_code'] = 'USR-' . (\App\Models\User::max('id') + 1);
         $validated['password'] = Hash::make('password123'); // Default password
-        $validated['is_active'] = $request->has('is_active') ? true : true; // Aktif default jika dari form
+        $validated['is_active'] = $request->has('is_active'); // Aktif jika switch dicentang
 
         User::create($validated);
 
@@ -34,6 +35,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // Cegah update untuk akun Superadmin dan Admin paten
+        if (in_array($user->username, ['superadmin', 'admin'])) {
+            return redirect()->route('users.index')->with('error', 'Akun ini adalah paten dan tidak dapat diedit.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
@@ -42,7 +48,7 @@ class UserController extends Controller
             'password' => 'nullable|string|min:6',
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? true : false;
+        $validated['is_active'] = $request->has('is_active');
 
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -57,6 +63,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Cegah hapus untuk akun Superadmin dan Admin paten
+        if (in_array($user->username, ['superadmin', 'admin'])) {
+            return redirect()->route('users.index')->with('error', 'Akun ini adalah paten dan tidak dapat dihapus.');
+        }
+
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }

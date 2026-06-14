@@ -23,7 +23,7 @@ $iterator = new RecursiveIteratorIterator(
 );
 
 // Folder dan file yang TIDAK perlu diikutkan
-$excludeList = ['.git', 'node_modules', 'buat_zip.php', '.env']; 
+$excludeList = ['.git', 'node_modules', 'buat_zip.php', '.env.local', '.env']; 
 // Catatan: Folder `vendor` tidak di-exclude karena di InfinityFree tidak bisa menjalankan `composer install`
 
 foreach ($iterator as $name => $file) {

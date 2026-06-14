@@ -12,9 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = Schema::getConnection()->getDriverName();
+
         Schema::table('categories', function (Blueprint $table) {
-            $table->string('prefix', 10)->unique()->nullable()->after('name');
-            $table->unsignedInteger('last_code_number')->default(0)->after('prefix');
+            $table->string('prefix', 10)->unique()->nullable();
+            $table->unsignedInteger('last_code_number')->default(0);
         });
 
         // Backfill existing categories with auto-generated prefix from name
@@ -49,10 +51,10 @@ return new class extends Migration
                 ]);
         }
 
-        // After backfill, make prefix NOT NULL
-        Schema::table('categories', function (Blueprint $table) {
-            $table->string('prefix', 10)->nullable(false)->change();
-        });
+        // Make prefix NOT NULL (MySQL only - SQLite doesn't support ALTER COLUMN)
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE categories MODIFY prefix VARCHAR(10) NOT NULL");
+        }
     }
 
     /**

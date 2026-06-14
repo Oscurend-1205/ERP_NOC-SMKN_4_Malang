@@ -84,7 +84,7 @@
             --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
 
             /* Layout */
-            --sidebar-width: 200px;
+            --sidebar-width: 256px;
             --sidebar-collapsed: 64px;
             --topbar-height: 48px;
             --radius: 12px;

@@ -7,7 +7,7 @@
 <div class="flex justify-between items-start mb-6" data-purpose="page-title-section">
 <div>
 <h1 class="text-3xl font-bold text-slate-900">Data User</h1>
-<p class="text-sm text-slate-500 mt-1">Kelola data user.</p>
+<p class="text-sm text-slate-500 mt-1">Kelola data user. <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 ml-1"><i data-lucide="users" class="w-3 h-3 mr-1"></i>Total: {{ number_format($totalUsers) }} user</span></p>
 </div>
 @if(auth()->user()->role === 'Superadmin')
     <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
@@ -90,12 +90,16 @@
 @if(auth()->user()->role === 'Superadmin')
 <td class="px-6 py-4 text-center">
 <div class="flex justify-center space-x-3">
-<button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}')" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
+@if(!in_array($user->username, ['superadmin', 'admin']))
+<button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? 1 : 0 }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
 <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?');" class="inline">
     @csrf
     @method('DELETE')
     <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i class="w-4 h-4" data-lucide="trash-2"></i></button>
 </form>
+@else
+<span class="text-xs text-slate-400 italic px-2 py-1 bg-slate-100 rounded-md" title="Akun paten tidak dapat diubah">Paten</span>
+@endif
 </div>
 </td>
 @endif
@@ -163,6 +167,18 @@
                         <option value="Siswa">Siswa</option>
                         <option value="Guru">Guru</option>
                     </select>
+                </div>
+
+                <!-- Status Aktif -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah user ini aktif dan dapat login.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
                 </div>
 
             </div>
@@ -234,6 +250,18 @@
                     </select>
                 </div>
 
+                <!-- Status Aktif -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah user ini aktif dan dapat login.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="edit_user_is_active" name="is_active" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
             </div>
 
             <!-- Footer -->
@@ -250,12 +278,13 @@
 </div>
 
 <script>
-    function openEditUserModal(id, name, username, email, role) {
+    function openEditUserModal(id, name, username, email, role, isActive) {
         document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
         document.getElementById('edit_user_name').value = name;
         document.getElementById('edit_user_username').value = username;
         document.getElementById('edit_user_email').value = email;
         document.getElementById('edit_user_role').value = role;
+        document.getElementById('edit_user_is_active').checked = (isActive == 1);
         document.getElementById('editUserModal').classList.remove('hidden');
     }
 </script>

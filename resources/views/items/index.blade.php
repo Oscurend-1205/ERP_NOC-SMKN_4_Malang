@@ -191,11 +191,12 @@
                     </div>
                 @endif
             </div>
-
+        </div> <!-- END PJAX CONTENT -->
     </main>
 
-    <!-- Modal Tambah Barang Baru -->
-    <div id="addBarangModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div id="pjax-page-modals">
+        <!-- Modal Tambah Barang Baru -->
+        <div id="addBarangModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAddBarangModal(false)"></div>
         
         <div class="relative w-full max-w-[1000px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-sans">
@@ -624,7 +625,7 @@
             categoriesData: {!! json_encode($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'prefix' => $c->prefix, 'last_code_number' => $c->last_code_number])) !!}
         };
     </script>
-    </div> <!-- END PJAX CONTENT -->
+    </div> <!-- END PJAX PAGE MODALS -->
     @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
     @include('components.accessibility-button')
 </body>

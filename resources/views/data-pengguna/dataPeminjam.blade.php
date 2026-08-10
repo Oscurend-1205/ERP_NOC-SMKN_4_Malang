@@ -203,6 +203,85 @@
         </div>
     </div>
 
+
+
+    <script>
+        function openReturnModal(idPinjam, itemName) {
+            document.getElementById('returnItemName').textContent = itemName;
+            document.getElementById('returnForm').action = '/data-peminjaman/' + idPinjam + '/return';
+            // Reset form
+            document.getElementById('returnForm').reset();
+            document.getElementById('fotoPlaceholder').classList.remove('hidden');
+            document.getElementById('fotoPreviewWrapper').classList.add('hidden');
+            document.getElementById('returnModal').classList.remove('hidden');
+        }
+        function closeReturnModal() {
+            document.getElementById('returnModal').classList.add('hidden');
+        }
+
+        function openDetailModal(data) {
+            document.getElementById('detailIdPinjam').textContent = data.id_pinjam;
+            document.getElementById('detailNama').textContent = data.nama_peminjam;
+            document.getElementById('detailKelas').textContent = data.kelas;
+            document.getElementById('detailItemName').textContent = data.item_name;
+            document.getElementById('detailItemCode').textContent = data.item_code;
+            document.getElementById('detailCatatan').textContent = data.catatan;
+            document.getElementById('detailWaktuPinjam').textContent = data.waktu_pinjam;
+            document.getElementById('detailWaktuKembali').textContent = data.waktu_kembali;
+            
+            const statusWrapper = document.getElementById('detailStatusWrapper');
+            if (data.status === 'dipinjam') {
+                statusWrapper.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Dipinjam</span>';
+                document.getElementById('detailPengembalianWrapper').classList.add('hidden');
+            } else {
+                statusWrapper.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Dikembalikan</span>';
+                document.getElementById('detailPengembalianWrapper').classList.remove('hidden');
+                
+                // Color formatting for kondisi
+                const kondisiVal = data.kondisi_saat_kembali;
+                let kClass = 'bg-gray-100 text-gray-700 border-gray-200';
+                if(kondisiVal.toLowerCase() === 'baik') kClass = 'bg-green-100 text-green-700 border-green-200';
+                else if(kondisiVal.toLowerCase() === 'rusak ringan') kClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                else if(kondisiVal.toLowerCase() === 'rusak berat') kClass = 'bg-red-100 text-red-700 border-red-200';
+                
+                const kElem = document.getElementById('detailKondisiKembali');
+                kElem.className = `text-xs font-bold mt-0.5 inline-block px-2.5 py-1 rounded border ${kClass}`;
+                kElem.textContent = kondisiVal;
+
+                document.getElementById('detailKeteranganKembali').textContent = data.keterangan_kembali;
+                
+                const fotoWrapper = document.getElementById('detailFotoKembaliWrapper');
+                const fotoImg = document.getElementById('detailFotoKembali');
+                if (data.foto_kembali) {
+                    fotoImg.src = data.foto_kembali;
+                    fotoWrapper.classList.remove('hidden');
+                } else {
+                    fotoWrapper.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+        function previewReturnPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('fotoPreview').src = e.target.result;
+                    document.getElementById('fotoPlaceholder').classList.add('hidden');
+                    document.getElementById('fotoPreviewWrapper').classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+    </script>
+@endsection
+
+@push('page-modals')
     {{-- Return Modal with Kondisi, Keterangan, and Foto --}}
     <div id="returnModal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeReturnModal()"></div>
@@ -371,79 +450,5 @@
             </div>
         </div>
     </div>
+@endpush
 
-    <script>
-        function openReturnModal(idPinjam, itemName) {
-            document.getElementById('returnItemName').textContent = itemName;
-            document.getElementById('returnForm').action = '/data-peminjaman/' + idPinjam + '/return';
-            // Reset form
-            document.getElementById('returnForm').reset();
-            document.getElementById('fotoPlaceholder').classList.remove('hidden');
-            document.getElementById('fotoPreviewWrapper').classList.add('hidden');
-            document.getElementById('returnModal').classList.remove('hidden');
-        }
-        function closeReturnModal() {
-            document.getElementById('returnModal').classList.add('hidden');
-        }
-
-        function openDetailModal(data) {
-            document.getElementById('detailIdPinjam').textContent = data.id_pinjam;
-            document.getElementById('detailNama').textContent = data.nama_peminjam;
-            document.getElementById('detailKelas').textContent = data.kelas;
-            document.getElementById('detailItemName').textContent = data.item_name;
-            document.getElementById('detailItemCode').textContent = data.item_code;
-            document.getElementById('detailCatatan').textContent = data.catatan;
-            document.getElementById('detailWaktuPinjam').textContent = data.waktu_pinjam;
-            document.getElementById('detailWaktuKembali').textContent = data.waktu_kembali;
-            
-            const statusWrapper = document.getElementById('detailStatusWrapper');
-            if (data.status === 'dipinjam') {
-                statusWrapper.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Dipinjam</span>';
-                document.getElementById('detailPengembalianWrapper').classList.add('hidden');
-            } else {
-                statusWrapper.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Dikembalikan</span>';
-                document.getElementById('detailPengembalianWrapper').classList.remove('hidden');
-                
-                // Color formatting for kondisi
-                const kondisiVal = data.kondisi_saat_kembali;
-                let kClass = 'bg-gray-100 text-gray-700 border-gray-200';
-                if(kondisiVal.toLowerCase() === 'baik') kClass = 'bg-green-100 text-green-700 border-green-200';
-                else if(kondisiVal.toLowerCase() === 'rusak ringan') kClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
-                else if(kondisiVal.toLowerCase() === 'rusak berat') kClass = 'bg-red-100 text-red-700 border-red-200';
-                
-                const kElem = document.getElementById('detailKondisiKembali');
-                kElem.className = `text-xs font-bold mt-0.5 inline-block px-2.5 py-1 rounded border ${kClass}`;
-                kElem.textContent = kondisiVal;
-
-                document.getElementById('detailKeteranganKembali').textContent = data.keterangan_kembali;
-                
-                const fotoWrapper = document.getElementById('detailFotoKembaliWrapper');
-                const fotoImg = document.getElementById('detailFotoKembali');
-                if (data.foto_kembali) {
-                    fotoImg.src = data.foto_kembali;
-                    fotoWrapper.classList.remove('hidden');
-                } else {
-                    fotoWrapper.classList.add('hidden');
-                }
-            }
-
-            document.getElementById('detailModal').classList.remove('hidden');
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detailModal').classList.add('hidden');
-        }
-        function previewReturnPhoto(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('fotoPreview').src = e.target.result;
-                    document.getElementById('fotoPlaceholder').classList.add('hidden');
-                    document.getElementById('fotoPreviewWrapper').classList.remove('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-    </script>
-@endsection

@@ -234,6 +234,7 @@
     </main>
     <!-- END: Main Content Area -->
 
+    <div id="pjax-page-modals">
         <!-- Modal Tambah Barang Masuk -->
     <div id="addBarangMasukModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAddBarangMasukModal(false)"></div>
@@ -711,6 +712,7 @@
             document.getElementById('formStep1BM').classList.remove('hidden');
         }
     </script>
+    </div> <!-- END PJAX PAGE MODALS -->
 
     @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
     @include('components.accessibility-button')

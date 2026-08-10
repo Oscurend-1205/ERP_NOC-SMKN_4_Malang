@@ -93,6 +93,22 @@
 </section>
 <!-- END: Data Table Section -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditKategoriModal(id, name, description, prefix) {
+        document.getElementById('editKategoriForm').action = `/kategori-barang/${id}`;
+        document.getElementById('edit_kategori_name').value = name;
+        document.getElementById('edit_kategori_description').value = description;
+        document.getElementById('edit_kategori_prefix').value = prefix;
+        document.getElementById('editKategoriModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Kategori -->
 <div id="addKategoriModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addKategoriModal').classList.add('hidden')"></div>
@@ -135,9 +151,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Kategori -->
 <div id="editKategoriModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editKategoriModal').classList.add('hidden')"></div>
@@ -180,14 +193,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditKategoriModal(id, name, description, prefix) {
-        document.getElementById('editKategoriForm').action = `/kategori-barang/${id}`;
-        document.getElementById('edit_kategori_name').value = name;
-        document.getElementById('edit_kategori_description').value = description;
-        document.getElementById('edit_kategori_prefix').value = prefix;
-        document.getElementById('editKategoriModal').classList.remove('hidden');
-    }
-</script>
 @endpush

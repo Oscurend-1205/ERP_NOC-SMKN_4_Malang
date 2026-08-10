@@ -110,6 +110,22 @@
 </section>
 <!-- END: Data Table Section -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditKondisiModal(id, name, labelColor, description) {
+        document.getElementById('editKondisiForm').action = `/kondisi-barang/${id}`;
+        document.getElementById('edit_kondisi_name').value = name;
+        document.getElementById('edit_kondisi_label_color').value = labelColor;
+        document.getElementById('edit_kondisi_description').value = description;
+        document.getElementById('editKondisiModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Kondisi -->
 <div id="addKondisiModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addKondisiModal').classList.add('hidden')"></div>
@@ -156,9 +172,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Kondisi -->
 <div id="editKondisiModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editKondisiModal').classList.add('hidden')"></div>
@@ -205,14 +218,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditKondisiModal(id, name, labelColor, description) {
-        document.getElementById('editKondisiForm').action = `/kondisi-barang/${id}`;
-        document.getElementById('edit_kondisi_name').value = name;
-        document.getElementById('edit_kondisi_label_color').value = labelColor;
-        document.getElementById('edit_kondisi_description').value = description;
-        document.getElementById('editKondisiModal').classList.remove('hidden');
-    }
-</script>
 @endpush

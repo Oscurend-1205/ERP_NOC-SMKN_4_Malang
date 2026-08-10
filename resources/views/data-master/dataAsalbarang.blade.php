@@ -95,6 +95,21 @@
 </section>
 <!-- END: Data Table Section -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditAsalModal(id, name, description) {
+        document.getElementById('editAsalForm').action = `/asal-barang/${id}`;
+        document.getElementById('edit_asal_name').value = name;
+        document.getElementById('edit_asal_description').value = description;
+        document.getElementById('editAsalModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Asal Barang -->
 <div id="addAsalModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addAsalModal').classList.add('hidden')"></div>
@@ -132,9 +147,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Asal Barang -->
 <div id="editAsalModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editAsalModal').classList.add('hidden')"></div>
@@ -172,13 +184,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditAsalModal(id, name, description) {
-        document.getElementById('editAsalForm').action = `/asal-barang/${id}`;
-        document.getElementById('edit_asal_name').value = name;
-        document.getElementById('edit_asal_description').value = description;
-        document.getElementById('editAsalModal').classList.remove('hidden');
-    }
-</script>
 @endpush

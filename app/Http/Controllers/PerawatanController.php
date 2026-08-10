@@ -98,6 +98,8 @@ class PerawatanController extends Controller
             'jenis_perawatan' => 'nullable|string|max:255',
             'catatan' => 'nullable|string',
             'tanggal_selesai' => 'nullable|date',
+            'item_status' => 'nullable|in:tersedia,dimusnahkan',
+            'item_condition' => 'nullable|in:baik,rusak_ringan,rusak_berat,hilang',
         ]);
 
         // Jika status berubah ke 'selesai', otomatis set tanggal_selesai
@@ -105,11 +107,25 @@ class PerawatanController extends Controller
             $validated['tanggal_selesai'] = now()->toDateString();
         }
 
-        // Jika status berubah ke 'selesai', update status item ke 'tersedia'
+        // Jika status berubah ke 'selesai', update status dan kondisi item jika diberikan
         if ($validated['status'] === 'selesai' && $perawatan->status !== 'selesai') {
             $item = $perawatan->item;
-            if ($item && $item->status === 'maintenance') {
-                $item->update(['status' => 'tersedia']);
+            if ($item) {
+                $itemUpdateData = [];
+                if (isset($validated['item_status'])) {
+                    $itemUpdateData['status'] = $validated['item_status'];
+                } else if ($item->status === 'maintenance') {
+                    // Fallback to tersedia if item_status is somehow missing
+                    $itemUpdateData['status'] = 'tersedia';
+                }
+                
+                if (isset($validated['item_condition'])) {
+                    $itemUpdateData['condition'] = $validated['item_condition'];
+                }
+                
+                if (!empty($itemUpdateData)) {
+                    $item->update($itemUpdateData);
+                }
             }
         }
 
@@ -121,6 +137,8 @@ class PerawatanController extends Controller
             }
         }
 
+        unset($validated['item_status']);
+        unset($validated['item_condition']);
         $perawatan->update($validated);
 
         return redirect()->route('perawatan.index')->with('success', 'Data perawatan berhasil diperbarui.');
@@ -146,5 +164,96 @@ class PerawatanController extends Controller
         $perawatan->delete();
 
         return redirect()->route('perawatan.index')->with('success', 'Data perawatan berhasil dihapus.');
+    }
+
+    public function generateLink(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return redirect()->route('perawatan.index')->with('error', 'Hanya Superadmin yang dapat membuat link perbaikan.');
+        }
+
+        $perawatan = Perawatan::findOrFail($id);
+        
+        $perawatan->token_link = \Illuminate\Support\Str::uuid()->toString();
+        
+        if ($perawatan->status === 'menunggu') {
+            $perawatan->status = 'proses';
+            if ($perawatan->item) {
+                $perawatan->item->update(['status' => 'maintenance']);
+            }
+        }
+        $perawatan->save();
+
+        return redirect()->route('perawatan.index')->with('success', 'Link perbaikan berhasil dibuat.');
+    }
+
+    public function publicMaintenanceForm($token)
+    {
+        if ($token === 'success') {
+            return view('data-perawatan.public_success');
+        }
+        $perawatan = Perawatan::with('item.category')->where('token_link', $token)->firstOrFail();
+        return view('data-perawatan.public_form', compact('perawatan', 'token'));
+    }
+
+    public function publicMaintenanceSubmit(Request $request, $token)
+    {
+        $perawatan = Perawatan::where('token_link', $token)->firstOrFail();
+
+        $request->validate([
+            'teknisi_nama' => 'required|string|max:255',
+            'biaya' => 'nullable|numeric',
+            'foto_bukti' => 'required|image|max:5120',
+        ]);
+
+        $fotoPath = null;
+        if ($request->hasFile('foto_bukti')) {
+            $fotoPath = $request->file('foto_bukti')->store('maintenance_proofs', 'public');
+        }
+
+        $perawatan->update([
+            'teknisi_nama' => $request->teknisi_nama,
+            'biaya' => $request->biaya,
+            'foto_bukti' => $fotoPath,
+            'status' => 'menunggu_pengecekan',
+            'token_link' => null // Invalidate link
+        ]);
+
+        return redirect()->route('maintenance.public_form', ['token' => 'success'])->with('success', 'Laporan perbaikan berhasil disubmit!');
+    }
+
+    public function verifyMaintenance(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return redirect()->route('perawatan.index')->with('error', 'Hanya Superadmin yang dapat memverifikasi.');
+        }
+
+        $perawatan = Perawatan::findOrFail($id);
+
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+            'item_condition' => 'nullable|in:baik,rusak_ringan,rusak_berat,hilang',
+            'item_status' => 'nullable|in:tersedia,dimusnahkan',
+        ]);
+
+        if ($request->action === 'approve') {
+            $perawatan->status = 'selesai';
+            $perawatan->tanggal_selesai = now()->toDateString();
+            
+            if ($perawatan->item) {
+                $perawatan->item->update([
+                    'status' => $request->item_status ?? 'tersedia',
+                    'condition' => $request->item_condition ?? $perawatan->item->condition
+                ]);
+            }
+            $msg = 'Laporan perbaikan disetujui dan ditutup.';
+        } else {
+            $perawatan->status = 'proses';
+            $perawatan->token_link = \Illuminate\Support\Str::uuid()->toString();
+            $msg = 'Laporan ditolak. Kasus dikembalikan ke Proses dengan Link baru.';
+        }
+        $perawatan->save();
+
+        return redirect()->route('perawatan.index')->with('success', $msg);
     }
 }

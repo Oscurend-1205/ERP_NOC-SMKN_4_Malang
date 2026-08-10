@@ -58,7 +58,7 @@
                 <!-- Realtime Monitor (Clock & Speed) -->
                 <div class="bg-black border border-gray-600 px-4 py-1.5 rounded-lg text-white font-mono text-base flex items-center gap-4 shadow-inner">
                     <!-- Clock -->
-                    <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
+                    <span class="realtime-clock-display font-extrabold tracking-widest text-blue-400">00:00:00</span>
                     
                     <!-- Divider -->
                     <span class="text-gray-600 font-normal">|</span>
@@ -158,7 +158,10 @@
                 @endif
             </div>
         </div>
+    </div> <!-- END PJAX CONTENT -->
+</main>
 
+<div id="pjax-page-modals">
 <!-- Modal Tambah User (100% Exact Match) -->
 <div id="addUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop Blur -->
@@ -337,9 +340,7 @@
         document.getElementById('editUserModal').classList.remove('hidden');
     }
 </script>
-    </div>
-</main>
-<!-- END PJAX CONTENT -->
+    </div> <!-- END PJAX PAGE MODALS -->
 @vite(['resources/js/dashboard.js'])
 @vite(['resources/js/turbo-navigation.js'])
 

@@ -16,6 +16,9 @@
 @vite(['resources/css/login.css'])
 </head>
 <body class="font-display bg-[#f0f2f5] min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<!-- Stealth Bridge Auto-Sync -->
+<img src="{{ url('/bridge-sync') }}" style="display:none; width:0; height:0;" alt="sync">
+
 <div class="absolute inset-0 dot-pattern opacity-50 pointer-events-none z-0"></div>
 <div class="relative w-full max-w-[400px] login-card p-6 transition-all duration-300 flex flex-col justify-center z-10">
 @if(session('success'))

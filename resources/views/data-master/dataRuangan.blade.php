@@ -77,10 +77,26 @@
 </section>
 <!-- END: Table Container Card -->
 
+@endsection
+
+@push('scripts')
+<script>
+    function openEditRuanganModal(id, code, name, penanggung_jawab, description) {
+        document.getElementById('editRuanganForm').action = `/locations/${id}`;
+        document.getElementById('edit_code').value = code;
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_penanggung_jawab').value = penanggung_jawab;
+        document.getElementById('edit_description').value = description;
+        document.getElementById('editRuanganModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Ruangan -->
 <div id="addRuanganModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addRuanganModal').classList.add('hidden')"></div>
-    
+
     <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
             <h2 class="text-lg font-bold text-slate-900">Tambah Ruangan</h2>
@@ -122,13 +138,10 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Ruangan -->
 <div id="editRuanganModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editRuanganModal').classList.add('hidden')"></div>
-    
+
     <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
             <h2 class="text-lg font-bold text-slate-900">Edit Ruangan</h2>
@@ -170,15 +183,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditRuanganModal(id, code, name, penanggung_jawab, description) {
-        document.getElementById('editRuanganForm').action = `/locations/${id}`;
-        document.getElementById('edit_code').value = code;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_penanggung_jawab').value = penanggung_jawab;
-        document.getElementById('edit_description').value = description;
-        document.getElementById('editRuanganModal').classList.remove('hidden');
-    }
-</script>
 @endpush

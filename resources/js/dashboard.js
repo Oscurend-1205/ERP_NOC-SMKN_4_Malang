@@ -53,37 +53,37 @@ if (window.tailwind) {
 
 // Realtime Clock Function
 function updateRealtimeClock() {
-    const clockElement = document.getElementById('realtime-clock-display');
-    if (!clockElement) return;
+    const clockElements = document.querySelectorAll('.realtime-clock-display');
+    if (!clockElements.length) return;
 
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+    clockElements.forEach(el => {
+        el.textContent = `${hours}:${minutes}:${seconds}`;
+    });
 }
 
 // Operational Status Function
 function updateOperationalStatus() {
-    const statusElement = document.getElementById('operational-status');
-    if (!statusElement) {
-        console.log("Operational status element not found");
-        return;
-    }
+    const statusElements = document.querySelectorAll('.operational-status');
+    if (!statusElements.length) return;
 
     const now = new Date();
     const hour = now.getHours();
-    console.log("Current hour for status:", hour);
 
     // Operational Hours: 06:00 - 15:00
-    if (hour >= 6 && hour < 15) {
-        statusElement.textContent = "open";
-        statusElement.style.color = "#4ade80"; // Tailwind green-400
-    } else {
-        statusElement.textContent = "closed";
-        statusElement.style.color = "#f87171"; // Tailwind red-400
-    }
+    statusElements.forEach(statusElement => {
+        if (hour >= 6 && hour < 15) {
+            statusElement.textContent = "open";
+            statusElement.style.color = "#4ade80"; // Tailwind green-400
+        } else {
+            statusElement.textContent = "closed";
+            statusElement.style.color = "#f87171"; // Tailwind red-400
+        }
+    });
 }
 
 // Variable to store interval to prevent double execution

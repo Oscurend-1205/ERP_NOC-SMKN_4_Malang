@@ -16,10 +16,10 @@
 </div>
 <div class="flex items-center space-x-3 md:space-x-4">
     <!-- Realtime Clock & Status -->
-    <div class="hidden md:flex bg-[#0B0E37] border border-gray-700 px-4 py-1.5 rounded-lg text-white font-mono text-sm items-center gap-3 shadow-inner">
-        <span id="realtime-clock-display" class="font-extrabold tracking-widest text-blue-400">00:00:00</span>
-        <span class="text-gray-600 font-normal">|</span>
-        <span id="operational-status" class="font-bold text-[12px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">
+    <div class="flex bg-[#0B0E37] border border-gray-700 px-2 md:px-4 py-1.5 rounded-lg text-white font-mono text-[10px] md:text-sm items-center gap-2 md:gap-3 shadow-inner">
+        <span class="realtime-clock-display font-extrabold tracking-widest text-blue-400">00:00:00</span>
+        <span class="text-gray-600 font-normal hidden md:inline">|</span>
+        <span class="operational-status font-bold text-[10px] md:text-[12px] {{ $isOpen ? 'text-green-400' : 'text-red-400' }}">
             {{ $isOpen ? 'OPEN' : 'CLOSED' }}
         </span>
     </div>
@@ -51,20 +51,21 @@
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
-        const el = document.getElementById('realtime-clock-display');
-        if (el) el.textContent = h + ':' + m + ':' + s;
+        
+        document.querySelectorAll('.realtime-clock-display').forEach(el => {
+            el.textContent = h + ':' + m + ':' + s;
+        });
 
         const hour = now.getHours();
-        const statusEl = document.getElementById('operational-status');
-        if (statusEl) {
+        document.querySelectorAll('.operational-status').forEach(statusEl => {
             if (hour >= 6 && hour < 15) {
                 statusEl.textContent = 'OPEN';
-                statusEl.className = 'font-bold text-[12px] text-green-400';
+                statusEl.className = 'operational-status font-bold text-[10px] md:text-[12px] text-green-400';
             } else {
                 statusEl.textContent = 'CLOSED';
-                statusEl.className = 'font-bold text-[12px] text-red-400';
+                statusEl.className = 'operational-status font-bold text-[10px] md:text-[12px] text-red-400';
             }
-        }
+        });
     }
     // Initialize immediately
     updateClock();

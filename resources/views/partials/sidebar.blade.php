@@ -1,5 +1,6 @@
 <!-- BEGIN: Sidebar Backdrop (Mobile Only) -->
-<div id="sidebarBackdrop" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
+<!-- NOTE: backdrop-blur dihapus untuk menghilangkan rendering artifact sisa overlay -->
+<div id="sidebarBackdrop" class="fixed inset-0 bg-gray-900/50 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
 <!-- BEGIN: Sidebar -->
 <aside id="mainSidebar" class="fixed inset-y-0 left-0 md:sticky md:top-0 h-full md:h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#1A1E35] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">

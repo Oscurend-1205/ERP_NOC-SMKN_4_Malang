@@ -17,6 +17,10 @@ class Perawatan extends Model
         'tanggal_selesai',
         'status',
         'catatan',
+        'token_link',
+        'teknisi_nama',
+        'biaya',
+        'foto_bukti',
     ];
 
     protected $casts = [
@@ -39,6 +43,7 @@ class Perawatan extends Model
         return match ($this->status) {
             'menunggu' => 'Menunggu Persetujuan',
             'proses' => 'Sedang Berlangsung',
+            'menunggu_pengecekan' => 'Menunggu Pengecekan',
             'selesai' => 'Selesai',
             default => ucfirst($this->status),
         };
@@ -49,6 +54,7 @@ class Perawatan extends Model
         return match ($this->status) {
             'menunggu' => 'bg-[#FFF8E1] text-[#FFA500]',
             'proses' => 'bg-[#E9EDF7] text-[#2D60FF]',
+            'menunggu_pengecekan' => 'bg-purple-100 text-purple-600',
             'selesai' => 'bg-[#E6F4EA] text-[#4CAF50]',
             default => 'bg-gray-100 text-gray-800',
         };

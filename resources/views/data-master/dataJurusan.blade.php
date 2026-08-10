@@ -96,6 +96,24 @@
 </section>
 <!-- END: Table Container Card -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditJurusanModal(id, kode, name, kepala, description, isActive) {
+        document.getElementById('editJurusanForm').action = `/data-jurusan/${id}`;
+        document.getElementById('edit_jurusan_kode').value = kode;
+        document.getElementById('edit_jurusan_name').value = name;
+        document.getElementById('edit_jurusan_kepala').value = kepala;
+        document.getElementById('edit_jurusan_description').value = description;
+        document.getElementById('edit_jurusan_is_active').value = isActive;
+        document.getElementById('editJurusanModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Jurusan -->
 <div id="addJurusanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addJurusanModal').classList.add('hidden')"></div>
@@ -148,9 +166,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Jurusan -->
 <div id="editJurusanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editJurusanModal').classList.add('hidden')"></div>
@@ -203,16 +218,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditJurusanModal(id, kode, name, kepala, description, isActive) {
-        document.getElementById('editJurusanForm').action = `/data-jurusan/${id}`;
-        document.getElementById('edit_jurusan_kode').value = kode;
-        document.getElementById('edit_jurusan_name').value = name;
-        document.getElementById('edit_jurusan_kepala').value = kepala;
-        document.getElementById('edit_jurusan_description').value = description;
-        document.getElementById('edit_jurusan_is_active').value = isActive;
-        document.getElementById('editJurusanModal').classList.remove('hidden');
-    }
-</script>
 @endpush

@@ -253,9 +253,23 @@
                 // Swap the content
                 content.innerHTML = newContent.innerHTML;
 
+                // Swap page-modals if they exist
+                const newPageModals = doc.querySelector('#pjax-page-modals');
+                const pageModals = document.querySelector('#pjax-page-modals');
+                if (pageModals && newPageModals) {
+                    pageModals.innerHTML = newPageModals.innerHTML;
+                    this._executeScripts(pageModals);
+                } else if (pageModals) {
+                    pageModals.innerHTML = '';
+                }
+
                 // Clear PJAX init guards so page scripts re-initialize
                 delete content.dataset.itemsInitialized;
                 delete content.dataset.pageInitialized;
+                if (pageModals) {
+                    delete pageModals.dataset.itemsInitialized;
+                    delete pageModals.dataset.pageInitialized;
+                }
 
                 // Update page title
                 const newTitle = doc.querySelector('title');

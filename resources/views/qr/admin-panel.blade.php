@@ -240,126 +240,128 @@
         </div>
 
 
-        <!-- Modal Input Pinjaman -->
-        <div id="loanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <!-- Backdrop -->
-            <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
-            
-            <!-- Modal Content -->
-            <div class="relative w-full max-w-[600px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <!-- Header -->
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
-                    <h2 class="text-[18px] font-bold text-gray-800">Input Pinjaman</h2>
-                    <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
-                        <span class="material-symbols-outlined text-[20px]">close</span>
+    </main>
+
+    <!-- Modal Input Pinjaman -->
+    <div id="loanModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('loanModal').classList.add('hidden')"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-[600px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+                <h2 class="text-[18px] font-bold text-gray-800">Input Pinjaman</h2>
+                <button onclick="document.getElementById('loanModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form action="{{ route('movements.loan') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
+                @csrf
+                
+                <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                    <!-- Nama Lengkap -->
+                    <div class="space-y-1.5 text-left relative">
+                        <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
+                        <input type="text" id="borrower_name_input" name="borrower_name" required placeholder="Ketik untuk mencari nama..." autocomplete="off"
+                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
+                        
+                        <!-- Autocomplete Dropdown -->
+                        <div id="users_autocomplete_dropdown" class="absolute z-[110] w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
+                        </div>
+                    </div>
+
+                    <!-- Kelas -->
+                    <div class="space-y-1.5 text-left">
+                        <label class="block text-[13px] font-bold text-gray-700">Kelas / Jurusan</label>
+                        <select name="kelas" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
+                            <option value="" disabled selected>Pilih kelas atau jurusan</option>
+                            @foreach($jurusans ?? [] as $jurusan)
+                                <option value="{{ $jurusan->name }}">{{ $jurusan->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- No HP -->
+                    <div class="space-y-1.5 text-left">
+                        <label class="block text-[13px] font-bold text-gray-700">No HP (Opsional)</label>
+                        <input type="text" id="borrower_phone_input" name="borrower_phone" placeholder="Masukan nomor HP *081..." 
+                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
+                    </div>
+
+                    <!-- Nama Barang & Hidden Item ID -->
+                    <div class="space-y-1.5 text-left">
+                        <label class="block text-[13px] font-bold text-gray-700">Nama Barang</label>
+                        @php
+                            $groupedItems = collect($availableItems ?? [])->groupBy('name');
+                        @endphp
+                        <select id="item_name_select" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
+                            <option value="" disabled selected>Pilih nama barang</option>
+                            @foreach($groupedItems as $name => $items)
+                                <option value="{{ $name }}">{{ $name }} (Stok Total: {{ $items->sum('quantity') }})</option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" id="hidden_item_id" name="item_id" required>
+                    </div>
+
+                    <!-- ID Barang -->
+                    <div class="space-y-1.5 text-left relative">
+                        <label class="block text-[13px] font-bold text-gray-700">ID Barang</label>
+                        <input type="text" id="item_code_input" name="item_code" required placeholder="Ketik kode barang (contoh: INV-00002)" autocomplete="off"
+                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
+                        
+                        <!-- Autocomplete Dropdown -->
+                        <div id="items_code_autocomplete_dropdown" class="absolute z-[110] w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
+                        </div>
+                    </div>
+
+                    <!-- Tanggal Peminjaman -->
+                    <div class="space-y-1.5 text-left">
+                        <label class="block text-[13px] font-bold text-gray-700">Tanggal Peminjaman</label>
+                        <input type="date" name="movement_date" required value="{{ date('Y-m-d') }}"
+                            class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none">
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+                    <button type="button" onclick="document.getElementById('loanModal').classList.add('hidden')" 
+                            class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="px-5 py-2 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm">
+                        Simpan
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
 
-                <!-- Form -->
-                <form action="{{ route('movements.loan') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
-                    @csrf
-                    
-                    <div class="px-6 py-5 space-y-4 overflow-y-auto">
-                        <!-- Nama Lengkap -->
-                        <div class="space-y-1.5 text-left relative">
-                            <label class="block text-[13px] font-bold text-gray-700">Nama Lengkap</label>
-                            <input type="text" id="borrower_name_input" name="borrower_name" required placeholder="Ketik untuk mencari nama..." autocomplete="off"
-                                class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
-                            
-                            <!-- Autocomplete Dropdown -->
-                            <div id="users_autocomplete_dropdown" class="absolute z-[110] w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
-                            </div>
-                        </div>
-
-                        <!-- Kelas -->
-                        <div class="space-y-1.5 text-left">
-                            <label class="block text-[13px] font-bold text-gray-700">Kelas / Jurusan</label>
-                            <select name="kelas" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
-                                <option value="" disabled selected>Pilih kelas atau jurusan</option>
-                                @foreach($jurusans ?? [] as $jurusan)
-                                    <option value="{{ $jurusan->name }}">{{ $jurusan->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- No HP -->
-                        <div class="space-y-1.5 text-left">
-                            <label class="block text-[13px] font-bold text-gray-700">No HP (Opsional)</label>
-                            <input type="text" id="borrower_phone_input" name="borrower_phone" placeholder="Masukan nomor HP *081..." 
-                                class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
-                        </div>
-
-                        <!-- Nama Barang & Hidden Item ID -->
-                        <div class="space-y-1.5 text-left">
-                            <label class="block text-[13px] font-bold text-gray-700">Nama Barang</label>
-                            @php
-                                $groupedItems = collect($availableItems ?? [])->groupBy('name');
-                            @endphp
-                            <select id="item_name_select" required class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none cursor-pointer">
-                                <option value="" disabled selected>Pilih nama barang</option>
-                                @foreach($groupedItems as $name => $items)
-                                    <option value="{{ $name }}">{{ $name }} (Stok Total: {{ $items->sum('quantity') }})</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" id="hidden_item_id" name="item_id" required>
-                        </div>
-
-                        <!-- ID Barang -->
-                        <div class="space-y-1.5 text-left relative">
-                            <label class="block text-[13px] font-bold text-gray-700">ID Barang</label>
-                            <input type="text" id="item_code_input" name="item_code" required placeholder="Ketik kode barang (contoh: INV-00002)" autocomplete="off"
-                                class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all placeholder:text-gray-400 outline-none">
-                            
-                            <!-- Autocomplete Dropdown -->
-                            <div id="items_code_autocomplete_dropdown" class="absolute z-[110] w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
-                            </div>
-                        </div>
-
-                        <!-- Tanggal Peminjaman -->
-                        <div class="space-y-1.5 text-left">
-                            <label class="block text-[13px] font-bold text-gray-700">Tanggal Peminjaman</label>
-                            <input type="date" name="movement_date" required value="{{ date('Y-m-d') }}"
-                                class="w-full px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] transition-all text-gray-700 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
-                        <button type="button" onclick="document.getElementById('loanModal').classList.add('hidden')" 
-                                class="px-5 py-2 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                            Batal
-                        </button>
-                        <button type="submit" 
-                                class="px-5 py-2 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm">
-                            Simpan
-                        </button>
-                    </div>
-                </form>
+    <!-- Fullscreen QR Modal -->
+    <div id="fullQrModal" onclick="window.closeFullQr()" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 backdrop-blur-sm transition-opacity cursor-pointer">
+        <div onclick="event.stopPropagation()" class="relative bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center animate-fade-in-up max-w-xl w-full mx-4 cursor-default">
+            <!-- Close Button -->
+            <button onclick="window.closeFullQr()" class="absolute -top-5 -right-5 bg-red-500 text-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:scale-110 transition-all duration-200">
+                <span class="material-symbols-outlined text-[28px]">close</span>
+            </button>
+            
+            <h2 class="text-3xl font-bold text-[#1A73E8] mb-6 text-center">Scan QR untuk Meminjam</h2>
+            
+            <!-- Modal QR Container -->
+            <div id="modalQrWrapper" class="bg-white p-5 rounded-2xl shadow-inner border-4 border-gray-100 mb-6 flex items-center justify-center min-w-[400px] min-h-[400px]">
+                <!-- QR injected here -->
+            </div>
+            
+            <div class="bg-gray-50 px-8 py-5 rounded-2xl w-full text-center border border-gray-100">
+                <p class="text-base text-gray-500 font-bold uppercase tracking-wider mb-2">Sisa Waktu Sesi</p>
+                <div id="modalQrCountdown" class="text-5xl font-extrabold text-[#3F51B5] font-mono tracking-widest">00:00</div>
             </div>
         </div>
+    </div>
 
-        <!-- Fullscreen QR Modal -->
-        <div id="fullQrModal" onclick="window.closeFullQr()" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 backdrop-blur-sm transition-opacity cursor-pointer">
-            <div onclick="event.stopPropagation()" class="relative bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center animate-fade-in-up max-w-xl w-full mx-4 cursor-default">
-                <!-- Close Button -->
-                <button onclick="window.closeFullQr()" class="absolute -top-5 -right-5 bg-red-500 text-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:scale-110 transition-all duration-200">
-                    <span class="material-symbols-outlined text-[28px]">close</span>
-                </button>
-                
-                <h2 class="text-3xl font-bold text-[#1A73E8] mb-6 text-center">Scan QR untuk Meminjam</h2>
-                
-                <!-- Modal QR Container -->
-                <div id="modalQrWrapper" class="bg-white p-5 rounded-2xl shadow-inner border-4 border-gray-100 mb-6 flex items-center justify-center min-w-[400px] min-h-[400px]">
-                    <!-- QR injected here -->
-                </div>
-                
-                <div class="bg-gray-50 px-8 py-5 rounded-2xl w-full text-center border border-gray-100">
-                    <p class="text-base text-gray-500 font-bold uppercase tracking-wider mb-2">Sisa Waktu Sesi</p>
-                    <div id="modalQrCountdown" class="text-5xl font-extrabold text-[#3F51B5] font-mono tracking-widest">00:00</div>
-                </div>
-            </div>
-        </div>
-    </main>
 
     <script>
 // Prevent multiple polling intervals on PJAX navigate

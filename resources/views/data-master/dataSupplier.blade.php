@@ -152,6 +152,25 @@
 </section>
 <!-- END: Data Table Section -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditSupplierModal(id, name, pic, phone, email, address, isActive) {
+        document.getElementById('editSupplierForm').action = `/data-supplier/${id}`;
+        document.getElementById('edit_supplier_name').value = name;
+        document.getElementById('edit_supplier_pic').value = pic;
+        document.getElementById('edit_supplier_phone').value = phone;
+        document.getElementById('edit_supplier_email').value = email;
+        document.getElementById('edit_supplier_address').value = address;
+        document.getElementById('edit_supplier_is_active').checked = (isActive == 1);
+        document.getElementById('editSupplierModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah Supplier -->
 <div id="addSupplierModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop Blur -->
@@ -217,9 +236,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit Supplier -->
 <div id="editSupplierModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editSupplierModal').classList.add('hidden')"></div>
@@ -280,17 +296,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditSupplierModal(id, name, pic, phone, email, address, isActive) {
-        document.getElementById('editSupplierForm').action = `/data-supplier/${id}`;
-        document.getElementById('edit_supplier_name').value = name;
-        document.getElementById('edit_supplier_pic').value = pic;
-        document.getElementById('edit_supplier_phone').value = phone;
-        document.getElementById('edit_supplier_email').value = email;
-        document.getElementById('edit_supplier_address').value = address;
-        document.getElementById('edit_supplier_is_active').checked = (isActive == 1);
-        document.getElementById('editSupplierModal').classList.remove('hidden');
-    }
-</script>
 @endpush

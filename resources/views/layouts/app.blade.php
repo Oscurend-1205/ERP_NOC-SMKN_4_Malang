@@ -972,6 +972,64 @@
         table tbody td {
             padding: 0.5rem 1rem !important;
         }
+
+        /* =========================================================
+           OVERLAY / MODAL ARTIFACT FIX
+           Menghilangkan sisa rendering (dark block artifact) yang
+           tertinggal setelah modal/overlay ditutup, terutama saat
+           html { zoom } + backdrop-blur aktif pada Windows Chromium.
+           ========================================================= */
+
+        /* 1. Bersihkan GPU-properties saat elemen di-hidden */
+        .hidden,
+        [hidden] {
+            display: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            filter: none !important;
+            transform: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* 2. Overlay / modal-backdrop elements: force isolated paint
+              sehingga compositing layer dilepas dengan benar. */
+        .fixed.inset-0.bg-gray-900\/50,
+        .fixed.inset-0.bg-slate-900\/50,
+        .fixed.inset-0.bg-black\/50,
+        .fixed.inset-0.bg-gray-800\/50,
+        .absolute.inset-0.bg-gray-900\/50,
+        .absolute.inset-0.bg-slate-900\/50,
+        #sidebarBackdrop {
+            contain: layout paint;
+            isolation: isolate;
+            transform: translateZ(0);
+            will-change: opacity, visibility;
+        }
+
+        /* 3. Sidebar & fixed-panel: mencegah sisa rendering border */
+        aside.fixed,
+        #mainSidebar {
+            contain: layout paint;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+        }
+
+        /* 4. Topbar: bersihkan kemungkinan sisa pixel di tepi */
+        .topbar,
+        [class*="backdrop-blur"] {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        /* 5. Class utilitas untuk force-repaint via JS */
+        .artifact-repaint {
+            animation: artifact-flash 0.001ms 1 !important;
+        }
+        @keyframes artifact-flash {
+            0%   { outline: 1px solid transparent; }
+            100% { outline: 0 solid transparent; }
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
@@ -1020,6 +1078,11 @@
             @stack('modals')
         </div>
     </main>
+
+    {{-- Page-level modals: rendered at body level to avoid sidebar stacking context issues --}}
+    <div id="pjax-page-modals">
+        @stack('page-modals')
+    </div>
 
     @vite(['resources/js/app_layout.js', 'resources/js/turbo-navigation.js'])
 
@@ -1162,6 +1225,113 @@
                 });
             });
         }
+    </script>
+
+    {{-- Global Overlay Artifact Force-Repair
+         Memaksa micro-repaint setiap kali overlay/modal ditutup
+         (menghilangkan sisa rendering dark-block di Windows Chromium).
+         --}}
+    <script>
+        (function() {
+            function triggerOverlayRepaint(justHiddenEl) {
+                try {
+                    // 1. Repaint elemen yang baru disembunyikan
+                    if (justHiddenEl && justHiddenEl.classList) {
+                        justHiddenEl.classList.remove('artifact-repaint');
+                        // void element.offsetWidth memaksa browser sync layout
+                        void justHiddenEl.offsetWidth;
+                        justHiddenEl.classList.add('artifact-repaint');
+                        void justHiddenEl.offsetWidth;
+                    }
+
+                    // 2. Repaint pada root (body/html) - menangani kasus sisa pixel
+                    //    di batas area sidebar atau pojok kanan
+                    var html = document.documentElement;
+                    var body = document.body;
+                    if (body) {
+                        body.classList.remove('artifact-repaint');
+                        void body.offsetWidth;
+                        body.classList.add('artifact-repaint');
+                        void body.offsetWidth;
+                    }
+
+                    // 3. Windows zoom: flicker zoom 0.9 -> 0.901 -> 0.9
+                    //    Trik terkenal untuk bersihkan sisa composite layer
+                    if (html) {
+                        var originalZoom = html.style.zoom || getComputedStyle(html).zoom || '0.9';
+                        html.style.zoom = '0.9001';
+                        // Gunakan requestAnimationFrame agar tidak flicker terlihat mata
+                        requestAnimationFrame(function() {
+                            try { html.style.zoom = originalZoom; } catch(e) {}
+                        });
+                    }
+                } catch (e) { /* no-op */ }
+            }
+
+            // Observe perubahan class di document root (semua DOM mutation)
+            var observer = new MutationObserver(function(mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var m = mutations[i];
+                    if (m.type !== 'attributes' || m.attributeName !== 'class') continue;
+                    var el = m.target;
+                    if (!el || !el.classList) continue;
+
+                    // Hanya tanggapi jika baru saja ditambahkan class `hidden`
+                    if (el.classList.contains('hidden')) {
+                        var isOverlayLike = false;
+                        try {
+                            // Deteksi jika ini overlay/modal/backdrop element
+                            var cs = getComputedStyle(el);
+                            var pos = cs.position;
+                            var hasFixedOrAbs = (pos === 'fixed' || pos === 'absolute');
+                            var hasBg = cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)';
+                            var tagHint = el.id && (
+                                el.id.indexOf('Modal') !== -1 ||
+                                el.id.indexOf('modal') !== -1 ||
+                                el.id.indexOf('Backdrop') !== -1 ||
+                                el.id.indexOf('backdrop') !== -1 ||
+                                el.id.indexOf('Overlay') !== -1 ||
+                                el.id.indexOf('overlay') !== -1 ||
+                                el.id.indexOf('Menu') !== -1 ||
+                                el.id.indexOf('Dropdown') !== -1 ||
+                                el.id.indexOf('FilterMenu') !== -1 ||
+                                el.id.indexOf('exportMenu') !== -1
+                            );
+                            // Hint: ada bg semi-transparent atau backdrop-filter
+                            var hasBackdrop = (cs.backdropFilter && cs.backdropFilter !== 'none') ||
+                                              (cs.webkitBackdropFilter && cs.webkitBackdropFilter !== 'none');
+
+                            isOverlayLike = (hasFixedOrAbs && hasBg) || tagHint || hasBackdrop;
+                        } catch(e) {}
+
+                        if (isOverlayLike) {
+                            // Sedikit delay agar transisi selesai, lalu repaint
+                            setTimeout(function(elem) { return function() {
+                                triggerOverlayRepaint(elem);
+                            }; }(el), 30);
+                        }
+                    }
+                }
+            });
+
+            function startObserver() {
+                // observe subtree: true agar semua modal dideteksi
+                try { observer.disconnect(); } catch(e) {}
+                observer.observe(document.documentElement, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class', 'style'],
+                    attributeOldValue: false
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', startObserver);
+            document.addEventListener('turbo:load', startObserver);
+            document.addEventListener('pjax:complete', startObserver);
+
+            // Expose ke window agar bisa dipanggil manual jika perlu
+            window.forceOverlayRepair = function(el) { triggerOverlayRepaint(el || null); };
+        })();
     </script>
 
     @include('components.accessibility-button')

@@ -1,10 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect semua request ke folder public/
-    # Kecuali file yang langsung ada di root (unzip.php, check_error.php, dll)
+    # Cegah infinite loop jika URI sudah berada di dalam /public/
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ public/$1 [L,QSA]
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Handle root domain
+    RewriteRule ^$ public/index.php [L]
 </IfModule>

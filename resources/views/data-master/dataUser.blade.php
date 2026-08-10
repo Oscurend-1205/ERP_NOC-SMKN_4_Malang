@@ -110,6 +110,24 @@
 </section>
 <!-- END: Data Table Section -->
 
+
+@endsection
+
+@push('scripts')
+<script>
+    function openEditUserModal(id, name, username, email, role, isActive) {
+        document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
+        document.getElementById('edit_user_name').value = name;
+        document.getElementById('edit_user_username').value = username;
+        document.getElementById('edit_user_email').value = email;
+        document.getElementById('edit_user_role').value = role;
+        document.getElementById('edit_user_is_active').checked = (isActive == 1);
+        document.getElementById('editUserModal').classList.remove('hidden');
+    }
+</script>
+@endpush
+
+@push('page-modals')
 <!-- Modal Tambah User -->
 <div id="addUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop Blur -->
@@ -193,9 +211,6 @@
     </div>
 </div>
 
-@endsection
-
-@push('scripts')
 <!-- Modal Edit User -->
 <div id="editUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
     <!-- Backdrop Blur -->
@@ -279,16 +294,4 @@
         </form>
     </div>
 </div>
-
-<script>
-    function openEditUserModal(id, name, username, email, role, isActive) {
-        document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
-        document.getElementById('edit_user_name').value = name;
-        document.getElementById('edit_user_username').value = username;
-        document.getElementById('edit_user_email').value = email;
-        document.getElementById('edit_user_role').value = role;
-        document.getElementById('edit_user_is_active').checked = (isActive == 1);
-        document.getElementById('editUserModal').classList.remove('hidden');
-    }
-</script>
 @endpush

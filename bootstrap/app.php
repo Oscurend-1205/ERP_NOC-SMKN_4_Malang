@@ -21,21 +21,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Sembunyikan fitur ini: Allow iframe & Remote Access from nichesows
-        $middleware->append(function ($request, $next) {
-            $response = $next($request);
-            if (method_exists($response, 'header')) {
-                // Allow cross-origin iframe
-                $response->header('Access-Control-Allow-Origin', '*');
-                $response->header('Access-Control-Allow-Methods', '*');
-                $response->header('Access-Control-Allow-Headers', '*');
-                // Allow iframe embedding
-                $response->header('Content-Security-Policy', "frame-ancestors 'self' https://nichesows.nichesite.org http://nichesows.nichesite.org *;");
-                if ($response->headers) {
-                    $response->headers->remove('X-Frame-Options');
-                }
-            }
-            return $response;
-        });
+        $middleware->append(\App\Http\Middleware\FrameGuard::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

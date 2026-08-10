@@ -27,15 +27,7 @@
             </span>
             <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kondisi barang...">
         </div>
-        <div class="flex items-center space-x-3">
-            <button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
-            </button>
-            <button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
-            </button>
         </div>
-    </div>
 
     <!-- The Table -->
     <div class="overflow-x-auto">
@@ -87,7 +79,7 @@
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
                             <button onclick="openEditKondisiModal({{ $kondisi->id }}, '{{ addslashes($kondisi->name) }}', '{{ $kondisi->label_color }}', '{{ addslashes($kondisi->description ?? '') }}')" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <form action="{{ route('kondisi.destroy', $kondisi->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kondisi ini?');" class="inline">
+                            <form action="{{ route('kondisi.destroy', $kondisi->id) }}" method="POST" data-confirm="Yakin ingin menghapus kondisi ini?" data-ajax-delete="true" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>

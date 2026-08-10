@@ -45,6 +45,10 @@ class AsalBarangController extends Controller
         $asal = AsalBarang::findOrFail($id);
         $asal->delete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Asal barang berhasil dihapus.']);
+        }
+
         return redirect()->route('asal.index')
             ->with('success', 'Asal barang berhasil dihapus.');
     }

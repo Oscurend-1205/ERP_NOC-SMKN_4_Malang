@@ -1,13 +1,124 @@
-*.log
-project.zip.001
+# ═══════════════════════════════════════════════════════════
+# ARSIP KOMPRES & FILE INSTALLER (JANGAN DI PUSH)
+# ═══════════════════════════════════════════════════════════
+*.zip
+*.zip.*
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.gz
 project.zip
+project.zip.001
+project.zip.002
+project.zip.003
+project.zip.004
+
+# ═══════════════════════════════════════════════════════════
+# FILE PHP UTILITY / DEPLOY KHUSUS (BUKAN BAGIAN DARI FRAMEWORK LARAVEL)
+# ═══════════════════════════════════════════════════════════
+# Root utility scripts
 buat_zip.php
 unzip.php
-.DS_Store
+extract.php
+check_error.php
+generate_key.php
+deploy.php
+install.php
+fix-*.php
+fix_*.php
+update_fix.php
+migrate_*.php
+*.deploy.php
+*.installer.php
+
+# Public utility/deploy scripts (sensitive)
+public/migrate.php
+public/mod-db.php
+public/setup.php
+public/update.php
+public/fix-login*.php
+public/fix-strict-mode.php
+public/debug.php
+public/test.php
+public/install.php
+
+# ═══════════════════════════════════════════════════════════
+# SCRIPT EKSTERNAL (PYTHON, BATCH, SHELL)
+# ═══════════════════════════════════════════════════════════
+*.py
+*.bat
+*.cmd
+*.sh
+*.ps1
+update_bm*.py
+update_table.py
+
+# ═══════════════════════════════════════════════════════════
+# DATABASE BACKUP / SQL DUMP
+# ═══════════════════════════════════════════════════════════
+*.sql
+*.sqlite
+*.db
+database/*.sql
+
+# ═══════════════════════════════════════════════════════════
+# BACKUP FILE DAN TEMP
+# ═══════════════════════════════════════════════════════════
+*.bak
+*.backup
+*.tmp
+*.temp
+*.swp
+*.old
+*~
+resources/views/items/index.blade.php.bak
+
+# ═══════════════════════════════════════════════════════════
+# DIAGRAM & DOKUMENTASI KERJA LOKAL
+# ═══════════════════════════════════════════════════════════
+*.puml
+*.plantuml
+*.drawio
+*.vsdx
+erd_chen.puml
+
+# Dokumentasi Lokal (Sensitif / Internal Only)
+PANDUAN_DEPLOYMENT.md
+DEPLOYMENT_CHECKLIST.md
+LOCAL_CREDENTIALS.md
+PANDUAN_DESAIN.md
+PANDUAN_*.md
+*_NOTES.md
+
+# Credentials
+*.password
+*.secret
+*.credentials
+*.key
+
+# ═══════════════════════════════════════════════════════════
+# LOG & CACHE
+# ═══════════════════════════════════════════════════════════
+*.log
+
+# ═══════════════════════════════════════════════════════════
+# ENVIRONMENT FILES
+# ═══════════════════════════════════════════════════════════
 .env
 .env.backup
 .env.local
+.env.local.example
 .env.production
+.env.staging
+.env.*
+
+# ═══════════════════════════════════════════════════════════
+# OS & IDE / EDITOR
+# ═══════════════════════════════════════════════════════════
+.DS_Store
+Thumbs.db
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -18,6 +129,10 @@ unzip.php
 /.vscode
 /.zed
 /auth.json
+
+# ═══════════════════════════════════════════════════════════
+# LARAVEL DEFAULT IGNORES
+# ═══════════════════════════════════════════════════════════
 /node_modules
 /public/build
 /public/hot
@@ -26,6 +141,12 @@ unzip.php
 /storage/pail
 /vendor
 _ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# ═══════════════════════════════════════════════════════════
+# DUPLIKAT ASSET FOLDER DI ROOT (HARUSNYA HANYA ADA DI public/)
+# ═══════════════════════════════════════════════════════════
+/asset/

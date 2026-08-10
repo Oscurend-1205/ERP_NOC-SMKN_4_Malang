@@ -126,7 +126,7 @@
                                     <button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? '1' : '0' }})" class="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors">
                                         <span class="material-symbols-outlined !text-[18px]" data-icon="edit">edit</span>
                                     </button>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');" class="inline">
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" data-confirm="Yakin ingin menghapus pengguna ini?" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1 text-error hover:bg-error-container/20 rounded transition-colors">

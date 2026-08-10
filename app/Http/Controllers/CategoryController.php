@@ -70,6 +70,10 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Kategori berhasil dihapus.']);
+        }
+
         return redirect()->route('categories.index')->with('success', 'Kategori berhasil dihapus.');
     }
 }

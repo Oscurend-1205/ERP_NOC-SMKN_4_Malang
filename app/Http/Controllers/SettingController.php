@@ -25,6 +25,7 @@ class SettingController extends Controller
             'users'       => Schema::hasTable('users') ? DB::table('users')->count() : 0,
             'peminjaman'  => Schema::hasTable('peminjaman') ? DB::table('peminjaman')->count() : 0,
             'movements'   => Schema::hasTable('item_movements') ? DB::table('item_movements')->count() : 0,
+            'perawatans'  => Schema::hasTable('perawatans') ? DB::table('perawatans')->count() : 0,
         ];
 
         $systemInfo = [
@@ -53,7 +54,7 @@ class SettingController extends Controller
             Schema::disableForeignKeyConstraints();
 
             $tables = [
-                'item_movements', 'peminjaman', 'scan_sessions',
+                'perawatans', 'item_movements', 'peminjaman', 'scan_sessions',
                 'items', 'categories', 'locations',
                 'suppliers', 'kondisi_barangs', 'asal_barangs', 'jurusans',
                 'users', 'sessions', 'cache', 'cache_locks',
@@ -111,7 +112,9 @@ class SettingController extends Controller
         }
 
         try {
-            Artisan::call('db:seed', ['--class' => 'DummyDataSeeder', '--force' => true]);
+            // Jalankan seeder secara langsung tanpa Artisan (menghindari exec())
+            $seeder = new \Database\Seeders\DummyDataSeeder();
+            $seeder->run();
             return redirect()->back()->with('success', 'Dummy data berhasil ditambahkan! Data master, inventaris, pengguna, dan transaksi contoh telah dibuat.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menambahkan dummy data: ' . $e->getMessage());
@@ -128,17 +131,37 @@ class SettingController extends Controller
         }
 
         try {
-            Artisan::call('migrate:fresh', [
-                '--seed'  => true,
-                '--force' => true,
-            ]);
+            // Gunakan resetDatabase + seedDummyData sebagai pengganti migrate:fresh --seed
+            // karena migrate:fresh menggunakan exec() yang diblokir InfinityFree
+            Schema::disableForeignKeyConstraints();
+
+            $tables = [
+                'perawatans', 'item_movements', 'peminjaman', 'scan_sessions',
+                'items', 'categories', 'locations',
+                'suppliers', 'kondisi_barangs', 'asal_barangs', 'jurusans',
+                'users', 'sessions', 'cache', 'cache_locks',
+                'jobs', 'job_batches', 'failed_jobs', 'password_reset_tokens',
+            ];
+
+            foreach ($tables as $table) {
+                if (Schema::hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
+
+            Schema::enableForeignKeyConstraints();
+
+            // Re-seed default accounts
+            $seeder = new \Database\Seeders\DatabaseSeeder();
+            $seeder->run();
 
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->with('success', 'Sistem berhasil di-reset penuh (migrasi + seed). Silakan login kembali.');
+            return redirect()->route('login')->with('success', 'Sistem berhasil di-reset penuh. Silakan login kembali.');
         } catch (\Exception $e) {
+            Schema::enableForeignKeyConstraints();
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mereset sistem: ' . $e->getMessage());
         }
     }
@@ -153,19 +176,64 @@ class SettingController extends Controller
         }
 
         try {
-            Artisan::call('optimize:clear');
+            // Hapus cache secara manual (menghindari Artisan::call yang pakai exec())
+            $cleared = [];
 
-            // Also clear compiled views manually
+            // 1. Hapus config cache
+            $configCache = base_path('bootstrap/cache/config.php');
+            if (file_exists($configCache)) { @unlink($configCache); $cleared[] = 'config'; }
+
+            // 2. Hapus route cache
+            foreach (glob(base_path('bootstrap/cache/routes-v7*.php')) as $file) {
+                @unlink($file); $cleared[] = 'routes';
+            }
+
+            // 3. Hapus compiled views
             $compiledViews = storage_path('framework/views');
             if (is_dir($compiledViews)) {
                 foreach (glob($compiledViews . '/*.php') as $file) {
                     @unlink($file);
                 }
+                $cleared[] = 'views';
             }
 
-            return redirect()->back()->with('success', 'Cache sistem berhasil dibersihkan (config, route, view, application).');
+            // 4. Hapus application cache
+            $cacheDir = storage_path('framework/cache/data');
+            if (is_dir($cacheDir)) {
+                $this->deleteDirectoryContents($cacheDir);
+                $cleared[] = 'cache';
+            }
+
+            // 5. Hapus bootstrap cache files lainnya
+            $bootstrapFiles = ['packages.php', 'services.php'];
+            foreach ($bootstrapFiles as $bf) {
+                $path = base_path('bootstrap/cache/' . $bf);
+                if (file_exists($path)) { @unlink($path); }
+            }
+
+            $clearedStr = implode(', ', array_unique($cleared)) ?: 'tidak ada cache';
+            return redirect()->back()->with('success', "Cache sistem berhasil dibersihkan: {$clearedStr}.");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal membersihkan cache: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper: Delete all files/subdirectories inside a directory (keep the directory itself).
+     */
+    private function deleteDirectoryContents($dir)
+    {
+        if (!is_dir($dir)) return;
+        $items = array_diff(scandir($dir), ['.', '..']);
+        foreach ($items as $item) {
+            $path = $dir . DIRECTORY_SEPARATOR . $item;
+            if ($item === '.gitignore' || $item === '.gitkeep') continue;
+            if (is_dir($path)) {
+                $this->deleteDirectoryContents($path);
+                @rmdir($path);
+            } else {
+                @unlink($path);
+            }
         }
     }
 
@@ -179,14 +247,55 @@ class SettingController extends Controller
         }
 
         try {
-            if (file_exists(public_path('storage'))) {
+            $link = public_path('storage');
+            $target = storage_path('app/public');
+
+            if (file_exists($link) || is_link($link)) {
                 return redirect()->back()->with('success', 'Storage link sudah ada.');
             }
 
-            Artisan::call('storage:link');
-            return redirect()->back()->with('success', 'Storage link berhasil dibuat.');
+            // Coba buat symlink secara langsung (tanpa Artisan yang pakai exec())
+            if (function_exists('symlink')) {
+                $result = @symlink($target, $link);
+                if ($result) {
+                    return redirect()->back()->with('success', 'Storage link berhasil dibuat (symlink).');
+                }
+            }
+
+            // Fallback: Jika symlink gagal (InfinityFree blokir symlink),
+            // buat folder fisik dan copy isinya
+            if (!is_dir($link)) {
+                @mkdir($link, 0755, true);
+            }
+
+            // Copy isi storage/app/public ke public/storage
+            if (is_dir($target)) {
+                $this->copyDirectory($target, $link);
+            }
+
+            return redirect()->back()->with('success', 'Storage link berhasil dibuat (copy folder). Catatan: Pada shared hosting, file upload baru perlu disinkronkan manual.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal membuat storage link: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper: Copy directory contents recursively.
+     */
+    private function copyDirectory($source, $dest)
+    {
+        if (!is_dir($dest)) {
+            @mkdir($dest, 0755, true);
+        }
+        $items = array_diff(scandir($source), ['.', '..']);
+        foreach ($items as $item) {
+            $srcPath = $source . DIRECTORY_SEPARATOR . $item;
+            $dstPath = $dest . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($srcPath)) {
+                $this->copyDirectory($srcPath, $dstPath);
+            } else {
+                @copy($srcPath, $dstPath);
+            }
         }
     }
 
@@ -200,14 +309,42 @@ class SettingController extends Controller
         }
 
         try {
-            $output = Artisan::call('migrate', ['--force' => true]);
-            $outputText = Artisan::output();
+            // Jalankan migrasi secara manual tanpa Artisan (menghindari exec())
+            $migrationPath = database_path('migrations');
+            $migrationFiles = glob($migrationPath . '/*.php');
+            $ran = DB::table('migrations')->pluck('migration')->toArray();
+            $pending = [];
 
-            if (str_contains($outputText, 'Nothing to migrate')) {
+            foreach ($migrationFiles as $file) {
+                $name = pathinfo($file, PATHINFO_FILENAME);
+                if (!in_array($name, $ran)) {
+                    $pending[] = ['file' => $file, 'name' => $name];
+                }
+            }
+
+            if (empty($pending)) {
                 return redirect()->back()->with('success', 'Tidak ada migrasi yang perlu dijalankan. Database sudah up-to-date.');
             }
 
-            return redirect()->back()->with('success', 'Migrasi berhasil dijalankan. Output: ' . trim($outputText));
+            $batch = DB::table('migrations')->max('batch') + 1;
+            $executed = [];
+
+            foreach ($pending as $migration) {
+                require_once $migration['file'];
+                $classes = get_declared_classes();
+                $className = end($classes);
+                $instance = new $className();
+                $instance->up();
+
+                DB::table('migrations')->insert([
+                    'migration' => $migration['name'],
+                    'batch'     => $batch,
+                ]);
+                $executed[] = $migration['name'];
+            }
+
+            $count = count($executed);
+            return redirect()->back()->with('success', "{$count} migrasi berhasil dijalankan.");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menjalankan migrasi: ' . $e->getMessage());
         }

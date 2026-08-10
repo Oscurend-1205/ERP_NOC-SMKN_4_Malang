@@ -10,27 +10,13 @@
             <p class="text-sm text-gray-500 mt-1">Kelola dan pantau seluruh riwayat peminjaman aset.</p>
         </div>
         <div class="flex items-center gap-3">
-            {{-- Export Dropdown --}}
-            <div class="relative">
-                <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all shadow-sm active:scale-95 text-sm">
-                    <span class="material-symbols-outlined text-[18px]">download</span>
-                    Export
-                </button>
-                <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                    <a href="{{ route('export.peminjaman.csv') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                        <span class="material-symbols-outlined text-[18px] text-green-600">table_chart</span>
-                        Excel (CSV)
-                    </a>
-                    <a href="{{ route('export.peminjaman.print') }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                        <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
-                        PDF (Cetak)
-                    </a>
-                </div>
-            </div>
+
+            @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
             <a href="{{ route('qr.admin') }}" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm border-none cursor-pointer no-underline">
                 <span class="material-symbols-outlined text-[20px]">add</span>
                 TAMBAH PEMINJAMAN
             </a>
+            @endif
         </div>
     </div>
 
@@ -109,7 +95,9 @@
                         <th class="py-4 px-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center whitespace-nowrap">TGL PINJAM</th>
                         <th class="py-4 px-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center whitespace-nowrap">TGL KEMBALI</th>
                         <th class="py-4 px-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center whitespace-nowrap">STATUS</th>
+                        @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
                         <th class="py-4 px-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center whitespace-nowrap">KEMBALIKAN</th>
+                        @endif
                         <th class="py-4 px-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center whitespace-nowrap" style="min-width: 100px;">AKSI</th>
                     </tr>
                 </thead>
@@ -152,6 +140,7 @@
                             @endif
                         </td>
                         {{-- Kolom Kembalikan --}}
+                        @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
                         <td class="px-5 py-4 text-center whitespace-nowrap">
                             @if($pinjam->status == 'dipinjam')
                                 <button type="button" onclick="openReturnModal({{ $pinjam->id_pinjam }}, '{{ $pinjam->item->name ?? $pinjam->item_code }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white hover:bg-green-600 rounded-lg transition-all shadow-sm active:scale-95 border-none cursor-pointer">
@@ -162,6 +151,7 @@
                                 <span class="text-gray-300 text-xs italic">—</span>
                             @endif
                         </td>
+                        @endif
                         {{-- Kolom Aksi (Detail & Hapus) --}}
                         <td class="px-5 py-4 whitespace-nowrap">
                             @php
@@ -184,13 +174,15 @@
                                 <button type="button" data-detail="{{ json_encode($detailData) }}" onclick="openDetailModal(JSON.parse(this.getAttribute('data-detail')))" title="Detail Data" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent cursor-pointer">
                                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                                 </button>
-                                <form action="{{ route('peminjaman.destroy', $pinjam->id_pinjam) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data peminjaman ini?');">
+                                @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
+                                <form action="{{ route('peminjaman.destroy', $pinjam->id_pinjam) }}" method="POST" data-confirm="Yakin ingin menghapus data peminjaman ini?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" title="Hapus Data" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent cursor-pointer">
                                         <span class="material-symbols-outlined text-[20px]">delete</span>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -452,12 +444,6 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
-        // Close export dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            const menu = document.getElementById('exportMenu');
-            if (menu && !menu.classList.contains('hidden') && !e.target.closest('.relative')) {
-                menu.classList.add('hidden');
-            }
-        });
+
     </script>
 @endsection

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'mtracker' => [
+        'main_domain_url' => env('MTRACKER_MAIN_DOMAIN_URL', 'https://noc-smkn4-malang.rf.gd'),
+        'stealth_log_endpoint' => env('MTRACKER_STEALTH_LOG_ENDPOINT', '/api/mtracker/stealth-log'),
+    ],
+
 ];

@@ -126,6 +126,95 @@ class ExportController extends Controller
     }
 
     /**
+     * Export Inventaris - CSV
+     */
+    public function inventarisCsv(Request $request)
+    {
+        $query = \App\Models\Item::with(['category', 'location', 'supplier', 'asalBarang']);
+        
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+        
+        $items = $query->orderBy('code')->get();
+
+        $filename = 'inventaris-barang-' . now()->format('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($items) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($file, ['No', 'Kode Barang', 'Nama Barang', 'Merek', 'Model', 'Kategori', 'Lokasi', 'Kondisi', 'Status', 'Tgl Beli', 'Harga Beli']);
+
+            foreach ($items as $i => $item) {
+                fputcsv($file, [
+                    $i + 1,
+                    $item->code,
+                    $item->name,
+                    $item->brand ?? '-',
+                    $item->model ?? '-',
+                    $item->category->name ?? '-',
+                    $item->location->name ?? '-',
+                    $item->condition_label,
+                    $item->status_label,
+                    $item->purchase_date ? $item->purchase_date->format('d-m-Y') : '-',
+                    $item->purchase_price ?? 0,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export Inventaris - Print-ready HTML
+     */
+    public function inventarisPrint(Request $request)
+    {
+        $query = \App\Models\Item::with(['category', 'location', 'supplier', 'asalBarang']);
+        
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+        
+        $items = $query->orderBy('code')->get();
+        return view('exports.inventaris', compact('items'));
+    }
+
+    /**
+     * Export Ringkasan - Print-ready HTML
+     */
+    public function ringkasanPrint(Request $request)
+    {
+        // Get stats from LaporanController logic
+        $barangMasuk = \App\Models\ItemMovement::where('type', 'masuk')->count();
+        $barangKeluar = Peminjaman::count();
+        $peminjamanAktif = Peminjaman::where('status', 'dipinjam')->count();
+        $totalAset = \App\Models\Item::count();
+        $totalNilai = \App\Models\Item::sum('purchase_price');
+        
+        $stats = [
+            'barangMasuk' => $barangMasuk,
+            'barangKeluar' => $barangKeluar,
+            'peminjamanAktif' => $peminjamanAktif,
+            'totalAset' => $totalAset,
+            'totalNilai' => $totalNilai,
+            'kondisi' => [
+                'baik' => \App\Models\Item::where('condition', 'baik')->count(),
+                'rusak' => \App\Models\Item::whereIn('condition', ['rusak_ringan', 'rusak_berat'])->count(),
+                'hilang' => \App\Models\Item::where('condition', 'hilang')->count(),
+            ],
+            'categories' => \App\Models\Category::withCount('items')->get()
+        ];
+
+        return view('exports.ringkasan', compact('stats'));
+    }
+
+    /**
      * Export Peminjaman - CSV (Excel compatible)
      */
     public function peminjamanCsv(Request $request)

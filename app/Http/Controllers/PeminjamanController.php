@@ -24,6 +24,11 @@ class PeminjamanController extends Controller
             $query->whereDate('waktu_pinjam', '<=', $request->end_date);
         }
 
+        if (auth()->user()->isJurusan()) {
+            $jurusanName = auth()->user()->jurusan->name ?? '';
+            $query->where('kelas', $jurusanName);
+        }
+
         $peminjamans = $query->orderBy('waktu_pinjam', 'desc')->paginate(15);
         $totalDipinjam = Peminjaman::where('status', 'dipinjam')->count();
 

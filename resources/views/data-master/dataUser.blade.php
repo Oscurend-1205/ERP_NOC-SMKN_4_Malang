@@ -26,16 +26,7 @@
 </span>
 <input class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari username atau nama..." type="text"/>
 </div>
-<div class="flex items-center space-x-3">
-<button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-<i class="w-4 h-4 mr-2" data-lucide="filter"></i>
-              Filter
-            </button>
-<button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-<i class="w-4 h-4 mr-2" data-lucide="download"></i>
-              Export
-            </button>
-</div>
+
 </div>
 <!-- The Table -->
 <div class="overflow-x-auto">
@@ -92,7 +83,7 @@
 <div class="flex justify-center space-x-3">
 @if(!in_array($user->username, ['superadmin', 'admin']))
 <button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? 1 : 0 }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
-<form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?');" class="inline">
+<form action="{{ route('users.destroy', $user->id) }}" method="POST" data-confirm="Yakin ingin menghapus user ini?" data-ajax-delete="true" class="inline">
     @csrf
     @method('DELETE')
     <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i class="w-4 h-4" data-lucide="trash-2"></i></button>
@@ -153,8 +144,13 @@
 
                 <!-- Kelas -->
                 <div class="space-y-1.5">
-                    <label class="block text-sm font-bold text-slate-700">Kelas</label>
-                    <input type="text" name="email" required placeholder="Contoh: XII RPL 1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                    <label class="block text-sm font-bold text-slate-700">Kelas / Jurusan</label>
+                    <select name="email" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="" disabled selected hidden>Pilih Kelas / Jurusan</option>
+                        @foreach($jurusans as $jurusan)
+                            <option value="{{ $jurusan->kode_jurusan }}">{{ $jurusan->kode_jurusan }} - {{ $jurusan->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Jabatan -->
@@ -164,6 +160,7 @@
                         <option value="" disabled selected hidden>Pilih Jabatan</option>
                         <option value="Superadmin">Superadmin</option>
                         <option value="Admin">Admin</option>
+                        <option value="Jurusan">Jurusan</option>
                         <option value="Siswa">Siswa</option>
                         <option value="Guru">Guru</option>
                     </select>
@@ -234,8 +231,13 @@
 
                 <!-- Kelas -->
                 <div class="space-y-1.5">
-                    <label class="block text-sm font-bold text-slate-700">Kelas</label>
-                    <input type="text" id="edit_user_email" name="email" required placeholder="Contoh: XII RPL 1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                    <label class="block text-sm font-bold text-slate-700">Kelas / Jurusan</label>
+                    <select id="edit_user_email" name="email" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="" disabled hidden>Pilih Kelas / Jurusan</option>
+                        @foreach($jurusans as $jurusan)
+                            <option value="{{ $jurusan->kode_jurusan }}">{{ $jurusan->kode_jurusan }} - {{ $jurusan->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Jabatan -->
@@ -245,6 +247,7 @@
                         <option value="" disabled selected hidden>Pilih Jabatan</option>
                         <option value="Superadmin">Superadmin</option>
                         <option value="Admin">Admin</option>
+                        <option value="Jurusan">Jurusan</option>
                         <option value="Siswa">Siswa</option>
                         <option value="Guru">Guru</option>
                     </select>

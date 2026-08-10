@@ -80,7 +80,7 @@ window.openUnitsModal = async function(name, brand, model, category_id, sub_pref
                         <a href="/items/${unit.id}/edit" class="w-7 h-7 flex items-center justify-center text-amber-500 hover:text-white bg-amber-50 hover:bg-amber-500 rounded-md transition-all border border-amber-100 hover:border-amber-500" title="Edit">
                             <span class="material-symbols-outlined text-[14px]">edit</span>
                         </a>
-                        <form action="/items/${unit.id}" method="POST" onsubmit="return confirm('Yakin hapus unit ${unit.code}?')" class="inline">
+                        <form action="/items/${unit.id}" method="POST" data-confirm="Yakin hapus unit ${unit.code}?" data-ajax-delete="true" class="inline">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" class="w-7 h-7 flex items-center justify-center text-red-400 hover:text-white bg-red-50 hover:bg-red-500 rounded-md transition-all border border-red-100 hover:border-red-500" title="Hapus">
@@ -177,11 +177,75 @@ window.downloadQrCode = function() {
     }
 };
 
+
+// --- 2-Step Form Logic ---
+window.nextStep = function() {
+    const form = document.getElementById('addBarangForm');
+    
+    // Check validity of step 1 inputs only
+    const step1Inputs = document.getElementById('formStep1').querySelectorAll('input, select, textarea');
+    let isValid = true;
+    for (let input of step1Inputs) {
+        if (!input.checkValidity()) {
+            input.reportValidity();
+            isValid = false;
+            break;
+        }
+    }
+    
+    if (!isValid) return;
+    
+    // Populate dynamic inputs based on quantity
+    const qtyInput = form.querySelector('input[name="quantity"]');
+    const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+    const container = document.getElementById('dynamicUnitInputs');
+    
+    container.innerHTML = '';
+    for (let i = 0; i < qty; i++) {
+        container.innerHTML += `
+            <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                <h4 class="text-[13px] font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2">Unit ${i + 1}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-semibold text-gray-700">Serial Number</label>
+                        <input type="text" name="serial_numbers[]" placeholder="Nomor seri unit ${i + 1} (Opsional)" 
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-semibold text-gray-700">Kondisi <span class="text-red-500">*</span></label>
+                        <select name="conditions[]" required 
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="baik">Baik</option>
+                            <option value="rusak_ringan">Rusak Ringan</option>
+                            <option value="rusak_berat">Rusak Berat</option>
+                            <option value="hilang">Hilang</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('formStep1').classList.add('hidden');
+    document.getElementById('formStep2').classList.remove('hidden');
+};
+
+window.prevStep = function() {
+    document.getElementById('formStep2').classList.add('hidden');
+    document.getElementById('formStep1').classList.remove('hidden');
+};
+
 // --- Add Barang Modal ---
 window.toggleAddBarangModal = function(show) {
     const modal = document.getElementById('addBarangModal');
     if (modal) {
         if (show) {
+            // Reset to step 1 on open
+            const step1 = document.getElementById('formStep1');
+            const step2 = document.getElementById('formStep2');
+            if (step1) step1.classList.remove('hidden');
+            if (step2) step2.classList.add('hidden');
+            
             modal.classList.remove('hidden');
         } else {
             modal.classList.add('hidden');

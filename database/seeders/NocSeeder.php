@@ -23,6 +23,7 @@ class NocSeeder extends Seeder
     {
         // Bersihkan data lama agar seeder bisa dijalankan berulang (idempotent)
         // Urutan: child tables dulu, baru parent tables
+        DB::statement('DELETE FROM perawatans');
         DB::statement('DELETE FROM peminjaman');
         DB::statement('DELETE FROM item_movements');
         DB::statement('DELETE FROM items');

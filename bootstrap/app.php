@@ -15,6 +15,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'scan.token' => \App\Http\Middleware\ValidateScanToken::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/mtracker/stealth-log',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

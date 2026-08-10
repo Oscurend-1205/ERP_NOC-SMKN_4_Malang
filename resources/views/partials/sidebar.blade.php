@@ -134,12 +134,14 @@
     @endif
 
     <!-- 3. Input Pinjaman -->
+    @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
     <a data-no-pjax="true" class="sidebar-menu-item {{ request()->routeIs('qr.*') ? 'active' : '' }}" href="{{ route('qr.admin') }}">
         <div class="menu-icon">
             <span class="material-symbols-outlined">edit</span>
         </div>
         <span>Input Pinjaman</span>
     </a>
+    @endif
 
     <!-- 4. Data Barang -->
     <a class="sidebar-menu-item {{ request()->routeIs('items.*') ? 'active' : '' }}" href="{{ route('items.index') }}">
@@ -158,36 +160,30 @@
     </a>
 
     <!-- 6. Data Pengembalian -->
-    <a class="sidebar-menu-item" href="#">
+    {{-- <a class="sidebar-menu-item" href="#">
         <div class="menu-icon">
             <span class="material-symbols-outlined">download</span>
         </div>
         <span>Data Pengembalian</span>
-    </a>
+    </a> --}}
 
     <!-- 7. Data Perawatan -->
-    <a class="sidebar-menu-item" href="#">
+    @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
+    <a class="sidebar-menu-item {{ request()->routeIs('perawatan.*') ? 'active' : '' }}" href="{{ route('perawatan.index') }}">
         <div class="menu-icon">
             <span class="material-symbols-outlined">build</span>
         </div>
         <span>Data Perawatan</span>
     </a>
 
-    <!-- 8. Mutasi Barang -->
-    <a class="sidebar-menu-item" href="#">
-        <div class="menu-icon">
-            <span class="material-symbols-outlined">swap_horiz</span>
-        </div>
-        <span>Mutasi Barang</span>
-    </a>
-
-    <!-- 9. Laporan -->
-    <a class="sidebar-menu-item" href="#">
+    <!-- 8. Laporan -->
+    <a class="sidebar-menu-item {{ request()->routeIs('laporan.*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
         <div class="menu-icon">
             <span class="material-symbols-outlined">description</span>
         </div>
         <span>Laporan</span>
     </a>
+    @endif
 
 </nav>
 

@@ -1,5 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Redirect semua request ke folder public/
+    # Kecuali file yang langsung ada di root (unzip.php, check_error.php, dll)
     RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>

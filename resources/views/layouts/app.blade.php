@@ -1023,6 +1023,9 @@
 
     @vite(['resources/js/app_layout.js', 'resources/js/turbo-navigation.js'])
 
+    {{-- Custom Alert System --}}
+    <script src="{{ asset('js/custom-alert.js') }}"></script>
+
     {{-- Global Lucide icon initialization --}}
     <script>
         // Initialize Lucide icons on first page load
@@ -1137,11 +1140,19 @@
                             modal.classList.add('hidden');
                             form.reset();
                         } else {
-                            alert('Terjadi kesalahan sistem. Status: ' + response.status);
+                            customAlert.show({
+                                title: 'Kesalahan Sistem',
+                                message: 'Terjadi kesalahan sistem. Status: ' + response.status,
+                                type: 'error'
+                            });
                         }
                     } catch (error) {
                         console.error(error);
-                        alert('Gagal terhubung ke server.');
+                        customAlert.show({
+                            title: 'Koneksi Gagal',
+                            message: 'Gagal terhubung ke server. Periksa koneksi internet Anda.',
+                            type: 'error'
+                        });
                     } finally {
                         if (submitBtn) {
                             submitBtn.innerHTML = originalBtnText;

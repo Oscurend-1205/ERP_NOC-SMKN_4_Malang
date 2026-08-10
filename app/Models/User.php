@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'user_code', 'email', 'password', 'username', 'role', 'is_active', 'jurusan_id'])]
+#[Fillable(['name', 'user_code', 'email', 'password', 'username', 'role', 'is_active', 'jurusan_id', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,6 +31,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'Admin';
+    }
+
+    /**
+     * Cek apakah user adalah Jurusan.
+     */
+    public function isJurusan(): bool
+    {
+        return $this->role === 'Jurusan';
     }
 
     /**

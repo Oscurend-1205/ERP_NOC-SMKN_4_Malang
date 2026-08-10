@@ -15,7 +15,6 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Statistik Utama - Menggunakan aggregate query tunggal untuk performa lebih baik
         $conditions = Item::selectRaw("`condition`, count(*) as total")
             ->groupBy('condition')
             ->pluck('total', 'condition');
@@ -23,20 +22,17 @@ class DashboardController extends Controller
         $totalItems = Item::count();
         $totalCategories = Category::count();
         $totalLocations = Location::count();
-        
-        // Memastikan nilai default 0 jika data tidak ditemukan (menggunakan collect() agar lebih aman)
         $cond = collect($conditions);
         $itemsBaik = $cond->get('baik', 0);
         $itemsRusak = $cond->get('rusak_ringan', 0) + $cond->get('rusak_berat', 0);
         $itemsMaintenance = Item::where('status', 'maintenance')->count();
         
         $totalValue = Item::sum('purchase_price') ?? 0;
-
-        // Data List & Chart
-        $recentMovements = ItemMovement::with(['item', 'user', 'fromLocation', 'toLocation'])
-            ->latest()
-            ->limit(10)
-            ->get();
+        $recentMovementsQuery = ItemMovement::with(['item', 'user', 'fromLocation', 'toLocation']);
+        if (auth()->user()->isJurusan()) {
+            $recentMovementsQuery->where('user_id', auth()->id());
+        }
+        $recentMovements = $recentMovementsQuery->latest()->limit(10)->get();
 
         $itemsByCategory = Category::withCount('items')
             ->orderBy('items_count', 'desc')
@@ -47,35 +43,25 @@ class DashboardController extends Controller
             ->orderBy('items_count', 'desc')
             ->limit(6)
             ->get();
-
-        // Statistik Kondisi untuk Chart di View
         $conditionStats = [
             'baik' => $itemsBaik,
             'rusak_ringan' => $cond->get('rusak_ringan', 0),
             'rusak_berat' => $cond->get('rusak_berat', 0),
             'hilang' => $cond->get('hilang', 0),
         ];
-
-        // Statistik Tambahan: Pergerakan hari ini
         $itemsEnteredToday = ItemMovement::where('type', 'masuk')
             ->whereDate('created_at', today())
             ->count();
-
-        // Data Chart: Barang Masuk per Bulan (tahun ini)
         $currentYear = now()->year;
         $monthlyIncoming = ItemMovement::selectRaw('MONTH(created_at) as month, SUM(quantity) as total')
             ->where('type', 'masuk')
             ->whereYear('created_at', $currentYear)
             ->groupByRaw('MONTH(created_at)')
             ->pluck('total', 'month');
-
-        // Format data bulan Jan-Des (bulan 1-12), default 0
         $monthlyData = [];
         for ($m = 1; $m <= 12; $m++) {
             $monthlyData[] = (int) ($monthlyIncoming[$m] ?? 0);
         }
-
-        // Data barang untuk modal Pinjaman
         $availableItems = Item::where('quantity', '>', 0)->get();
 
         return view('dashboard', compact(
@@ -97,3 +83,4 @@ class DashboardController extends Controller
         ));
     }
 }
+

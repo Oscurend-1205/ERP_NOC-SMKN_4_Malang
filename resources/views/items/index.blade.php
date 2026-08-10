@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Barang Elektronik - ERP NOC</title>
+    <title>Data Barang - ERP NOC</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -80,10 +80,11 @@
             {{-- Header --}}
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Barang Elektronik</h2>
+                    <h2 class="text-2xl font-bold text-gray-800">Data Barang</h2>
                     <p class="text-sm text-gray-500 mt-1">Kelola inventaris barang elektronik laboratorium</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
                     <a href="{{ route('items.barang-masuk') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-all shadow-sm active:scale-95 text-sm">
                         <span class="material-symbols-outlined text-[18px]">south_east</span>
                         Barang Masuk
@@ -96,6 +97,7 @@
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Tambah Barang
                     </button>
+                    @endif
                 </div>
             </div>
 
@@ -215,6 +217,9 @@
 
             <form id="addBarangForm" action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
+                
+                <!-- STEP 1 -->
+                <div id="formStep1" class="flex flex-col flex-1 overflow-hidden">
                 <div class="px-6 py-5 space-y-5 overflow-y-auto flex-1">
 
                     {{-- Tipe Input Toggle --}}
@@ -309,13 +314,7 @@
                                 @error('model') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
                             </div>
 
-                            {{-- Serial Number --}}
-                            <div class="space-y-1.5">
-                                <label class="block text-[13px] font-semibold text-gray-700">Serial Number</label>
-                                <input type="text" name="serial_number" placeholder="Nomor seri perangkat" value="{{ old('serial_number') }}" 
-                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm {{ $errors->has('serial_number') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
-                                @error('serial_number') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
-                            </div>
+
                         </div>
                     </div>
 
@@ -348,18 +347,7 @@
                                 @error('quantity') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
                             </div>
 
-                            {{-- Kondisi --}}
-                            <div class="space-y-1.5">
-                                <label class="block text-[13px] font-semibold text-gray-700">Kondisi <span class="text-red-500">*</span></label>
-                                <select name="condition" required 
-                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer {{ $errors->has('condition') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
-                                    <option value="baik" {{ old('condition', 'baik') == 'baik' ? 'selected' : '' }}>Baik</option>
-                                    <option value="rusak_ringan" {{ old('condition') == 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
-                                    <option value="rusak_berat" {{ old('condition') == 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
-                                    <option value="hilang" {{ old('condition') == 'hilang' ? 'selected' : '' }}>Hilang</option>
-                                </select>
-                                @error('condition') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
-                            </div>
+
 
                             {{-- Status --}}
                             <div class="space-y-1.5">
@@ -469,16 +457,44 @@
 
                 </div>
 
-                <!-- Footer -->
+                <!-- Footer Step 1 -->
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
                     <button type="button" onclick="toggleAddBarangModal(false)" class="px-5 py-2.5 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2.5 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[16px]">save</span>
-                        Simpan Barang
+                    <button type="button" onclick="window.nextStep()" class="px-5 py-2.5 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm flex items-center gap-2">
+                        Lanjut
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </button>
                 </div>
+                </div> <!-- END STEP 1 -->
+                
+                <!-- STEP 2 -->
+                <div id="formStep2" class="hidden flex flex-col flex-1 overflow-hidden">
+                    <div class="px-6 py-5 space-y-5 overflow-y-auto flex-1">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">list_alt</span>
+                            <h3 class="text-sm font-bold text-gray-800">Detail Serial Number & Kondisi Tiap Unit</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">Silakan isi serial number (opsional) dan kondisi untuk tiap unit barang yang ditambahkan.</p>
+                        
+                        <div id="dynamicUnitInputs" class="space-y-4">
+                            <!-- Dynamic inputs inserted by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Step 2 -->
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between mt-auto">
+                        <button type="button" onclick="window.prevStep()" class="px-5 py-2.5 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                            Kembali
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
+                            Simpan Barang
+                        </button>
+                    </div>
+                </div> <!-- END STEP 2 -->
             </form>
         </div>
     </div>

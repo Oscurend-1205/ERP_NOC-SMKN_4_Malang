@@ -47,6 +47,10 @@ class KondisiBarangController extends Controller
         $kondisi = KondisiBarang::findOrFail($id);
         $kondisi->delete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Kondisi barang berhasil dihapus.']);
+        }
+
         return redirect()->route('kondisi.index')
             ->with('success', 'Kondisi barang berhasil dihapus.');
     }

@@ -10,7 +10,7 @@
         <p class="text-sm text-slate-500 mt-1">Kelola data supplier untuk NOC SMKN 4 Malang.</p>
     </div>
     @if(auth()->user()->role === 'Superadmin')
-    <button onclick="document.getElementById('addSupplierModal').classList.remove('hidden')" class="bg-[#3B82F6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
+    <button onclick="document.getElementById('addSupplierModal').classList.remove('hidden')" class="bg-[#3F51B5] hover:bg-[#303F9F] text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm transition-all">
         <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Supplier
     </button>
     @endif
@@ -25,7 +25,7 @@
         </div>
         <div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Supplier</p>
-            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $suppliers->total() }}</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $totalSupplier }}</p>
         </div>
     </div>
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
@@ -34,7 +34,25 @@
         </div>
         <div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Supplier Aktif</p>
-            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $suppliers->total() }}</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $supplierAktif }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mr-4 flex-shrink-0">
+            <i data-lucide="truck" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pengiriman Bulan Ini</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">{{ $pengirimanBulanIni }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center">
+        <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center mr-4 flex-shrink-0">
+            <i data-lucide="history" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Update Terakhir</p>
+            <p class="text-xl font-bold text-slate-800 mt-1">{{ $updateTerakhir }}</p>
         </div>
     </div>
 </div>
@@ -50,15 +68,7 @@
             </span>
             <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari nama supplier atau PIC...">
         </div>
-        <div class="flex items-center space-x-3">
-            <button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
-            </button>
-            <button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-                <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
-            </button>
         </div>
-    </div>
 
     <!-- The Table -->
     <div class="overflow-x-auto">
@@ -71,6 +81,7 @@
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Telepon/WA</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Alamat</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                     @if(auth()->user()->role === 'Superadmin')
                     <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Aksi</th>
                     @endif
@@ -93,11 +104,24 @@
                     </td>
                     <td class="px-6 py-4 text-sm text-slate-600">{{ $supplier->email ?? '-' }}</td>
                     <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">{{ $supplier->address ?? '-' }}</td>
+                    <td class="px-6 py-4">
+                        @if($supplier->is_active)
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
+                            Aktif
+                        </span>
+                        @else
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                            <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+                            Non-Aktif
+                        </span>
+                        @endif
+                    </td>
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
-                            <button onclick="openEditSupplierModal({{ $supplier->id }}, '{{ addslashes($supplier->name) }}', '{{ addslashes($supplier->pic ?? '') }}', '{{ addslashes($supplier->phone ?? '') }}', '{{ addslashes($supplier->email ?? '') }}', '{{ addslashes($supplier->address ?? '') }}')" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                            <form action="{{ route('supplier.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus supplier ini?');" class="inline">
+                            <button onclick="openEditSupplierModal({{ $supplier->id }}, '{{ addslashes($supplier->name) }}', '{{ addslashes($supplier->pic ?? '') }}', '{{ addslashes($supplier->phone ?? '') }}', '{{ addslashes($supplier->email ?? '') }}', '{{ addslashes($supplier->address ?? '') }}', {{ $supplier->is_active ? 1 : 0 }})" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <form action="{{ route('supplier.destroy', $supplier->id) }}" method="POST" data-confirm="Yakin ingin menghapus supplier ini?" data-ajax-delete="true" class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -167,6 +191,17 @@
                     <label class="block text-sm font-bold text-slate-700">Alamat</label>
                     <textarea name="address" rows="3" placeholder="Alamat lengkap supplier" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
                 </div>
+                <!-- Status Aktif -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah supplier ini sedang aktif.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
             </div>
 
             <!-- Footer -->
@@ -221,6 +256,17 @@
                     <label class="block text-sm font-bold text-slate-700">Alamat</label>
                     <textarea id="edit_supplier_address" name="address" rows="3" placeholder="Alamat lengkap supplier" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
                 </div>
+                <!-- Status Aktif -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah supplier ini sedang aktif.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="edit_supplier_is_active" name="is_active" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
             </div>
 
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
@@ -236,13 +282,14 @@
 </div>
 
 <script>
-    function openEditSupplierModal(id, name, pic, phone, email, address) {
+    function openEditSupplierModal(id, name, pic, phone, email, address, isActive) {
         document.getElementById('editSupplierForm').action = `/data-supplier/${id}`;
         document.getElementById('edit_supplier_name').value = name;
         document.getElementById('edit_supplier_pic').value = pic;
         document.getElementById('edit_supplier_phone').value = phone;
         document.getElementById('edit_supplier_email').value = email;
         document.getElementById('edit_supplier_address').value = address;
+        document.getElementById('edit_supplier_is_active').checked = (isActive == 1);
         document.getElementById('editSupplierModal').classList.remove('hidden');
     }
 </script>

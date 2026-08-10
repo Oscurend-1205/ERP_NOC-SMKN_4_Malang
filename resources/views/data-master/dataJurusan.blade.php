@@ -25,16 +25,7 @@
 </span>
 <input class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kode atau nama jurusan..." type="text"/>
 </div>
-<div class="flex items-center space-x-3">
-<button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-<i class="w-4 h-4 mr-2" data-lucide="filter"></i>
-              Filter
-            </button>
-<button class="flex items-center px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
-<i class="w-4 h-4 mr-2" data-lucide="download"></i>
-              Export
-            </button>
-</div>
+
 </div>
 <!-- The Table -->
 <div class="overflow-x-auto">
@@ -42,7 +33,9 @@
 <thead class="bg-slate-50/50">
 <tr>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">No</th>
-<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kode / Nama Jurusan</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kode Jurusan</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Jurusan</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kepala Jurusan</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Keterangan</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Status</th>
 @if(auth()->user()->role === 'Superadmin')
@@ -54,7 +47,9 @@
 @forelse($jurusans as $jurusan)
 <tr class="{{ $loop->even ? 'bg-slate-50/30' : '' }} table-row-hover transition-colors">
 <td class="px-6 py-4 text-sm text-slate-600">{{ $loop->iteration + $jurusans->firstItem() - 1 }}</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $jurusan->kode_jurusan ?? '-' }}</td>
 <td class="px-6 py-4 text-sm font-medium text-slate-900">{{ $jurusan->name }}</td>
+<td class="px-6 py-4 text-sm text-slate-600">{{ $jurusan->kepala_jurusan ?? '-' }}</td>
 <td class="px-6 py-4 text-sm text-slate-600">{{ $jurusan->description ?? '-' }}</td>
 <td class="px-6 py-4 text-center">
 @if($jurusan->is_active)
@@ -70,8 +65,8 @@
 @if(auth()->user()->role === 'Superadmin')
 <td class="px-6 py-4 text-center">
 <div class="flex justify-center space-x-3">
-<button onclick="openEditJurusanModal({{ $jurusan->id }}, '{{ addslashes($jurusan->name) }}', '{{ addslashes($jurusan->description ?? '') }}', {{ $jurusan->is_active ? '1' : '0' }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
-<form action="{{ route('jurusan.destroy', $jurusan->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus jurusan ini?');" class="inline">
+<button onclick="openEditJurusanModal({{ $jurusan->id }}, '{{ addslashes($jurusan->kode_jurusan ?? '') }}', '{{ addslashes($jurusan->name) }}', '{{ addslashes($jurusan->kepala_jurusan ?? '') }}', '{{ addslashes($jurusan->description ?? '') }}', {{ $jurusan->is_active ? '1' : '0' }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
+<form action="{{ route('jurusan.destroy', $jurusan->id) }}" method="POST" data-confirm="Yakin ingin menghapus jurusan ini?" data-ajax-delete="true" class="inline">
     @csrf
     @method('DELETE')
     <button type="submit" class="text-red-400 hover:text-red-600 border-none bg-transparent cursor-pointer"><i class="w-4 h-4" data-lucide="trash-2"></i></button>
@@ -82,7 +77,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="{{ auth()->user()->role === 'Superadmin' ? 5 : 4 }}" class="px-6 py-10 text-center text-slate-500">
+    <td colspan="{{ auth()->user()->role === 'Superadmin' ? 7 : 6 }}" class="px-6 py-10 text-center text-slate-500">
         <div class="flex flex-col items-center justify-center">
             <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mb-3"></i>
             <p class="text-sm font-medium">Belum ada data jurusan</p>
@@ -117,8 +112,16 @@
             @csrf
             <div class="px-6 py-5 space-y-4 overflow-y-auto">
                 <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Kode Jurusan</label>
+                    <input type="text" name="kode_jurusan" required placeholder="Contoh: X-TKJ-5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Nama Jurusan</label>
-                    <input type="text" name="name" required placeholder="Masukkan nama jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                    <input type="text" name="name" required placeholder="Contoh: X TKJ 5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Kepala Jurusan</label>
+                    <input type="text" name="kepala_jurusan" placeholder="Nama Kepala Jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Keterangan</label>
@@ -165,8 +168,16 @@
             @method('PUT')
             <div class="px-6 py-5 space-y-4 overflow-y-auto">
                 <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Kode Jurusan</label>
+                    <input type="text" id="edit_jurusan_kode" name="kode_jurusan" required placeholder="Contoh: X-TKJ-5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Nama Jurusan</label>
-                    <input type="text" id="edit_jurusan_name" name="name" required placeholder="Masukkan nama jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                    <input type="text" id="edit_jurusan_name" name="name" required placeholder="Contoh: X TKJ 5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Kepala Jurusan</label>
+                    <input type="text" id="edit_jurusan_kepala" name="kepala_jurusan" placeholder="Nama Kepala Jurusan" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Keterangan</label>
@@ -194,9 +205,11 @@
 </div>
 
 <script>
-    function openEditJurusanModal(id, name, description, isActive) {
+    function openEditJurusanModal(id, kode, name, kepala, description, isActive) {
         document.getElementById('editJurusanForm').action = `/data-jurusan/${id}`;
+        document.getElementById('edit_jurusan_kode').value = kode;
         document.getElementById('edit_jurusan_name').value = name;
+        document.getElementById('edit_jurusan_kepala').value = kepala;
         document.getElementById('edit_jurusan_description').value = description;
         document.getElementById('edit_jurusan_is_active').value = isActive;
         document.getElementById('editJurusanModal').classList.remove('hidden');

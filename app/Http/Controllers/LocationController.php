@@ -75,6 +75,10 @@ class LocationController extends Controller
     {
         $location->delete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Lokasi berhasil dihapus.']);
+        }
+
         return redirect()->route('locations.index')
             ->with('success', 'Lokasi berhasil dihapus.');
     }

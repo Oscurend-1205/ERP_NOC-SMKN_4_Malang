@@ -8,6 +8,8 @@ class Jurusan extends Model
 {
     protected $fillable = [
         'name',
+        'kode_jurusan',
+        'kepala_jurusan',
         'description',
         'is_active',
     ];

@@ -61,24 +61,8 @@
                         <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                         Kembali
                     </a>
-                    {{-- Export Dropdown --}}
-                    <div class="relative">
-                        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all shadow-sm active:scale-95 text-sm">
-                            <span class="material-symbols-outlined text-[18px]">download</span>
-                            Export
-                        </button>
-                        <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                            <a href="{{ route('export.barang-masuk.csv') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <span class="material-symbols-outlined text-[18px] text-green-600">table_chart</span>
-                                Excel (CSV)
-                            </a>
-                            <a href="{{ route('export.barang-masuk.print') }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
-                                PDF (Cetak)
-                            </a>
-                        </div>
-                    </div>
-                    <button onclick="document.getElementById('addBarangMasukModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
+                    
+                    <button onclick="toggleAddBarangMasukModal(true)" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
                         <span class="material-symbols-outlined text-[18px]">add</span>
                         Tambah Barang Masuk
                     </button>
@@ -96,6 +80,42 @@
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-red-500">error</span>
                     {{ session('error') }}
+                </div>
+            @endif
+
+            
+            {{-- Alert Masa Tenggang --}}
+            @if(isset($masaTenggang) && $masaTenggang->count() > 0)
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm mb-6 flex-1">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-amber-500 text-[20px]">warning</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-amber-800">Peringatan: Masa Tenggang Peminjaman</h3>
+                            <div class="mt-2 text-sm text-amber-700">
+                                <p>Terdapat {{ $masaTenggang->count() }} barang pinjaman yang mendekati atau melewati batas waktu pengembalian:</p>
+                                <ul class="list-disc pl-5 mt-1.5 space-y-1">
+                                    @foreach($masaTenggang->take(5) as $tenggang)
+                                        @php
+                                            $sisaHari = \Carbon\Carbon::now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($tenggang->rentang_waktu_peminjaman)->startOfDay(), false);
+                                            $badgeText = $sisaHari < 0 ? 'Terlewat ' . abs($sisaHari) . ' hari' : ($sisaHari == 0 ? 'Hari ini' : 'Sisa ' . $sisaHari . ' hari');
+                                            $badgeClass = $sisaHari < 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+                                        @endphp
+                                        <li>
+                                            <span class="font-semibold">{{ $tenggang->item->name ?? 'Barang tidak diketahui' }}</span> 
+                                            <span class="text-xs text-amber-600">({{ $tenggang->item->code ?? '-' }})</span> 
+                                            - Batas: <span class="font-medium">{{ \Carbon\Carbon::parse($tenggang->rentang_waktu_peminjaman)->format('d M Y') }}</span>
+                                            <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ $badgeClass }}">{{ $badgeText }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                @if($masaTenggang->count() > 5)
+                                    <p class="text-xs mt-2 italic text-amber-600">Dan {{ $masaTenggang->count() - 5 }} barang lainnya...</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
 
@@ -147,6 +167,7 @@
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">ID Barang</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Barang</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Jenis Masuk</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kondisi</th>
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                             </tr>
@@ -169,14 +190,15 @@
                                     <td class="py-4 px-6 text-sm text-gray-600 font-mono">{{ $item?->code ?? '-' }}</td>
                                     <td class="py-4 px-6 font-semibold text-sm text-gray-800">{{ $item?->name ?? '-' }}</td>
                                     <td class="py-4 px-6 text-sm text-gray-600">{{ $item?->category?->name ?? '-' }}</td>
+                                    <td class="py-4 px-6 text-sm text-gray-600">{{ $movement->jenis_barang_masuk ?? '-' }}</td>
                                     <td class="py-4 px-6">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold {{ $conditionClass }}">{{ $conditionLabel }}</span>
                                     </td>
                                     <td class="py-4 px-6 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button onclick="showDetailModal({{ $movement->id }}, '{{ $item?->name ?? '-' }}', '{{ $item?->code ?? '-' }}', '{{ \Carbon\Carbon::parse($movement->movement_date)->format('d M Y') }}', '{{ $item?->category?->name ?? '-' }}', '{{ $conditionLabel }}', {{ $movement->quantity }}, '{{ $movement->notes ?? '-' }}', '{{ $movement->user?->name ?? '-' }}')" class="text-[#3F51B5] hover:underline font-medium text-sm">Detail</button>
+                                            <button onclick="showDetailModal({{ $movement->id }}, '{{ $item?->name ?? '-' }}', '{{ $item?->code ?? '-' }}', '{{ \Carbon\Carbon::parse($movement->movement_date)->format('d M Y') }}', '{{ $item?->category?->name ?? '-' }}', '{{ $conditionLabel }}', {{ $movement->quantity }}, '{{ $movement->notes ?? '-' }}', '{{ $movement->user?->name ?? '-' }}', '{{ $movement->jenis_barang_masuk ?? '-' }}', '{{ $movement->rentang_waktu_peminjaman ? \Carbon\Carbon::parse($movement->rentang_waktu_peminjaman)->format('d M Y') : '-' }}', '{{ $movement->biaya_peminjaman ?? '' }}')" class="text-[#3F51B5] hover:underline font-medium text-sm">Detail</button>
                                             @if(auth()->user()->role === 'Superadmin')
-                                                <form method="POST" action="{{ route('items.barang-masuk.destroy', $movement->id) }}" onsubmit="return confirm('Yakin ingin menghapus data barang masuk ini? Stok barang akan dikurangi kembali.')" class="inline">
+                                                <form method="POST" action="{{ route('items.barang-masuk.destroy', $movement->id) }}" data-confirm="Yakin ingin menghapus data barang masuk ini? Stok barang akan dikurangi kembali." class="inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-500 hover:underline font-medium text-sm">Hapus</button>
@@ -212,77 +234,310 @@
     </main>
     <!-- END: Main Content Area -->
 
-    {{-- Modal: Tambah Barang Masuk --}}
-    <div id="addBarangMasukModal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('addBarangMasukModal').classList.add('hidden')"></div>
+        <!-- Modal Tambah Barang Masuk -->
+    <div id="addBarangMasukModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAddBarangMasukModal(false)"></div>
         
-        <!-- Modal Content -->
-        <div class="relative w-full max-w-[500px] bg-white rounded-2xl shadow-2xl flex flex-col font-sans max-h-[90vh] overflow-hidden">
+        <div class="relative w-full max-w-[1000px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-sans">
             <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white rounded-t-2xl">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-900">Tambah Barang Masuk</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Catat penerimaan barang baru ke dalam aset NOC</p>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#3F51B5] to-[#5C6BC0]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-[22px]">add_box</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Tambah Barang Masuk</h2>
+                        <p class="text-xs text-white/70 mt-0.5">Catat penerimaan barang baru ke dalam aset NOC</p>
+                    </div>
                 </div>
-                <button onclick="document.getElementById('addBarangMasukModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 bg-gray-50">
+                <button onclick="toggleAddBarangMasukModal(false)" class="text-white/70 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
 
-            <!-- Body -->
-            <form method="POST" action="{{ route('items.barang-masuk.store') }}" class="px-6 py-5 overflow-y-auto bg-gray-50 flex-1 rounded-b-2xl space-y-4">
+            <form id="addBarangForm" action="{{ route('items.barang-masuk.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
+                
+                <!-- STEP 1 -->
+                <div id="formStep1BM" class="flex flex-col flex-1 overflow-hidden">
+                <div class="px-6 py-5 space-y-5 overflow-y-auto flex-1">
 
-                {{-- Pilih Barang --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Pilih Barang <span class="text-red-500">*</span></label>
-                    <select name="item_id" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none bg-white text-gray-700">
-                        <option value="" disabled selected hidden>-- Pilih Barang --</option>
-                        @foreach($items as $item)
-                            <option value="{{ $item->id }}">{{ $item->code }} — {{ $item->name }} {{ $item->brand ? '('.$item->brand.')' : '' }}</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="item_type" value="new">
+                    {{-- SECTION: Detail Masuk --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">input</span>
+                            <h3 class="text-sm font-bold text-gray-800">Detail Masuk</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Jenis Barang Masuk --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Jenis Barang Masuk <span class="text-red-500">*</span></label>
+                                <select name="jenis_barang_masuk" required 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Pilih Jenis</option>
+                                    <option value="Hibah">Hibah</option>
+                                    <option value="Pinjaman">Pinjaman</option>
+                                    <option value="Pembelian">Pembelian</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+
+                            {{-- Tanggal Masuk --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Tanggal Masuk <span class="text-red-500">*</span></label>
+                                <input type="date" name="movement_date" value="{{ date('Y-m-d') }}" required 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            {{-- Rentang Waktu Peminjaman --}}
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="block text-[13px] font-semibold text-gray-700">Batas Waktu Peminjaman <span class="text-gray-400 text-[10px]">(opsional, jika pinjaman)</span></label>
+                                <input type="date" name="rentang_waktu_peminjaman" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-[11px] text-gray-500">Sistem akan memberi peringatan 1 minggu sebelum batas waktu ini.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION: Informasi Barang --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">inventory_2</span>
+                            <h3 class="text-sm font-bold text-gray-800">Informasi Barang</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Nama Barang --}}
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="block text-[13px] font-semibold text-gray-700">Nama Barang <span class="text-red-500">*</span></label>
+                                <input type="text" name="name" required placeholder="Contoh: Access Point UniFi, Router MikroTik RB750Gr3" value="{{ old('name') }}" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm {{ $errors->has('name') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                @error('name') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+                            {{-- Kategori --}}
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-[13px] font-semibold text-gray-700">Kategori <span class="text-red-500">*</span></label>
+                                    <button type="button" onclick="openQuickCategoryModal()" class="text-[11px] text-[#3F51B5] font-semibold hover:underline flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">add_circle</span> Kategori Baru
+                                    </button>
+                                </div>
+                                <select name="category_id" id="addBarangCategoryId" required 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer {{ $errors->has('category_id') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                    <option value="">Pilih Kategori</option>
+                                    @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}" data-prefix="{{ $cat->prefix }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }} ({{ $cat->prefix }})</option>
+                                    @endforeach
+                                </select>
+                                @error('category_id') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+                            {{-- Sub Prefix (Hidden) --}}
+                            <input type="hidden" name="sub_prefix" id="addBarangSubPrefix" maxlength="10" value="{{ old('sub_prefix') }}">
+
+                            {{-- Kode Preview --}}
+                            <div class="space-y-1.5" id="codePreviewWrapper">
+                                <label class="block text-[13px] font-semibold text-gray-700">Kode Inventaris</label>
+                                <div class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] bg-gray-50 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-gray-400">tag</span>
+                                    <code id="codePreviewText" class="font-mono font-bold text-indigo-600 tracking-wider">Pilih kategori terlebih dahulu</code>
+                                </div>
+                                <p class="text-[11px] text-gray-400">Otomatis di-generate. Format: PREFIX-[SUBPREFIX-]NOMOR</p>
+                            </div>
+
+                            {{-- Merek --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Merek</label>
+                                <input type="text" name="brand" placeholder="Contoh: Cisco, MikroTik, TP-Link" value="{{ old('brand') }}" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm {{ $errors->has('brand') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                @error('brand') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+                            {{-- Model --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Model</label>
+                                <input type="text" name="model" placeholder="Contoh: RB750Gr3, EAP225, TL-SG1024D" value="{{ old('model') }}" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm {{ $errors->has('model') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                @error('model') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    {{-- SECTION: Lokasi & Stok --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">location_on</span>
+                            <h3 class="text-sm font-bold text-gray-800">Lokasi & Stok</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Lokasi --}}
+                            <div class="space-y-1.5">
+                                @php
+                                    $nocLocation = $locations->first(function($loc) { return stripos($loc->name, 'noc') !== false; });
+                                    $nocId = $nocLocation ? $nocLocation->id : ($locations->first()->id ?? '');
+                                    $nocName = $nocLocation ? $nocLocation->name : ($locations->first()->name ?? '');
+                                @endphp
+                                <label class="block text-[13px] font-semibold text-gray-700">Lokasi <span class="text-red-500">*</span></label>
+                                <select disabled class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-gray-100 shadow-sm cursor-not-allowed border-gray-300">
+                                    <option value="{{ $nocId }}" selected>{{ $nocName }}</option>
+                                </select>
+                                <input type="hidden" name="location_id" value="{{ $nocId }}">
+                                <p class="text-[11px] text-gray-500">Otomatis dialokasikan ke ruang NOC.</p>
+                            </div>
+
+                            {{-- Jumlah --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Jumlah Unit <span class="text-red-500">*</span></label>
+                                <input type="number" name="quantity" required min="1" value="{{ old('quantity', 1) }}" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 shadow-sm {{ $errors->has('quantity') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                <p class="text-[11px] text-gray-400">Setiap unit akan mendapat kode inventaris unik</p>
+                                @error('quantity') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+
+
+                            {{-- Status --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Status <span class="text-red-500">*</span></label>
+                                <select name="status" required 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer {{ $errors->has('status') ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500' }}">
+                                    <option value="tersedia" {{ old('status', 'tersedia') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
+                                    <option value="dipinjam" {{ old('status') == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                    <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                    <option value="dimusnahkan" {{ old('status') == 'dimusnahkan' ? 'selected' : '' }}>Dimusnahkan</option>
+                                </select>
+                                @error('status') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION: Data Perolehan --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">shopping_cart</span>
+                            <h3 class="text-sm font-bold text-gray-800">Data Perolehan</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {{-- Supplier --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Supplier</label>
+                                <select name="supplier_id" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Pilih Supplier</option>
+                                    @foreach($suppliers as $sup)
+                                        <option value="{{ $sup->id }}" {{ old('supplier_id') == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Asal Barang --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Asal Barang</label>
+                                <select name="asal_barang_id" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Pilih Asal Barang</option>
+                                    @foreach($asalBarangs as $asal)
+                                        <option value="{{ $asal->id }}" {{ old('asal_barang_id') == $asal->id ? 'selected' : '' }}>{{ $asal->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Kondisi Barang (Master) --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Kondisi Barang (Master)</label>
+                                <select name="kondisi_barang_id" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 text-gray-700 bg-white shadow-sm cursor-pointer border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Pilih Kondisi</option>
+                                    @foreach($kondisis as $k)
+                                        <option value="{{ $k->id }}" {{ old('kondisi_barang_id') == $k->id ? 'selected' : '' }}>{{ $k->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Biaya Peminjaman/Sewa --}}
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="block text-[13px] font-semibold text-gray-700">Biaya Peminjaman / Sewa (opsional)</label>
+                                <div class="relative flex items-center rounded-lg border shadow-sm focus-within:ring-1 bg-white overflow-hidden border-gray-300 focus-within:ring-blue-500 focus-within:border-blue-500">
+                                    <span class="bg-gray-50 px-3 py-2.5 text-[13px] text-gray-500 border-r border-gray-200 select-none font-semibold">Rp</span>
+                                    <input type="text" name="biaya_peminjaman" id="purchase_price_input" placeholder="0" value="{{ old('biaya_peminjaman') }}" 
+                                        class="w-full border-0 pl-3 pr-1 py-2.5 text-[13px] focus:ring-0 focus:outline-none placeholder-gray-400">
+                                    <span class="text-[13px] text-gray-500 pr-3 select-none">,00</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500">Jika barang pinjaman memiliki harga sewa per periode, catat disini.</p>
+                                @error('biaya_peminjaman') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION: Lainnya --}}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">notes</span>
+                            <h3 class="text-sm font-bold text-gray-800">Informasi Tambahan</h3>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            {{-- Catatan --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Catatan</label>
+                                <textarea name="notes" placeholder="Catatan tambahan (opsional)" 
+                                    class="w-full border rounded-lg px-3 py-2.5 text-[13px] focus:outline-none focus:ring-1 placeholder-gray-400 shadow-sm h-16 border-gray-300 focus:ring-blue-500 focus:border-blue-500">{{ old('notes') }}</textarea>
+                                @error('notes') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+
+                            {{-- Foto Barang --}}
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Foto Barang</label>
+                                <input type="file" name="image" accept="image/jpeg,image/png,image/jpg" 
+                                    class="w-full border rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 bg-white text-gray-700 shadow-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-[11px] text-gray-400">Format: JPG, PNG. Maks: 2MB</p>
+                                @error('image') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                {{-- Jumlah --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Jumlah <span class="text-red-500">*</span></label>
-                    <input type="number" name="quantity" min="1" value="1" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none bg-white text-gray-700" />
-                </div>
-
-                {{-- Tanggal Masuk --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Tanggal Masuk <span class="text-red-500">*</span></label>
-                    <input type="date" name="movement_date" value="{{ date('Y-m-d') }}" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none bg-white text-gray-700" />
-                </div>
-
-                {{-- Lokasi Tujuan --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Lokasi Tujuan <span class="text-gray-400 text-[10px]">(opsional)</span></label>
-                    <select name="to_location_id" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none bg-white text-gray-700">
-                        <option value="">-- Tidak Dipilih --</option>
-                        @foreach($locations as $location)
-                            <option value="{{ $location->id }}">{{ $location->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Catatan --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Catatan <span class="text-gray-400 text-[10px]">(opsional)</span></label>
-                    <textarea name="notes" rows="3" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none bg-white text-gray-700 resize-none" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
-                </div>
-
-                {{-- Actions --}}
-                <div class="flex items-center justify-end gap-3 pt-2">
-                    <button type="button" onclick="document.getElementById('addBarangMasukModal').classList.add('hidden')" class="px-5 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition-all text-sm border border-gray-200">
+                <!-- Footer Step 1 -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3 mt-auto">
+                    <button type="button" onclick="toggleAddBarangMasukModal(false)" class="px-5 py-2.5 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#3F51B5] text-white font-semibold rounded-xl hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-                        Simpan
+                    <button type="button" onclick="nextStepBM()" class="px-5 py-2.5 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm flex items-center gap-2">
+                        Lanjut
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </button>
                 </div>
+                </div> <!-- END STEP 1 -->
+                
+                <!-- STEP 2 -->
+                <div id="formStep2BM" class="hidden flex flex-col flex-1 overflow-hidden">
+                    <div class="px-6 py-5 space-y-5 overflow-y-auto flex-1">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-[#3F51B5] text-[18px]">list_alt</span>
+                            <h3 class="text-sm font-bold text-gray-800">Detail Serial Number & Kondisi Tiap Unit</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">Silakan isi serial number (opsional) dan kondisi untuk tiap unit barang yang ditambahkan.</p>
+                        
+                        <div id="dynamicUnitInputsBM" class="space-y-4">
+                            <!-- Dynamic inputs inserted by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Step 2 -->
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between mt-auto">
+                        <button type="button" onclick="prevStepBM()" class="px-5 py-2.5 text-[13px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                            Kembali
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 text-[13px] font-bold text-white bg-[#3F51B5] rounded-lg hover:bg-[#3949AB] transition-colors shadow-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
+                            Simpan Barang
+                        </button>
+                    </div>
+                </div> <!-- END STEP 2 -->
             </form>
         </div>
     </div>
@@ -332,6 +587,18 @@
                     <span id="detail_jumlah" class="text-sm font-semibold text-gray-800">-</span>
                 </div>
                 <div class="flex justify-between items-start py-2 border-b border-gray-100">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Masuk</span>
+                    <span id="detail_jenis" class="text-sm text-gray-700">-</span>
+                </div>
+                <div class="flex justify-between items-start py-2 border-b border-gray-100">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rentang Peminjaman</span>
+                    <span id="detail_rentang" class="text-sm text-gray-700">-</span>
+                </div>
+                <div class="flex justify-between items-start py-2 border-b border-gray-100">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Biaya Peminjaman</span>
+                    <span id="detail_biaya" class="text-sm text-green-600 font-semibold">-</span>
+                </div>
+                <div class="flex justify-between items-start py-2 border-b border-gray-100">
                     <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dicatat Oleh</span>
                     <span id="detail_user" class="text-sm text-gray-700">-</span>
                 </div>
@@ -344,13 +611,16 @@
     </div>
 
     <script>
-        function showDetailModal(id, nama, kode, tanggal, kategori, kondisi, jumlah, catatan, user) {
+        function showDetailModal(id, nama, kode, tanggal, kategori, kondisi, jumlah, catatan, user, jenis, rentang, biaya) {
             document.getElementById('detail_nama').textContent = nama;
             document.getElementById('detail_kode').textContent = kode;
             document.getElementById('detail_tanggal').textContent = tanggal;
             document.getElementById('detail_kategori').textContent = kategori;
             document.getElementById('detail_kondisi').textContent = kondisi;
             document.getElementById('detail_jumlah').textContent = jumlah + ' unit';
+            document.getElementById('detail_jenis').textContent = jenis || '-';
+            document.getElementById('detail_rentang').textContent = rentang || '-';
+            document.getElementById('detail_biaya').textContent = biaya ? 'Rp ' + parseInt(biaya).toLocaleString('id-ID') : '-';
             document.getElementById('detail_catatan').textContent = catatan || '-';
             document.getElementById('detail_user').textContent = user || '-';
             document.getElementById('detailModal').classList.remove('hidden');
@@ -364,7 +634,85 @@
         });
     </script>
 
-    @vite(['resources/js/turbo-navigation.js'])
+        <script>
+        window._itemsConfig = {
+            unitsRoute: "{{ route('items.units') }}",
+            nextCodeRoute: "{{ route('items.next-code') }}",
+            quickCategoryRoute: "{{ route('items.quick-category') }}",
+            csrfToken: "{{ csrf_token() }}",
+            categoriesData: {!! json_encode($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'prefix' => $c->prefix, 'last_code_number' => $c->last_code_number])) !!}
+        };
+        function toggleAddBarangMasukModal(show) {
+            const modal = document.getElementById('addBarangMasukModal');
+            if (modal) {
+                if (show) {
+                    // Reset to step 1 on open
+                    const step1 = document.getElementById('formStep1BM');
+                    const step2 = document.getElementById('formStep2BM');
+                    if (step1) step1.classList.remove('hidden');
+                    if (step2) step2.classList.add('hidden');
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        }
+        
+        function nextStepBM() {
+            const step1 = document.getElementById('formStep1BM');
+            const step1Inputs = step1.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            for (let input of step1Inputs) {
+                if (!input.checkValidity()) {
+                    input.reportValidity();
+                    isValid = false;
+                    break;
+                }
+            }
+            if (!isValid) return;
+            
+            const form = document.getElementById('addBarangForm');
+            const qtyInput = form.querySelector('input[name="quantity"]');
+            const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+            const container = document.getElementById('dynamicUnitInputsBM');
+            
+            container.innerHTML = '';
+            for (let i = 0; i < qty; i++) {
+                container.innerHTML += `
+                    <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                        <h4 class="text-[13px] font-bold text-gray-800 mb-3 border-b border-gray-100 pb-2">Unit ${i + 1}</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Serial Number</label>
+                                <input type="text" name="serial_numbers[]" placeholder="Nomor seri unit ${i + 1} (Opsional)" 
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-[13px] font-semibold text-gray-700">Kondisi <span class="text-red-500">*</span></label>
+                                <select name="conditions[]" required 
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="baik">Baik</option>
+                                    <option value="rusak_ringan">Rusak Ringan</option>
+                                    <option value="rusak_berat">Rusak Berat</option>
+                                    <option value="hilang">Hilang</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            step1.classList.add('hidden');
+            document.getElementById('formStep2BM').classList.remove('hidden');
+        }
+        
+        function prevStepBM() {
+            document.getElementById('formStep2BM').classList.add('hidden');
+            document.getElementById('formStep1BM').classList.remove('hidden');
+        }
+    </script>
+
+    @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
     @include('components.accessibility-button')
 </body>
 </html>

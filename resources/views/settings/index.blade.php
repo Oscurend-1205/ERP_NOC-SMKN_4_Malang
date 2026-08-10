@@ -92,7 +92,7 @@
             <p class="text-xs text-slate-500">Jumlah data saat ini di setiap tabel utama.</p>
         </div>
     </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
         <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100 text-center">
             <i data-lucide="package" class="w-5 h-5 text-blue-500 mx-auto mb-2"></i>
             <div class="text-xl font-bold text-blue-700 font-mono">{{ number_format($stats['items']) }}</div>
@@ -122,6 +122,11 @@
             <i data-lucide="arrow-right-left" class="w-5 h-5 text-rose-500 mx-auto mb-2"></i>
             <div class="text-xl font-bold text-rose-700 font-mono">{{ number_format($stats['movements']) }}</div>
             <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Mutasi</div>
+        </div>
+        <div class="bg-green-50/50 rounded-xl p-4 border border-green-100 text-center">
+            <i data-lucide="wrench" class="w-5 h-5 text-green-500 mx-auto mb-2"></i>
+            <div class="text-xl font-bold text-green-700 font-mono">{{ number_format($stats['perawatans']) }}</div>
+            <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Perawatan</div>
         </div>
     </div>
 </div>
@@ -295,7 +300,7 @@
                 <h3 class="text-sm font-bold text-slate-900">Isi Data Dummy</h3>
             </div>
             <p class="text-xs text-slate-600 mb-4 flex-grow">Tambahkan data contoh (kategori, barang, pengguna, peminjaman) ke database saat ini. <strong>Tidak menghapus</strong> data yang sudah ada.</p>
-            <form action="{{ route('settings.seed-dummy') }}" method="POST" onsubmit="return confirm('Yakin ingin menambahkan data dummy ke database? Data yang sudah ada tidak akan terhapus.')">
+            <form action="{{ route('settings.seed-dummy') }}" method="POST" data-confirm="Yakin ingin menambahkan data dummy ke database? Data yang sudah ada tidak akan terhapus.">
                 @csrf
                 <button type="submit" class="w-full bg-[#005bbf] hover:bg-[#004494] text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm flex items-center justify-center transition-colors text-sm">
                     <i data-lucide="flask-conical" class="w-4 h-4 mr-2"></i> Tambah Dummy Data
@@ -362,7 +367,7 @@
             e.target.submit();
             return true;
         } else if (input !== null) {
-            alert('Dibatalkan. Kata yang diketik tidak sesuai.');
+            customAlert.show({ type: 'warning', title: 'Dibatalkan', message: 'Kata yang diketik tidak sesuai.' });
         }
         return false;
     }
@@ -374,7 +379,7 @@
             e.target.submit();
             return true;
         } else if (input !== null) {
-            alert('Dibatalkan. Kata yang diketik tidak sesuai.');
+            customAlert.show({ type: 'warning', title: 'Dibatalkan', message: 'Kata yang diketik tidak sesuai.' });
         }
         return false;
     }

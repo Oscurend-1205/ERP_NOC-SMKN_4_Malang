@@ -181,7 +181,8 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'serial_number' => 'nullable|string|max:255',
+            'serial_numbers' => 'nullable|array',
+            'serial_numbers.*' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -190,7 +191,8 @@ class ItemController extends Controller
             'asal_barang_id' => 'nullable|exists:asal_barangs,id',
             'kondisi_barang_id' => 'nullable|exists:kondisi_barangs,id',
             'quantity' => 'required|integer|min:1',
-            'condition' => 'nullable|in:baik,rusak_ringan,rusak_berat,hilang',
+            'conditions' => 'required|array',
+            'conditions.*' => 'required|in:baik,rusak_ringan,rusak_berat,hilang',
             'status' => 'required|in:tersedia,dipinjam,maintenance,dimusnahkan',
             'purchase_date' => 'nullable|date',
             'purchase_price' => 'nullable|string',
@@ -214,13 +216,19 @@ class ItemController extends Controller
         $subPrefix = !empty($validated['sub_prefix']) ? strtoupper(trim($validated['sub_prefix'])) : null;
         
         // Untuk setiap unit, kita buat record tersendiri dengan kode unik
-        // Pastikan quantity untuk tiap record adalah 1
         $validated['quantity'] = 1;
         $validated['sub_prefix'] = $subPrefix;
         
         for ($i = 0; $i < $quantity; $i++) {
-            $validated['code'] = $this->generateItemCode($validated['category_id'], $subPrefix);
-            Item::create($validated);
+            $itemData = $validated;
+            $itemData['code'] = $this->generateItemCode($validated['category_id'], $subPrefix);
+            $itemData['serial_number'] = $request->serial_numbers[$i] ?? null;
+            $itemData['condition'] = $request->conditions[$i] ?? 'baik';
+            
+            // Remove the array fields before insert
+            unset($itemData['serial_numbers'], $itemData['conditions']);
+            
+            Item::create($itemData);
         }
 
         return redirect()->route('items.index')
@@ -312,6 +320,10 @@ class ItemController extends Controller
 
         $item->delete();
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Barang berhasil dihapus.']);
+        }
+
         return redirect()->route('items.index')
             ->with('success', 'Barang berhasil dihapus.');
     }
@@ -357,14 +369,33 @@ class ItemController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Daftar barang unik untuk dropdown di modal
+        // Daftar barang unik untuk dropdown di modal (lama)
         $items = Item::select('id', 'name', 'code', 'brand', 'model')
             ->orderBy('name', 'asc')
             ->get();
 
         $locations = Location::all();
+        $categories = Category::all();
+        $suppliers = Supplier::all();
+        $asalBarangs = AsalBarang::all();
+        $kondisis = KondisiBarang::all();
+        
+        // Ambil barang dengan jenis pinjaman yang sudah mendekati atau melewati masa tenggang (H-7)
+        $masaTenggang = ItemMovement::with('item')
+            ->where('type', 'masuk')
+            ->where('jenis_barang_masuk', 'Pinjaman')
+            ->whereNotNull('rentang_waktu_peminjaman')
+            ->whereDate('rentang_waktu_peminjaman', '<=', now()->addDays(7))
+            ->get();
 
-        return view('items.barang-masuk.barang-masuk', compact('movements', 'items', 'locations'));
+        $existingItems = Item::select('name', 'brand', 'model', 'category_id', 'sub_prefix')
+            ->groupBy('name', 'brand', 'model', 'category_id', 'sub_prefix')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('items.barang-masuk.barang-masuk', compact(
+            'movements', 'items', 'locations', 'categories', 'suppliers', 'asalBarangs', 'kondisis', 'existingItems', 'masaTenggang'
+        ));
     }
 
     /**
@@ -373,29 +404,72 @@ class ItemController extends Controller
     public function storeBarangMasuk(Request $request)
     {
         $validated = $request->validate([
-            'item_id'        => 'required|exists:items,id',
-            'quantity'       => 'required|integer|min:1',
-            'movement_date'  => 'required|date',
-            'to_location_id' => 'nullable|exists:locations,id',
-            'notes'          => 'nullable|string|max:500',
+            'name' => 'required|string|max:255',
+            'serial_numbers' => 'nullable|array',
+            'serial_numbers.*' => 'nullable|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'model' => 'nullable|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'location_id' => 'required|exists:locations,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'asal_barang_id' => 'nullable|exists:asal_barangs,id',
+            'kondisi_barang_id' => 'nullable|exists:kondisi_barangs,id',
+            'quantity' => 'required|integer|min:1',
+            'conditions' => 'required|array',
+            'conditions.*' => 'required|in:baik,rusak_ringan,rusak_berat,hilang',
+            'status' => 'required|in:tersedia,dipinjam,maintenance,dimusnahkan',
+            'notes' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'sub_prefix' => 'nullable|string|max:10',
+            'jenis_barang_masuk' => 'required|string|max:255',
+            'rentang_waktu_peminjaman' => 'nullable|date',
+            'biaya_peminjaman' => 'nullable|string',
+            'movement_date' => 'required|date',
         ]);
 
-        $validated['type']    = 'masuk';
-        $validated['user_id'] = Auth::id();
+        // Clean biaya_peminjaman from dots if present
+        if (isset($validated['biaya_peminjaman'])) {
+            $validated['biaya_peminjaman'] = str_replace('.', '', $validated['biaya_peminjaman']);
+        }
 
-        ItemMovement::create($validated);
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('items', 'public');
+        }
 
-        // Increment stok barang
-        $item = Item::find($validated['item_id']);
-        $item->increment('quantity', $validated['quantity']);
+        $quantity = $validated['quantity'];
+        
+        $subPrefix = !empty($validated['sub_prefix']) ? strtoupper(trim($validated['sub_prefix'])) : null;
+        
+        $baseItemData = $validated;
+        $baseItemData['quantity'] = 1;
+        $baseItemData['sub_prefix'] = $subPrefix;
 
-        // Update lokasi jika diisi
-        if (!empty($validated['to_location_id'])) {
-            $item->update(['location_id' => $validated['to_location_id']]);
+        // Hilangkan data yang tidak ada di items table
+        unset($baseItemData['jenis_barang_masuk'], $baseItemData['rentang_waktu_peminjaman'], $baseItemData['biaya_peminjaman'], $baseItemData['movement_date'], $baseItemData['serial_numbers'], $baseItemData['conditions']);
+
+        for ($i = 0; $i < $quantity; $i++) {
+            $itemData = $baseItemData;
+            $itemData['code'] = $this->generateItemCode($itemData['category_id'], $subPrefix);
+            $itemData['serial_number'] = $request->serial_numbers[$i] ?? null;
+            $itemData['condition'] = $request->conditions[$i] ?? 'baik';
+            $newItem = Item::create($itemData);
+
+            ItemMovement::create([
+                'item_id' => $newItem->id,
+                'user_id' => Auth::id(),
+                'type' => 'masuk',
+                'jenis_barang_masuk' => $validated['jenis_barang_masuk'],
+                'rentang_waktu_peminjaman' => $validated['rentang_waktu_peminjaman'],
+                'biaya_peminjaman' => $validated['biaya_peminjaman'],
+                'to_location_id' => $validated['location_id'],
+                'quantity' => 1,
+                'notes' => $validated['notes'],
+                'movement_date' => $validated['movement_date'],
+            ]);
         }
 
         return redirect()->route('items.barang-masuk')
-            ->with('success', 'Data barang masuk berhasil ditambahkan.');
+            ->with('success', $quantity . ' Data barang masuk berhasil ditambahkan.');
     }
 
     /**
@@ -405,17 +479,28 @@ class ItemController extends Controller
     {
         // Pastikan tipe-nya 'masuk'
         if ($movement->type !== 'masuk') {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Data yang dihapus bukan barang masuk.'], 400);
+            }
             return redirect()->route('items.barang-masuk')
                 ->with('error', 'Data yang dihapus bukan barang masuk.');
         }
 
-        // Kembalikan stok barang
+        // Hapus item fisik karena data unit didapat dari COUNT(*) item
         $item = $movement->item;
-        if ($item && $item->quantity >= $movement->quantity) {
-            $item->decrement('quantity', $movement->quantity);
+        
+        $movement->delete();
+
+        if ($item) {
+            if ($item->image) {
+                Storage::disk('public')->delete($item->image);
+            }
+            $item->delete();
         }
 
-        $movement->delete();
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Data barang masuk berhasil dihapus.']);
+        }
 
         return redirect()->route('items.barang-masuk')
             ->with('success', 'Data barang masuk berhasil dihapus.');

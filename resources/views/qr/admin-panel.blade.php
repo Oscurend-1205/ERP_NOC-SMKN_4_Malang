@@ -412,11 +412,11 @@ if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
                 if (window.qrPollInterval) clearInterval(window.qrPollInterval);
                 window.qrPollInterval = setInterval(pollPeminjaman, 3000);
             } else {
-                alert(data.message || 'Gagal membuat QR Code.');
+                customAlert.show({ type: 'error', title: 'Gagal', message: data.message || 'Gagal membuat QR Code.' });
             }
         } catch(e) {
             console.error(e);
-            alert('Gagal memproses permintaan: ' + e.message);
+            customAlert.show({ type: 'error', title: 'Error', message: 'Gagal memproses permintaan: ' + e.message });
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalBtnHtml;
@@ -556,14 +556,21 @@ if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
     }
 
     async function revokeCurrentToken() {
-        if (!currentToken || !confirm('Batalkan QR yang sedang aktif?')) return;
-        try {
-            await fetch(`/qr-revoke/${currentToken}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
-            currentToken = null;
-            if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
-            document.getElementById('qrPlaceholder').classList.remove('hidden');
-            document.getElementById('qrActive').classList.add('hidden');
-        } catch (e) {}
+        if (!currentToken) return;
+        customAlert.show({
+            title: 'Konfirmasi Pembatalan',
+            message: 'Batalkan QR yang sedang aktif?',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    await fetch(`/qr-revoke/${currentToken}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+                    currentToken = null;
+                    if (window.qrCountdownInterval) clearInterval(window.qrCountdownInterval);
+                    document.getElementById('qrPlaceholder').classList.remove('hidden');
+                    document.getElementById('qrActive').classList.add('hidden');
+                } catch (e) {}
+            }
+        });
     }
     
     // Attach to global scope for HTML onclick attributes

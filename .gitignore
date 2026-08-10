@@ -18,6 +18,10 @@ project.zip.004
 # ═══════════════════════════════════════════════════════════
 # FILE PHP UTILITY / DEPLOY KHUSUS (BUKAN BAGIAN DARI FRAMEWORK LARAVEL)
 # ═══════════════════════════════════════════════════════════
+# Native Bridge
+NATIVE_*.php
+NATIVE_nichesows_bridge.php
+
 # Root utility scripts
 buat_zip.php
 unzip.php

@@ -83,9 +83,8 @@ Permasalahan inventaris NOC sebelum sistem ini diterapkan:
 - Pencatatan jadwal dan riwayat perawatan rutin.
 - Biaya perawatan, vendor, dan catatan teknis.
 
-### 7. Monitoring Akses & IP Tracker
+### 7. Monitoring Akses
 - **Access Log** (Riwayat login & aktivitas pengguna).
-- **IP Tracker Stealth** untuk audit keamanan.
 
 ### 8. Laporan Lengkap & Profesional
 Fitur ekspor di **Hub Laporan Utama**:
@@ -119,7 +118,6 @@ Fitur ekspor di **Hub Laporan Utama**:
 | Peminjaman & Pengembalian | ✅ | ✅ |
 | **Hapus User / Atur Role** | ✅ | ❌ |
 | **Ekspor Semua Laporan** | ✅ | ✅ |
-| **Akses IP Tracker & Log** | ✅ | ❌ |
 | **Pengaturan Sistem** | ✅ | ❌ |
 | **Hapus Akun Paten (superadmin/admin)** | ❌ | ❌ |
 
@@ -145,7 +143,7 @@ Fitur ekspor di **Hub Laporan Utama**:
 📈 Laporan (Export CSV / PDF / Excel)
 ⚙️ Pengaturan (Profile & Sistem)
 🖥️ QR Admin Panel
-🕵️ Access Log & IP Tracker (Superadmin)
+🕵️ Access Log (Superadmin)
 ```
 
 ---

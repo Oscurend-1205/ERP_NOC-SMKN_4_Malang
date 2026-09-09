@@ -67,6 +67,15 @@ class ItemController extends Controller
                 'sub_prefix',
                 \DB::raw("CASE WHEN sub_prefix IS NOT NULL AND sub_prefix != '' THEN CONCAT(SUBSTRING_INDEX(MAX(code), '-', 1), '-', sub_prefix) ELSE SUBSTRING_INDEX(MAX(code), '-', 1) END as prefix"),
                 \DB::raw('COUNT(*) as total_stock'),
+                \DB::raw("SUM(CASE WHEN `condition` = 'baik' THEN 1 ELSE 0 END) as total_baik"),
+                \DB::raw("SUM(CASE WHEN `condition` = 'rusak_ringan' THEN 1 ELSE 0 END) as total_rusak_ringan"),
+                \DB::raw("SUM(CASE WHEN `condition` = 'rusak_berat' THEN 1 ELSE 0 END) as total_rusak_berat"),
+                \DB::raw("SUM(CASE WHEN `condition` = 'hilang' THEN 1 ELSE 0 END) as total_hilang"),
+                \DB::raw("SUM(CASE WHEN status = 'tersedia' THEN 1 ELSE 0 END) as total_tersedia"),
+                \DB::raw("SUM(CASE WHEN status = 'dipinjam' THEN 1 ELSE 0 END) as total_dipinjam"),
+                \DB::raw("SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as total_maintenance"),
+                \DB::raw("MAX(image) as image"),
+                \DB::raw("SUM(COALESCE(purchase_price, 0)) as total_value"),
                 \DB::raw('MIN(id) as id')
             )
             ->groupBy('name', 'brand', 'model', 'category_id', 'sub_prefix')
@@ -79,13 +88,23 @@ class ItemController extends Controller
         $asalBarangs = AsalBarang::all();
         $kondisis = KondisiBarang::all();
 
+        // High-level KPI summary calculations
+        $stats = [
+            'total_katalog'  => DB::table('items')->select('name', 'brand', 'model', 'category_id', 'sub_prefix')->groupBy('name', 'brand', 'model', 'category_id', 'sub_prefix')->get()->count(),
+            'total_unit'     => Item::count(),
+            'total_tersedia' => Item::where('status', 'tersedia')->count(),
+            'total_dipinjam' => Item::where('status', 'dipinjam')->count(),
+            'total_perawatan'=> Item::where('status', 'maintenance')->count(),
+            'total_valuasi'  => Item::sum('purchase_price') ?? 0,
+        ];
+
         // Ambil daftar barang unik berdasarkan nama, merk, model, dan sub_prefix untuk dropdown "Barang Sudah Ada"
         $existingItems = Item::select('name', 'brand', 'model', 'category_id', 'sub_prefix')
             ->groupBy('name', 'brand', 'model', 'category_id', 'sub_prefix')
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('items.index', compact('items', 'categories', 'locations', 'suppliers', 'asalBarangs', 'kondisis', 'existingItems'));
+        return view('items.index', compact('items', 'categories', 'locations', 'suppliers', 'asalBarangs', 'kondisis', 'existingItems', 'stats'));
     }
 
     /**

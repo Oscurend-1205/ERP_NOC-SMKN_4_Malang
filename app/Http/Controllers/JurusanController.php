@@ -9,9 +9,20 @@ class JurusanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $jurusans = \App\Models\Jurusan::paginate(10);
+        $query = \App\Models\Jurusan::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('kode_jurusan', 'like', "%{$search}%")
+                  ->orWhere('kepala_jurusan', 'like', "%{$search}%");
+            });
+        }
+
+        $jurusans = $query->paginate(10)->withQueryString();
         return view('data-master.dataJurusan', compact('jurusans'));
     }
 
@@ -32,7 +43,7 @@ class JurusanController extends Controller
             'kode_jurusan.required' => 'Kode jurusan wajib diisi.'
         ]);
         
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->boolean('is_active');
 
         \App\Models\Jurusan::create($validated);
 
@@ -63,7 +74,7 @@ class JurusanController extends Controller
             'kode_jurusan.required' => 'Kode jurusan wajib diisi.'
         ]);
         
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->boolean('is_active');
 
         $jurusan->update($validated);
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Perawatan;
 use App\Models\Item;
+use App\Models\ItemMovement;
+use App\Models\TeknisiExternal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +38,7 @@ class PerawatanController extends Controller
         $totalPerawatan = Perawatan::count();
         $menungguPersetujuan = Perawatan::where('status', 'menunggu')->count();
         $sedangBerlangsung = Perawatan::where('status', 'proses')->count();
+        $menungguPengecekan = Perawatan::where('status', 'menunggu_pengecekan')->count();
         $selesai = Perawatan::where('status', 'selesai')->count();
 
         // Ambil data aset/barang untuk opsi dropdown (kecuali yang sudah dimusnahkan)
@@ -49,6 +52,7 @@ class PerawatanController extends Controller
             'totalPerawatan', 
             'menungguPersetujuan', 
             'sedangBerlangsung',
+            'menungguPengecekan',
             'selesai',
             'items'
         ));
@@ -94,7 +98,7 @@ class PerawatanController extends Controller
     public function update(Request $request, Perawatan $perawatan)
     {
         $validated = $request->validate([
-            'status' => 'required|in:menunggu,proses,selesai',
+            'status' => 'required|in:menunggu,proses,menunggu_pengecekan,selesai',
             'jenis_perawatan' => 'nullable|string|max:255',
             'catatan' => 'nullable|string',
             'tanggal_selesai' => 'nullable|date',
@@ -118,14 +122,24 @@ class PerawatanController extends Controller
                     // Fallback to tersedia if item_status is somehow missing
                     $itemUpdateData['status'] = 'tersedia';
                 }
-                
+
                 if (isset($validated['item_condition'])) {
                     $itemUpdateData['condition'] = $validated['item_condition'];
                 }
-                
+
                 if (!empty($itemUpdateData)) {
                     $item->update($itemUpdateData);
                 }
+
+                // Catat pergerakan barang masuk setelah maintenance selesai
+                ItemMovement::create([
+                    'item_id' => $item->id,
+                    'user_id' => Auth::id(),
+                    'type' => 'masuk',
+                    'quantity' => 1,
+                    'notes' => "Selesai perawatan: {$perawatan->jenis_perawatan}",
+                    'movement_date' => now(),
+                ]);
             }
         }
 
@@ -134,6 +148,16 @@ class PerawatanController extends Controller
             $item = $perawatan->item;
             if ($item) {
                 $item->update(['status' => 'maintenance']);
+
+                // Catat pergerakan barang untuk maintenance
+                ItemMovement::create([
+                    'item_id' => $item->id,
+                    'user_id' => Auth::id(),
+                    'type' => 'maintenance',
+                    'quantity' => 1,
+                    'notes' => "Perawatan: {$perawatan->jenis_perawatan}",
+                    'movement_date' => now(),
+                ]);
             }
         }
 
@@ -202,6 +226,7 @@ class PerawatanController extends Controller
 
         $request->validate([
             'teknisi_nama' => 'required|string|max:255',
+            'teknisi_telepon' => 'nullable|string|max:20',
             'biaya' => 'nullable|numeric',
             'foto_bukti' => 'required|image|max:5120',
         ]);
@@ -211,7 +236,22 @@ class PerawatanController extends Controller
             $fotoPath = $request->file('foto_bukti')->store('maintenance_proofs', 'public');
         }
 
+        // Cari atau buat teknisi external
+        $teknisi = TeknisiExternal::where('nama', $request->teknisi_nama)->first();
+        if (!$teknisi) {
+            $teknisi = TeknisiExternal::create([
+                'nama' => $request->teknisi_nama,
+                'telepon' => $request->teknisi_telepon,
+            ]);
+        } else {
+            // Update telepon jika ada perubahan
+            if ($request->teknisi_telepon) {
+                $teknisi->update(['telepon' => $request->teknisi_telepon]);
+            }
+        }
+
         $perawatan->update([
+            'teknisi_external_id' => $teknisi->id,
             'teknisi_nama' => $request->teknisi_nama,
             'biaya' => $request->biaya,
             'foto_bukti' => $fotoPath,

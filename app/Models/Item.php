@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
+    use \App\Traits\LogsActivity;
+
+    protected string $logModelName = 'Barang';
+
     protected $fillable = [
         'name',
         'code',

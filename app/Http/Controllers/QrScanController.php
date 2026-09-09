@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Peminjaman;
 use App\Models\ScanSession;
+use App\Models\ItemMovement;
+use App\Models\Jurusan;
 use Illuminate\Http\Request;
 
 class QrScanController extends Controller
@@ -104,16 +106,36 @@ class QrScanController extends Controller
             ], 422);
         }
 
+        // Cari jurusan_id berdasarkan nama kelas
+        $jurusanId = null;
+        if (!empty($validated['kelas'])) {
+            $jurusan = Jurusan::where('name', 'like', '%' . $validated['kelas'] . '%')->first();
+            if ($jurusan) {
+                $jurusanId = $jurusan->id;
+            }
+        }
+
         // Simpan peminjaman
         $peminjaman = Peminjaman::create([
             'nama_peminjam' => $validated['nama_peminjam'],
             'kelas' => $validated['kelas'],
+            'jurusan_id' => $jurusanId,
             'item_id' => $validated['item_id'],
             'item_code' => $validated['item_code'],
             'session_token' => $token,
             'waktu_pinjam' => now(),
             'status' => 'dipinjam',
             'catatan' => $validated['catatan'] ?? null,
+        ]);
+
+        // Catat pergerakan barang keluar
+        ItemMovement::create([
+            'item_id' => $item->id,
+            'user_id' => null, // QR scan tidak memiliki user auth
+            'type' => 'keluar',
+            'quantity' => 1,
+            'notes' => "Peminjaman QR oleh {$validated['nama_peminjam']} ({$validated['kelas']})",
+            'movement_date' => now(),
         ]);
 
         // Update stok barang

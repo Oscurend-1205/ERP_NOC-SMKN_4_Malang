@@ -19,12 +19,12 @@
 <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-purpose="table-container">
 <!-- Table Toolbar -->
 <div class="p-4 border-b border-slate-100 flex items-center justify-between" data-purpose="table-toolbar">
-<div class="relative w-72">
+<form method="GET" action="{{ route('jurusan.index') }}" class="relative w-72">
 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
 <i class="w-4 h-4" data-lucide="search"></i>
 </span>
-<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kode atau nama jurusan..." type="text"/>
-</div>
+<input name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari kode atau nama jurusan..." type="text"/>
+</form>
 
 </div>
 <!-- The Table -->

@@ -16,6 +16,10 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+    use \App\Traits\LogsActivity;
+
+    protected string $logModelName = 'Pengguna';
+    protected array $excludedLogFields = ['password', 'remember_token', 'created_at', 'updated_at', 'email_verified_at'];
 
     /**
      * Cek apakah user adalah Superadmin.

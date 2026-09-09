@@ -1,91 +1,86 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Barang Keluar - ERP NOC</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #F1F5F9; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
-    </style>
-    <style>
-        html { zoom: 0.9; }
-        .min-h-screen { min-height: calc(100vh / 0.9) !important; }
-        .h-screen { height: calc(100vh / 0.9) !important; }
-        table thead { background-color: #e5e7eb !important; border-bottom: 1px solid #d1d5db !important; }
-        table thead th { color: #1f2937 !important; font-size: 0.75rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; padding: 0.75rem 1rem !important; }
-        table tbody td { padding: 0.5rem 1rem !important; }
-    </style>
-</head>
-<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+@extends('layouts.app')
 
-    @include('partials.sidebar')
+@section('title', 'Barang Keluar')
 
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto">
-        @include('partials.topbar')
+@section('content')
+<div class="space-y-6">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 border border-red-200">
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span class="font-medium text-sm">{{ session('error') }}</span>
+        </div>
+    @endif
 
-        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+    {{-- Header Utama --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-700"></div>
 
-            {{-- Header --}}
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Data Barang Keluar</h2>
-                    <p class="text-sm text-gray-500 mt-1">Riwayat peminjaman & pengeluaran barang aset NOC</p>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-100 text-orange-700 text-[11px] font-mono font-semibold uppercase tracking-wider mb-2">
+                    <span>MANAJEMEN INVENTARIS</span>
+                    <span class="w-1 h-1 rounded-full bg-orange-400"></span>
+                    <span>BARANG KELUAR</span>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <a href="{{ route('items.index') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm border border-gray-200">
-                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                        Kembali
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Pencatatan Barang Keluar</h2>
+                <p class="text-xs md:text-sm text-gray-500 mt-1">Catat barang yang keluar dari inventaris laboratorium NOC SMKN 4 Malang.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a href="{{ route('items.index') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-xs border border-gray-200">
+                    <span class="material-symbols-outlined text-[18px] text-gray-600">arrow_back</span>
+                    <span>Kembali ke Katalog</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Data Barang Keluar</h2>
+            <p class="text-sm text-gray-500 mt-1">Riwayat peminjaman & pengeluaran barang aset NOC</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('items.index') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm border border-gray-200">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                Kembali
+            </a>
+            {{-- Export Dropdown --}}
+            <div class="relative">
+                <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all shadow-sm active:scale-95 text-sm">
+                    <span class="material-symbols-outlined text-[18px]">download</span>
+                    Export
+                </button>
+                <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                    <a href="{{ route('export.barang-keluar.csv') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <span class="material-symbols-outlined text-[18px] text-green-600">table_chart</span>
+                        Excel (CSV)
                     </a>
-                    {{-- Export Dropdown --}}
-                    <div class="relative">
-                        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all shadow-sm active:scale-95 text-sm">
-                            <span class="material-symbols-outlined text-[18px]">download</span>
-                            Export
-                        </button>
-                        <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                            <a href="{{ route('export.barang-keluar.csv') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <span class="material-symbols-outlined text-[18px] text-green-600">table_chart</span>
-                                Excel (CSV)
-                            </a>
-                            <a href="{{ route('export.barang-keluar.print') }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
-                                PDF (Cetak)
-                            </a>
-                        </div>
-                    </div>
-                    <a href="{{ route('qr.admin') }}" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Catat Peminjaman
+                    <a href="{{ route('export.barang-keluar.print') }}" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
+                        PDF (Cetak)
                     </a>
                 </div>
             </div>
+            <a href="{{ route('qr.admin') }}" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                Catat Peminjaman
+            </a>
+        </div>
+    </div>
 
-            {{-- Alert Messages --}}
-            @if(session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-green-500">check_circle</span>
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-red-500">error</span>
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            {{-- Filter Bar --}}
-            <form method="GET" action="{{ route('items.barang-keluar') }}" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-3">
-                <div class="relative">
-                    <select name="date_range" onchange="this.form.submit()" class="appearance-none pl-4 pr-9 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer bg-white text-gray-700">
-                        <option value="">Rentang Tanggal</option>
+    {{-- Filter Bar --}}
+    <form method="GET" action="{{ route('items.barang-keluar') }}" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-3">
+        <div class="relative">
+            <select name="date_range" onchange="this.form.submit()" class="appearance-none pl-4 pr-9 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer bg-white text-gray-700">
+                <option value="">Rentang Tanggal</option>
                         <option value="today" {{ request('date_range') === 'today' ? 'selected' : '' }}>Hari Ini</option>
                         <option value="week" {{ request('date_range') === 'week' ? 'selected' : '' }}>Minggu Ini</option>
                         <option value="month" {{ request('date_range') === 'month' ? 'selected' : '' }}>Bulan Ini</option>
@@ -204,10 +199,10 @@
                     </div>
                 @endif
             </div>
+</div>
+@endsection
 
-        </div>
-    </main>
-
+@push('scripts')
     <script>
         // Close export dropdown when clicking outside
         document.addEventListener('click', function(e) {
@@ -217,8 +212,5 @@
             }
         });
     </script>
+@endpush
 
-    @vite(['resources/js/turbo-navigation.js'])
-    @include('components.accessibility-button')
-</body>
-</html>

@@ -371,76 +371,61 @@
             const navContainer = sidebar.querySelector('#sidebar-nav-container');
             if (!navContainer) return;
 
-            // Get all nav links (not the sub-menu links or buttons)
-            const mainLinks = navContainer.querySelectorAll(':scope > a');
-            const subLinks = document.querySelectorAll('#sub-data-master a');
-
-            // Clear all active states on main links
-            mainLinks.forEach(link => {
-                link.classList.remove('bg-[#3A3D5C]', 'font-medium');
-                link.classList.add('text-gray-400', 'hover:bg-white/5', 'hover:text-white');
-                link.classList.remove('text-white');
-            });
-
-            // Clear active states on sub-menu links
-            subLinks.forEach(link => {
-                link.classList.remove('text-white', 'font-bold');
-                link.classList.add('text-gray-400');
-            });
-
-            // Reset Data Master button
+            // Get all main nav links and sub-menu links
+            const allSidebarLinks = sidebar.querySelectorAll('a.sidebar-menu-item, .sidebar-sub-item');
             const btnDataMaster = document.getElementById('btn-data-master');
+
+            // Clear ALL active states (use the CSS class, not Tailwind utilities)
+            allSidebarLinks.forEach(link => {
+                link.classList.remove('active');
+            });
             if (btnDataMaster) {
-                btnDataMaster.classList.remove('text-white', 'font-medium');
-                btnDataMaster.classList.add('text-gray-400');
+                btnDataMaster.classList.remove('active');
             }
 
-            // Set new active state
+            // Set new active state based on current URL
             let foundInSubMenu = false;
 
             // Check sub-menu items first
+            const subLinks = sidebar.querySelectorAll('.sidebar-sub-item');
             subLinks.forEach(link => {
                 const linkPath = new URL(link.href, window.location.origin).pathname;
-                if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
-                    link.classList.remove('text-gray-400');
-                    link.classList.add('text-white', 'font-bold');
+                if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath + '/'))) {
+                    link.classList.add('active');
                     foundInSubMenu = true;
                 }
             });
 
-            // If found in sub-menu, expand Data Master dropdown
+            // If found in sub-menu, expand Data Master dropdown and mark its button active
+            const subMenu = document.getElementById('sub-data-master');
+            const iconDataMaster = document.getElementById('icon-data-master');
             if (foundInSubMenu) {
-                const subMenu = document.getElementById('sub-data-master');
-                const icon = document.getElementById('icon-data-master');
                 if (subMenu) {
                     subMenu.classList.remove('hidden');
                     subMenu.classList.add('flex');
                 }
-                if (icon) icon.style.transform = 'rotate(180deg)';
-                if (btnDataMaster) {
-                    btnDataMaster.classList.remove('text-gray-400');
-                    btnDataMaster.classList.add('text-white', 'font-medium');
-                }
+                if (iconDataMaster) iconDataMaster.style.transform = 'rotate(90deg)';
+                if (btnDataMaster) btnDataMaster.classList.add('active');
             } else {
                 // Close data master dropdown if not in sub-menu
-                const subMenu = document.getElementById('sub-data-master');
-                const icon = document.getElementById('icon-data-master');
                 if (subMenu && !subMenu.classList.contains('hidden')) {
                     subMenu.classList.add('hidden');
                     subMenu.classList.remove('flex');
                 }
-                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (iconDataMaster) iconDataMaster.style.transform = 'rotate(0deg)';
             }
 
-            // Check main links
+            // Check main nav links (direct <a> children of nav and footer)
+            const mainLinks = sidebar.querySelectorAll('a.sidebar-menu-item');
             mainLinks.forEach(link => {
                 const linkPath = new URL(link.href, window.location.origin).pathname;
-                const isActive = (currentPath === linkPath) || 
-                    (linkPath !== '/' && currentPath.startsWith(linkPath));
-                
+                // Exact match for root, prefix match for others
+                const isActive = linkPath === '/'
+                    ? currentPath === '/'
+                    : (currentPath === linkPath || currentPath.startsWith(linkPath + '/'));
+
                 if (isActive) {
-                    link.classList.remove('text-gray-400', 'hover:bg-white/5', 'hover:text-white');
-                    link.classList.add('bg-[#3A3D5C]', 'text-white', 'font-medium');
+                    link.classList.add('active');
                 }
             });
         }

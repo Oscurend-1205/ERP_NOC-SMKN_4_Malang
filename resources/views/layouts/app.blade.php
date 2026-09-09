@@ -24,7 +24,7 @@
     {{-- QRCode.js (Global - loaded once for PJAX compatibility) --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRec0enTMOyNq/tv309Zv4s2l3uO21GfBnjzgtfA0ZlS0QO+YvA4n27I4/sM7nQx9NfS42XQ8U7zB1qjD7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    {{-- Tailwind CSS CDN (Disable Preflight to prevent breaking native styles) --}}
+    {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -56,27 +56,21 @@
             --accent: #1a1a2e;
             --accent-light: #16213e;
 
-            /* Neutral */
+            /* Neutral (Light Mode) */
             --bg-body: #f0f2f5;
             --bg-card: #ffffff;
             --bg-sidebar: #ffffff;
             --bg-sidebar-hover: #f1f5f9;
             --bg-sidebar-active: #e2e8f0;
 
-            /* Text */
+            /* Text (Light Mode) */
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
             --text-sidebar: #64748b;
             --text-sidebar-active: #005bbf;
 
-            /* Status Colors */
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #3b82f6;
-
-            /* Borders & Shadows */
+            /* Borders & Shadows (Light Mode) */
             --border-color: #e2e8f0;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
@@ -93,6 +87,105 @@
 
             /* Transitions */
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dark Mode Variables */
+        html.dark {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-sidebar: #1e293b;
+            --bg-sidebar-hover: #334155;
+            --bg-sidebar-active: #3b82f6/15;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-sidebar: #94a3b8;
+            --text-sidebar-active: #60a5fa;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.5);
+        }
+
+        /* Dark Mode Component Overrides */
+        html.dark header[data-purpose="top-header"] {
+            background: rgba(30, 41, 59, 0.95);
+            border-bottom-color: #334155;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        html.dark .topbar-icon-btn {
+            color: #94a3b8;
+        }
+        html.dark .topbar-icon-btn:hover {
+            color: #60a5fa;
+            background: #334155;
+        }
+        html.dark .search-input input,
+        html.dark #headerSearch,
+        html.dark #headerSearchMobile {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        html.dark .search-input input::placeholder,
+        html.dark #headerSearch::placeholder,
+        html.dark #headerSearchMobile::placeholder {
+            color: #64748b;
+        }
+        html.dark #searchDropdown {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        html.dark #searchResults a {
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+        html.dark #searchResults a:hover {
+            background: #334155;
+        }
+        html.dark .breadcrumb-current {
+            color: #94a3b8;
+        }
+        html.dark .sidebar {
+            background: #1e293b;
+        }
+        html.dark .sidebar-menu-item {
+            color: #94a3b8;
+        }
+        html.dark .sidebar-sub-item {
+            color: #94a3b8;
+        }
+        html.dark .card,
+        html.dark .bg-white {
+            background: #1e293b !important;
+            border-color: #334155;
+        }
+        html.dark body {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        html.dark .bg-gray-50 {
+            background-color: #1e293b !important;
+        }
+        html.dark .text-gray-500 {
+            color: #64748b !important;
+        }
+        html.dark .text-gray-400 {
+            color: #475569 !important;
+        }
+        html.dark .border-gray-200 {
+            border-color: #334155 !important;
+        }
+        html.dark .border-gray-100 {
+            border-color: #334155 !important;
+        }
+        html.dark .bg-gray-100 {
+            background-color: #334155 !important;
+        }
+        html.dark .bg-white\/95 {
+            background-color: rgba(30, 41, 59, 0.95) !important;
         }
 
         * {
@@ -117,12 +210,39 @@
             background: #94A3B8;
         }
 
+        /* Dark Mode Scrollbar */
+        html.dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        html.dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        html.dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-body);
             color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        html.theme-transitioning,
+        html.theme-transitioning *,
+        html.theme-transitioning *::before,
+        html.theme-transitioning *::after {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+        }
+
+        /* Smooth theme transition for all elements */
+        html.theme-transitioning,
+        html.theme-transitioning *,
+        html.theme-transitioning *::before,
+        html.theme-transitioning *::after {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
         }
 
         /* ============================================
@@ -290,93 +410,8 @@
         }
 
         /* ============================================
-           TOPBAR
+           TOPBAR - REMOVED (using partials.topbar.blade.php with Tailwind)
            ============================================ */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: var(--sidebar-width);
-            right: 0;
-            height: var(--topbar-height);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            z-index: 999;
-            transition: var(--transition);
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .topbar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 22px;
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 6px;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-        }
-
-        .topbar-toggle:hover {
-            background: var(--bg-body);
-        }
-
-        .topbar-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .topbar-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 18px;
-            position: relative;
-        }
-
-        .topbar-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .topbar-btn .badge-dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background: var(--danger);
-            border-radius: 50%;
-            border: 2px solid var(--bg-card);
-        }
 
         /* ============================================
            MAIN CONTENT
@@ -860,12 +895,8 @@
                 display: block;
             }
 
-            .topbar {
+            header[data-purpose="top-header"] {
                 left: 0;
-            }
-
-            .topbar-toggle {
-                display: flex;
             }
 
             .main-content {
@@ -937,6 +968,21 @@
         .justify-between { justify-content: space-between; }
         .flex-wrap { flex-wrap: wrap; }
 
+        /* Responsive utilities for topbar */
+        @media (min-width: 768px) {
+            .md\:flex { display: flex !important; }
+            .md\:block { display: block !important; }
+            .md\:hidden { display: none !important; }
+            .md\:px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+            .md\:ml-64 { margin-left: 16rem !important; }
+        }
+        @media (min-width: 640px) {
+            .sm\:block { display: block !important; }
+        }
+        @media (max-width: 767px) {
+            .hidden { display: none !important; }
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -954,6 +1000,17 @@
         /* Fix viewport height when zoomed */
         .min-h-screen { min-height: calc(100vh / 0.9) !important; }
         .h-screen { height: calc(100vh / 0.9) !important; }
+
+        /* Consistent layout across pages */
+        main {
+            scrollbar-gutter: stable;
+        }
+        header[data-purpose="top-header"] {
+            min-height: 68px;
+            flex-shrink: 0;
+        }
+
+
         
         /* Consistent table header styling */
         table thead {
@@ -1015,8 +1072,8 @@
             backface-visibility: hidden;
         }
 
-        /* 4. Topbar: bersihkan kemungkinan sisa pixel di tepi */
-        .topbar,
+        /* 4. Header: bersihkan kemungkinan sisa pixel di tepi */
+        header[data-purpose="top-header"],
         [class*="backdrop-blur"] {
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
@@ -1033,11 +1090,21 @@
     </style>
 </head>
 <body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+    <!-- Theme Initialization -->
+    <script>
+        (function() {
+            const saved = document.cookie.replace(/(?:(?:^|.*;\s*)erp-noc-theme\s*\=\s*([^;]*).*$)|^.*$/, '$1');
+            if (saved === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.documentElement.style.colorScheme = 'dark';
+            }
+        })();
+    </script>
     {{-- Sidebar & Topbar Partials --}}
     @include('partials.sidebar')
 
     <!-- BEGIN: Main Content Area -->
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto transition-all duration-300 w-full min-w-0">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto transition-all duration-300 min-w-0 md:ml-64">
         @include('partials.topbar')
 
         <!-- BEGIN: Page Content -->
@@ -1088,6 +1155,7 @@
 
     {{-- Custom Alert System --}}
     <script src="{{ asset('js/custom-alert.js') }}"></script>
+
 
     {{-- Global Lucide icon initialization --}}
     <script>

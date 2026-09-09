@@ -8,9 +8,20 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()->paginate(10);
+        $query = User::with('jurusan')->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->paginate(10)->withQueryString();
         $totalUsers = User::count();
         $jurusans = \App\Models\Jurusan::where('is_active', true)->get();
         return view('data-master.dataUser', compact('users', 'totalUsers', 'jurusans'));
@@ -74,13 +85,14 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|max:255',
+            'email' => 'nullable|string|max:255',
+            'jurusan_id' => 'nullable|exists:jurusans,id',
             'role' => 'required|string|in:Superadmin,Admin,Jurusan,Siswa,Guru',
         ]);
 
         $validated['user_code'] = 'USR-' . (\App\Models\User::max('id') + 1);
         $validated['password'] = Hash::make('password123');
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->boolean('is_active');
 
         User::create($validated);
 
@@ -96,12 +108,13 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
-            'email' => 'required|string|max:255',
+            'email' => 'nullable|string|max:255',
+            'jurusan_id' => 'nullable|exists:jurusans,id',
             'role' => 'required|string|in:Superadmin,Admin,Jurusan,Siswa,Guru',
             'password' => 'nullable|string|min:6',
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->boolean('is_active');
 
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);

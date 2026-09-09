@@ -10,9 +10,20 @@ class LocationController extends Controller
     /**
      * Tampilkan semua lokasi.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $locations = Location::withCount('items')->paginate(10);
+        $query = Location::withCount('items');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('penanggung_jawab', 'like', "%{$search}%");
+            });
+        }
+
+        $locations = $query->paginate(10)->withQueryString();
         return view('data-master.dataRuangan', compact('locations'));
     }
 

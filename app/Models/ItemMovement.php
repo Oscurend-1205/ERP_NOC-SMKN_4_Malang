@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ItemMovement extends Model
 {
+    use \App\Traits\LogsActivity;
+
+    protected string $logModelName = 'Pergerakan Barang';
     protected $fillable = [
         'item_id',
         'user_id',

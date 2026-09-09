@@ -1,66 +1,9 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Scan & Tambah Barang - ERP NOC</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-        #reader video { object-fit: cover !important; transform: scaleX(1) !important; -webkit-transform: scaleX(1) !important; }
-    </style>
-    <style>
-        html { zoom: 0.9; }
-        /* Fix viewport height when zoomed */
-        .min-h-screen { min-height: calc(100vh / 0.9) !important; }
-        .h-screen { height: calc(100vh / 0.9) !important; }
-        
-        /* Consistent table header styling */
-        table thead {
-            background-color: #e5e7eb !important;
-            border-bottom: 1px solid #d1d5db !important;
-        }
-        table thead th {
-            color: #1f2937 !important;
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
-            padding: 0.75rem 1rem !important;
-        }
-        /* Elegant minimalist table cells */
-        table tbody td {
-            padding: 0.5rem 1rem !important;
-        }
-    </style>
-</head>
-<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+@extends('layouts.app')
 
-    @include('partials.sidebar')
+@section('title', 'Scan & Tambah Barang')
 
-    <!-- BEGIN: Main Content Area -->
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto">
-        @include('partials.topbar')
-
-        <!-- BEGIN: Page Content -->
-        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
+@section('content')
+<div class="space-y-6">
             
             {{-- Header --}}
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -273,7 +216,8 @@
         } catch(e) {}
     }
     </script>
-    @vite(['resources/js/turbo-navigation.js'])
-    @include('components.accessibility-button')
-</body>
-</html>
+@endsection
+
+@push('scripts')
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+@endpush

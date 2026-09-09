@@ -13,4 +13,9 @@ class Jurusan extends Model
         'description',
         'is_active',
     ];
+
+    public function getNamaJurusanAttribute(): string
+    {
+        return $this->name ?? '';
+    }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Peminjaman;
+use App\Models\ItemMovement;
+use App\Models\Jurusan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,14 +27,17 @@ class PeminjamanController extends Controller
         }
 
         if (auth()->user()->isJurusan()) {
-            $jurusanName = auth()->user()->jurusan->name ?? '';
-            $query->where('kelas', $jurusanName);
+            $jurusanCode = auth()->user()->jurusan->kode_jurusan ?? auth()->user()->jurusan->name ?? '';
+            if ($jurusanCode) {
+                $query->where('kelas', 'like', '%' . $jurusanCode . '%');
+            }
         }
 
-        $peminjamans = $query->orderBy('waktu_pinjam', 'desc')->paginate(15);
+        $peminjamans = $query->orderBy('waktu_pinjam', 'desc')->paginate(15)->withQueryString();
         $totalDipinjam = Peminjaman::where('status', 'dipinjam')->count();
+        $jurusans = Jurusan::all();
 
-        return view('data-pengguna.dataPeminjam', compact('peminjamans', 'totalDipinjam'));
+        return view('data-pengguna.dataPeminjam', compact('peminjamans', 'totalDipinjam', 'jurusans'));
     }
 
     public function destroy(Peminjaman $peminjaman)
@@ -83,6 +88,16 @@ class PeminjamanController extends Controller
                 if ($kondisi) {
                     $item->update(['condition' => $kondisi]);
                 }
+
+                // Catat pergerakan barang masuk
+                ItemMovement::create([
+                    'item_id' => $item->id,
+                    'user_id' => auth()->id(),
+                    'type' => 'masuk',
+                    'quantity' => 1,
+                    'notes' => "Pengembalian barang oleh {$peminjaman->nama_peminjam} ({$peminjaman->kelas})" . ($kondisi ? " - Kondisi: {$kondisi}" : ""),
+                    'movement_date' => now(),
+                ]);
             }
 
             return redirect()->back()->with('success', 'Barang berhasil dikembalikan.');
@@ -94,8 +109,9 @@ class PeminjamanController extends Controller
     public function storeManual(Request $request)
     {
         $validated = $request->validate([
-            'borrower_name' => 'required|string|max:255|exists:users,name',
-            'kelas' => 'required|string|max:255|exists:jurusans,name',
+            'borrower_name' => 'required|string|max:255',
+            'kelas' => 'required|string|max:255',
+            'jurusan_id' => 'nullable|exists:jurusans,id',
             'borrower_phone' => 'nullable|string|max:20',
             'item_id' => 'required|exists:items,id',
             'item_code' => 'required|string|max:255|exists:items,code',
@@ -109,16 +125,36 @@ class PeminjamanController extends Controller
 
         $catatan = "HP: " . ($validated['borrower_phone'] ?? '-');
 
+        // Cari jurusan_id berdasarkan nama kelas jika tidak disediakan
+        $jurusanId = $validated['jurusan_id'] ?? null;
+        if (!$jurusanId && !empty($validated['kelas'])) {
+            $jurusan = Jurusan::where('name', 'like', '%' . $validated['kelas'] . '%')->first();
+            if ($jurusan) {
+                $jurusanId = $jurusan->id;
+            }
+        }
+
         // Peminjaman diinputkan satu persatu
-        Peminjaman::create([
+        $peminjaman = Peminjaman::create([
             'nama_peminjam' => $validated['borrower_name'],
             'kelas' => $validated['kelas'],
+            'jurusan_id' => $jurusanId,
             'item_id' => $validated['item_id'],
-            'item_code' => $validated['item_code'], // Menggunakan ID Barang spesifik
-            'session_token' => 'MANUAL-' . \Illuminate\Support\Str::random(10), // Fix constraint violation
+            'item_code' => $validated['item_code'],
+            'session_token' => 'MANUAL-' . \Illuminate\Support\Str::random(10),
             'waktu_pinjam' => $validated['movement_date'] . ' ' . now()->format('H:i:s'),
             'status' => 'dipinjam',
             'catatan' => $catatan,
+        ]);
+
+        // Catat pergerakan barang keluar
+        ItemMovement::create([
+            'item_id' => $item->id,
+            'user_id' => auth()->id(),
+            'type' => 'keluar',
+            'quantity' => 1,
+            'notes' => "Peminjaman manual oleh {$validated['borrower_name']} ({$validated['kelas']})",
+            'movement_date' => $validated['movement_date'],
         ]);
 
         // Update item quantity

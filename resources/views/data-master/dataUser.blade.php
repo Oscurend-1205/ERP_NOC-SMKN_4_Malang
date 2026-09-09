@@ -20,12 +20,12 @@
 <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-purpose="table-container">
 <!-- Table Toolbar -->
 <div class="p-4 border-b border-slate-100 flex items-center justify-between" data-purpose="table-toolbar">
-<div class="relative w-72">
+<form action="{{ route('users.index') }}" method="GET" class="relative w-72">
 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
 <i class="w-4 h-4" data-lucide="search"></i>
 </span>
-<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari username atau nama..." type="text"/>
-</div>
+<input name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari username atau nama..." type="text"/>
+</form>
 
 </div>
 <!-- The Table -->
@@ -36,7 +36,7 @@
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">No</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Lengkap</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">NISN/NUPTK</th>
-<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelas</th>
+<th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Jabatan</th>
 <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
 @if(auth()->user()->role === 'Superadmin')
@@ -64,7 +64,12 @@
 </td>
 <td class="px-6 py-4 text-sm text-slate-600">{{ $user->username ?? '-' }}</td>
 <td class="px-6 py-4 text-sm text-slate-600">{{ $user->email ?? '-' }}</td>
-<td class="px-6 py-4 text-sm font-medium text-blue-700">{{ $user->role }}</td>
+<td class="px-6 py-4 text-sm font-medium text-blue-700">
+    {{ $user->role }}
+    @if($user->jurusan)
+        <span class="block text-[11px] text-gray-500 font-normal">({{ $user->jurusan->kode_jurusan }})</span>
+    @endif
+</td>
 <td class="px-6 py-4">
 @if($user->is_active)
 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
@@ -82,7 +87,7 @@
 <td class="px-6 py-4 text-center">
 <div class="flex justify-center space-x-3">
 @if(!in_array($user->username, ['superadmin', 'admin']))
-<button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? 1 : 0 }})" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
+<button onclick="openEditUserModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->username ?? '') }}', '{{ addslashes($user->email ?? '') }}', '{{ $user->role }}', {{ $user->is_active ? 1 : 0 }}, '{{ $user->jurusan_id ?? '' }}')" class="text-slate-500 hover:text-slate-700"><i class="w-4 h-4" data-lucide="pencil"></i></button>
 <form action="{{ route('users.destroy', $user->id) }}" method="POST" data-confirm="Yakin ingin menghapus user ini?" data-ajax-delete="true" class="inline">
     @csrf
     @method('DELETE')
@@ -115,12 +120,14 @@
 
 @push('scripts')
 <script>
-    function openEditUserModal(id, name, username, email, role, isActive) {
+    function openEditUserModal(id, name, username, email, role, isActive, jurusanId) {
         document.getElementById('editUserForm').action = `/data-pengguna/${id}`;
         document.getElementById('edit_user_name').value = name;
         document.getElementById('edit_user_username').value = username;
         document.getElementById('edit_user_email').value = email;
         document.getElementById('edit_user_role').value = role;
+        const jurusanSelect = document.getElementById('edit_user_jurusan_id');
+        if (jurusanSelect) jurusanSelect.value = jurusanId || '';
         document.getElementById('edit_user_is_active').checked = (isActive == 1);
         document.getElementById('editUserModal').classList.remove('hidden');
     }
@@ -156,24 +163,30 @@
 
                 <!-- NISN/NUPTK -->
                 <div class="space-y-1.5">
-                    <label class="block text-sm font-bold text-slate-700">NISN/NUPTK</label>
-                    <input type="text" name="username" required placeholder="Masukkan NISN atau NUPTK" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                    <label class="block text-sm font-bold text-slate-700">NISN/NUPTK/Username</label>
+                    <input type="text" name="username" required placeholder="Masukkan NISN, NUPTK, atau username" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
                 </div>
 
-                <!-- Kelas -->
+                <!-- Email -->
                 <div class="space-y-1.5">
-                    <label class="block text-sm font-bold text-slate-700">Kelas / Jurusan</label>
-                    <select name="email" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
-                        <option value="" disabled selected hidden>Pilih Kelas / Jurusan</option>
+                    <label class="block text-sm font-bold text-slate-700">Email (Opsional)</label>
+                    <input type="email" name="email" placeholder="user@smkn4malang.sch.id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- Jurusan -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Jurusan (Jika Role Jurusan)</label>
+                    <select name="jurusan_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="">Pilih Jurusan</option>
                         @foreach($jurusans as $jurusan)
-                            <option value="{{ $jurusan->kode_jurusan }}">{{ $jurusan->kode_jurusan }} - {{ $jurusan->name }}</option>
+                            <option value="{{ $jurusan->id }}">{{ $jurusan->kode_jurusan }} - {{ $jurusan->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Jabatan -->
                 <div class="space-y-1.5">
-                    <label class="block text-sm font-bold text-slate-700">Jabatan</label>
+                    <label class="block text-sm font-bold text-slate-700">Jabatan / Role</label>
                     <select name="role" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
                         <option value="" disabled selected hidden>Pilih Jabatan</option>
                         <option value="Superadmin">Superadmin</option>
@@ -191,7 +204,97 @@
                         <span class="text-xs text-slate-500">Tentukan apakah user ini aktif dan dapat login.</span>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                        <input type="checkbox" name="is_active" class="sr-only peer" checked value="1">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 mt-auto">
+                <button type="button" onclick="document.getElementById('addUserModal').classList.add('hidden')" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Simpan User
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit User -->
+<div id="editUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="document.getElementById('editUserModal').classList.add('hidden')"></div>
+    
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-[450px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] font-sans">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Edit User</h2>
+            <button type="button" onclick="document.getElementById('editUserModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Form Body -->
+        <form id="editUserForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+            @csrf
+            @method('PUT')
+            <div class="px-6 py-5 space-y-4 overflow-y-auto">
+                
+                <!-- Nama Lengkap -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Nama Lengkap</label>
+                    <input type="text" id="edit_user_name" name="name" required placeholder="Masukkan nama lengkap" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- NISN/NUPTK -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">NISN/NUPTK/Username</label>
+                    <input type="text" id="edit_user_username" name="username" required placeholder="Masukkan NISN, NUPTK, atau username" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Email (Opsional)</label>
+                    <input type="email" id="edit_user_email" name="email" placeholder="user@smkn4malang.sch.id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400">
+                </div>
+
+                <!-- Jurusan -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Jurusan (Jika Role Jurusan)</label>
+                    <select id="edit_user_jurusan_id" name="jurusan_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="">Pilih Jurusan</option>
+                        @foreach($jurusans as $jurusan)
+                            <option value="{{ $jurusan->id }}">{{ $jurusan->kode_jurusan }} - {{ $jurusan->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Jabatan -->
+                <div class="space-y-1.5">
+                    <label class="block text-sm font-bold text-slate-700">Jabatan / Role</label>
+                    <select id="edit_user_role" name="role" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white">
+                        <option value="" disabled selected hidden>Pilih Jabatan</option>
+                        <option value="Superadmin">Superadmin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Jurusan">Jurusan</option>
+                        <option value="Siswa">Siswa</option>
+                        <option value="Guru">Guru</option>
+                    </select>
+                </div>
+
+                <!-- Status Aktif -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah user ini aktif dan dapat login.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="edit_user_is_active" name="is_active" class="sr-only peer" value="1">
                         <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>

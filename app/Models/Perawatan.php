@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Perawatan extends Model
 {
     use HasFactory;
+    use \App\Traits\LogsActivity;
+
+    protected string $logModelName = 'Perawatan';
 
     protected $fillable = [
         'item_id',
         'user_id',
+        'teknisi_external_id',
         'jenis_perawatan',
         'tanggal_pengajuan',
         'tanggal_selesai',
@@ -36,6 +40,11 @@ class Perawatan extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function teknisiExternal()
+    {
+        return $this->belongsTo(TeknisiExternal::class);
     }
 
     public function getStatusLabelAttribute(): string

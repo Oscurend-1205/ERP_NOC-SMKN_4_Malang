@@ -3,7 +3,7 @@
 <div id="sidebarBackdrop" class="fixed inset-0 bg-gray-900/50 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
 <!-- BEGIN: Sidebar -->
-<aside id="mainSidebar" class="fixed inset-y-0 left-0 md:sticky md:top-0 h-full md:h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#1A1E35] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">
+<aside id="mainSidebar" class="fixed inset-y-0 left-0 h-screen transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#1A1E35] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">
 <style>
     /* Custom Scrollbar for Sidebar */
     #sidebar-nav-container {
@@ -160,13 +160,13 @@
         <span>Data Peminjaman</span>
     </a>
 
-    <!-- 6. Data Pengembalian -->
-    {{-- <a class="sidebar-menu-item" href="#">
+    <!-- 6. Pengadaan Alat -->
+    <a class="sidebar-menu-item {{ request()->routeIs('procurements.*') ? 'active' : '' }}" href="{{ route('procurements.index') }}">
         <div class="menu-icon">
-            <span class="material-symbols-outlined">download</span>
+            <span class="material-symbols-outlined">shopping_cart</span>
         </div>
-        <span>Data Pengembalian</span>
-    </a> --}}
+        <span>Pengadaan Alat</span>
+    </a>
 
     <!-- 7. Data Perawatan -->
     @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
@@ -177,7 +177,15 @@
         <span>Data Perawatan</span>
     </a>
 
-    <!-- 8. Laporan -->
+    <!-- 8. Stok Opname -->
+    <a class="sidebar-menu-item {{ request()->routeIs('stock-take.*') ? 'active' : '' }}" href="{{ route('stock-take.index') }}">
+        <div class="menu-icon">
+            <span class="material-symbols-outlined">fact_check</span>
+        </div>
+        <span>Stok Opname</span>
+    </a>
+
+    <!-- 9. Laporan -->
     <a class="sidebar-menu-item {{ request()->routeIs('laporan.*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
         <div class="menu-icon">
             <span class="material-symbols-outlined">description</span>
@@ -186,10 +194,28 @@
     </a>
     @endif
 
+    <!-- 10. Panduan Sistem (Semua Role) -->
+    <a class="sidebar-menu-item {{ request()->routeIs('guide.*') ? 'active' : '' }}" href="{{ route('guide.index') }}">
+        <div class="menu-icon">
+            <span class="material-symbols-outlined">menu_book</span>
+        </div>
+        <span>Panduan Sistem</span>
+    </a>
+
 </nav>
 
 <!-- Footer: Setting + Keluar -->
 <div class="mt-auto px-3 pb-3 pt-2 border-t border-white/10 flex-shrink-0 space-y-0.5">
+    <!-- Audit Trail (Superadmin Only) -->
+    @if(Auth::user()->role === 'Superadmin')
+    <a class="sidebar-menu-item {{ request()->routeIs('activity-log.*') ? 'active' : '' }}" href="{{ route('activity-log.index') }}">
+        <div class="menu-icon">
+            <span class="material-symbols-outlined">history</span>
+        </div>
+        <span>Audit Trail</span>
+    </a>
+    @endif
+
     <!-- Setting (Superadmin Only) -->
     @if(Auth::user()->role === 'Superadmin')
     <a class="sidebar-menu-item {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
@@ -262,4 +288,5 @@
 
     document.addEventListener('DOMContentLoaded', initSidebar);
     document.addEventListener('turbo:load', initSidebar);
+    document.addEventListener('pjax:complete', initSidebar);
 </script>

@@ -1,95 +1,52 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Barang Masuk - ERP NOC</title>
-    <!-- Tailwind CSS CDN with plugins -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style data-purpose="typography">
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F8FAFC;
-        }
-    </style>
-    <style>
-        html { zoom: 0.9; }
-        /* Fix viewport height when zoomed */
-        .min-h-screen { min-height: calc(100vh / 0.9) !important; }
-        .h-screen { height: calc(100vh / 0.9) !important; }
-        
-        /* Consistent table header styling */
-        table thead {
-            background-color: #e5e7eb !important;
-            border-bottom: 1px solid #d1d5db !important;
-        }
-        table thead th {
-            color: #1f2937 !important;
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
-            padding: 0.75rem 1rem !important;
-        }
-        /* Elegant minimalist table cells */
-        table tbody td {
-            padding: 0.5rem 1rem !important;
-        }
-    </style>
-</head>
-<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+@extends('layouts.app')
 
-    @include('partials.sidebar')
+@section('title', 'Barang Masuk')
 
-    <!-- BEGIN: Main Content Area -->
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto">
-        @include('partials.topbar')
+@section('content')
+<div class="space-y-6">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 border border-red-200">
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span class="font-medium text-sm">{{ session('error') }}</span>
+        </div>
+    @endif
 
-        <!-- BEGIN: Main Page Content -->
-        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6" data-purpose="main-layout">
-            {{-- Header --}}
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Data Barang Masuk</h2>
-                    <p class="text-sm text-gray-500 mt-1">Riwayat penerimaan barang masuk aset NOC</p>
+    {{-- Header Utama --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-green-600 via-emerald-500 to-green-700"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-green-50 border border-green-100 text-green-700 text-[11px] font-mono font-semibold uppercase tracking-wider mb-2">
+                    <span>MANAJEMEN INVENTARIS</span>
+                    <span class="w-1 h-1 rounded-full bg-green-400"></span>
+                    <span>BARANG MASUK</span>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <a href="{{ route('items.index') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm border border-gray-200">
-                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                        Kembali
-                    </a>
-                    
-                    <button onclick="toggleAddBarangMasukModal(true)" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Tambah Barang Masuk
-                    </button>
-                </div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Pencatatan Barang Masuk</h2>
+                <p class="text-xs md:text-sm text-gray-500 mt-1">Catat barang baru yang masuk ke inventaris laboratorium NOC SMKN 4 Malang.</p>
             </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a href="{{ route('items.index') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-xs border border-gray-200">
+                    <span class="material-symbols-outlined text-[18px] text-gray-600">arrow_back</span>
+                    <span>Kembali ke Katalog</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
-            {{-- Alert Messages --}}
-            @if(session('success'))
-                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-green-500">check_circle</span>
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-red-500">error</span>
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            
-            {{-- Alert Masa Tenggang --}}
-            @if(isset($masaTenggang) && $masaTenggang->count() > 0)
-                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm mb-6 flex-1">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mt-0.5">
-                            <span class="material-symbols-outlined text-amber-500 text-[20px]">warning</span>
+    {{-- Alert Masa Tenggang --}}
+    @if(isset($masaTenggang) && $masaTenggang->count() > 0)
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm mb-6 flex-1">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 mt-0.5">
+                    <span class="material-symbols-outlined text-amber-500 text-[20px]">warning</span>
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-bold text-amber-800">Peringatan: Masa Tenggang Peminjaman</h3>
@@ -229,12 +186,10 @@
                     </div>
                 @endif
             </div>
-        </div>
-        <!-- END: Main Page Content -->
-    </main>
-    <!-- END: Main Content Area -->
+</div>
+@endsection
 
-    <div id="pjax-page-modals">
+@push('modals')
         <!-- Modal Tambah Barang Masuk -->
     <div id="addBarangMasukModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAddBarangMasukModal(false)"></div>
@@ -712,9 +667,5 @@
             document.getElementById('formStep1BM').classList.remove('hidden');
         }
     </script>
-    </div> <!-- END PJAX PAGE MODALS -->
+@endpush
 
-    @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
-    @include('components.accessibility-button')
-</body>
-</html>

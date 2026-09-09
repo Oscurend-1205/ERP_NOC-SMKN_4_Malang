@@ -13,17 +13,37 @@
 @endpush
 
 @section('content')
-<!-- Page Title Area -->
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-        <h2 class="text-2xl font-bold text-gray-800">Data Perawatan Aset</h2>
-        <p class="text-sm text-gray-500 mt-1">Kelola riwayat perawatan dan pemeliharaan perangkat NOC.</p>
+<div class="space-y-6">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 border border-red-200">
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span class="font-medium text-sm">{{ session('error') }}</span>
+        </div>
+    @endif
+
+    {{-- Header Utama --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Data Perawatan Aset</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="document.getElementById('addPerawatanModal').classList.remove('hidden')" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#3F51B5] hover:bg-[#3949AB] text-white font-bold rounded-xl transition-all shadow-sm text-xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    <span>Ajukan Perawatan</span>
+                </button>
+            </div>
+        </div>
     </div>
-    <button onclick="document.getElementById('addPerawatanModal').classList.remove('hidden')" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-        <span class="material-symbols-outlined text-[18px]">add</span>
-        Ajukan Perawatan
-    </button>
-</div>
 
 <!-- BEGIN: Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

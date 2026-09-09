@@ -11,46 +11,128 @@ use Carbon\Carbon;
 class NocSeeder extends Seeder
 {
     /**
-     * Seed data lengkap ERP NOC SMKN 4 Malang.
-     * Logika:
-     *  - 1 row items = 1 unit fisik (quantity = 1)
-     *  - Kode barang: PREFIX-SUBPREFIX-NUMBER (atomic increment dari categories.last_code_number)
-     *  - condition (baik/rusak_ringan/rusak_berat/hilang) sinkron ke kondisi_barang_id
-     *  - status (tersedia/dipinjam/maintenance/dimusnahkan) konsisten dengan peminjaman
-     *  - User Guru/Siswa punya jurusan_id
+     * Bersihkan seluruh data lama dan ganti dengan data dummy ERP lengkap,
+     * realistis, dan mencakup seluruh modul (Master Data, Aset, Mutasi,
+     * Peminjaman, Perawatan, Stok Opname, Notifikasi, Audit Trail).
      */
     public function run(): void
     {
-        // Bersihkan data lama agar seeder bisa dijalankan berulang (idempotent)
-        // Urutan: child tables dulu, baru parent tables
-        DB::statement('DELETE FROM perawatans');
-        DB::statement('DELETE FROM peminjaman');
-        DB::statement('DELETE FROM item_movements');
-        DB::statement('DELETE FROM items');
-        DB::statement('DELETE FROM scan_sessions');
-        DB::statement("DELETE FROM users WHERE role NOT IN ('Superadmin', 'Admin')");
-        DB::statement('DELETE FROM suppliers');
-        DB::statement('DELETE FROM asal_barangs');
-        DB::statement('DELETE FROM kondisi_barangs');
-        DB::statement('DELETE FROM jurusans');
-        DB::statement('DELETE FROM locations');
-        DB::statement('DELETE FROM categories');
-
         $now = Carbon::now();
 
         // =========================================================================
-        // 1. MASTER DATA: Kategori (dengan prefix & last_code_number)
+        // 0. BERSIHKAN DATA LAMA SECARA BERSIH
+        // =========================================================================
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        DB::table('activity_logs')->truncate();
+        DB::table('notifications')->truncate();
+        DB::table('stock_take_items')->truncate();
+        DB::table('stock_takes')->truncate();
+        DB::table('perawatans')->truncate();
+        DB::table('peminjaman')->truncate();
+        DB::table('item_movements')->truncate();
+        DB::table('items')->truncate();
+        DB::table('scan_sessions')->truncate();
+        DB::table('users')->truncate();
+        DB::table('suppliers')->truncate();
+        DB::table('asal_barangs')->truncate();
+        DB::table('kondisi_barangs')->truncate();
+        DB::table('jurusans')->truncate();
+        DB::table('locations')->truncate();
+        DB::table('categories')->truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // =========================================================================
+        // 1. MASTER DATA: Jurusan
+        // =========================================================================
+        $jurusanDefs = [
+            ['kode_jurusan' => 'TKJ',  'name' => 'Teknik Komputer dan Jaringan',            'kepala_jurusan' => 'Ahmad Fauzi, S.Kom',         'description' => 'Konsentrasi Jaringan Komputer, Server, dan Fiber Optik', 'is_active' => 1],
+            ['kode_jurusan' => 'RPL',  'name' => 'Rekayasa Perangkat Lunak',                'kepala_jurusan' => 'Sari Dewi, S.T',              'description' => 'Konsentrasi Pemrograman Web, Mobile, dan Database',       'is_active' => 1],
+            ['kode_jurusan' => 'SIJA', 'name' => 'Sistem Informatika Jaringan dan Aplikasi','kepala_jurusan' => 'M. Rizky Pratama, M.Kom',     'description' => 'Konsentrasi Cloud Computing, IoT, dan Cyber Security',    'is_active' => 1],
+            ['kode_jurusan' => 'DKV',  'name' => 'Desain Komunikasi Visual',                'kepala_jurusan' => 'Rina Kusuma, S.Ds',           'description' => 'Konsentrasi Grafis, Multimedia, dan UI/UX',               'is_active' => 1],
+            ['kode_jurusan' => 'MM',   'name' => 'Multimedia',                              'kepala_jurusan' => 'Budi Santoso, S.Pd',          'description' => 'Konsentrasi Audio Visual, Animasi, dan Broadcasting',     'is_active' => 1],
+        ];
+
+        $jurusanIds = [];
+        foreach ($jurusanDefs as $j) {
+            $id = DB::table('jurusans')->insertGetId(array_merge($j, [
+                'created_at' => $now, 'updated_at' => $now,
+            ]));
+            $jurusanIds[$j['kode_jurusan']] = $id;
+        }
+
+        // =========================================================================
+        // 2. USERS (Superadmin, Admin, Guru/Jurusan, Siswa)
+        // =========================================================================
+        // A. Superadmin
+        $superadminId = DB::table('users')->insertGetId([
+            'user_code'   => 'USR-001',
+            'name'        => 'M. Rizky Pratama, S.Kom (Kepala Lab NOC)',
+            'username'    => 'superadmin',
+            'email'       => 'superadmin@noc.smkn4malang.sch.id',
+            'password'    => Hash::make('Superadmin2026'),
+            'role'        => 'Superadmin',
+            'is_active'   => 1,
+            'jurusan_id'  => $jurusanIds['TKJ'],
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
+
+        // B. Admin NOC
+        $adminId = DB::table('users')->insertGetId([
+            'user_code'   => 'USR-002',
+            'name'        => 'Fajar Wicaksono (Teknisi NOC)',
+            'username'    => 'admin',
+            'email'       => 'admin@noc.smkn4malang.sch.id',
+            'password'    => Hash::make('Admin2026'),
+            'role'        => 'Admin',
+            'is_active'   => 1,
+            'jurusan_id'  => $jurusanIds['TKJ'],
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
+
+        // C. Akun Jurusan / Guru
+        $jurusanAccounts = [
+            ['code' => 'USR-003', 'name' => 'Drs. Bambang Sudarsono, M.T', 'user' => 'tkj',  'email' => 'guru.tkj@noc.smkn4malang.sch.id',  'jur' => 'TKJ'],
+            ['code' => 'USR-004', 'name' => 'Siti Rahmawati, S.Pd',         'user' => 'rpl',  'email' => 'guru.rpl@noc.smkn4malang.sch.id',  'jur' => 'RPL'],
+            ['code' => 'USR-005', 'name' => 'Ahmad Fauzi, S.Kom',           'user' => 'sija', 'email' => 'guru.sija@noc.smkn4malang.sch.id', 'jur' => 'SIJA'],
+            ['code' => 'USR-006', 'name' => 'Rina Kusuma, S.Ds',            'user' => 'dkv',  'email' => 'guru.dkv@noc.smkn4malang.sch.id',  'jur' => 'DKV'],
+            ['code' => 'USR-007', 'name' => 'Budi Santoso, S.Pd',           'user' => 'mm',   'email' => 'guru.mm@noc.smkn4malang.sch.id',   'jur' => 'MM'],
+        ];
+
+        $jurusanUserIds = [];
+        foreach ($jurusanAccounts as $acc) {
+            $id = DB::table('users')->insertGetId([
+                'user_code'  => $acc['code'],
+                'name'       => $acc['name'],
+                'username'   => $acc['user'],
+                'email'      => $acc['email'],
+                'password'   => Hash::make('jurusan123'),
+                'role'       => 'Jurusan',
+                'is_active'  => 1,
+                'jurusan_id' => $jurusanIds[$acc['jur']],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $jurusanUserIds[$acc['user']] = $id;
+        }
+
+        // =========================================================================
+        // 3. MASTER DATA: Kategori Barang (Lengkap dengan prefix)
         // =========================================================================
         $categories = [
-            ['name' => 'Switch/Hub',      'slug' => 'switch-hub',      'description' => 'Perangkat Switch dan Hub',              'prefix' => 'SWT', 'last_code_number' => 0],
-            ['name' => 'Router',           'slug' => 'router',          'description' => 'Perangkat Router',                     'prefix' => 'RTR', 'last_code_number' => 0],
-            ['name' => 'Access Point',     'slug' => 'access-point',    'description' => 'Perangkat Access Point',               'prefix' => 'AP',  'last_code_number' => 0],
-            ['name' => 'Server',           'slug' => 'server',          'description' => 'Komputer Server',                      'prefix' => 'SRV', 'last_code_number' => 0],
-            ['name' => 'Kabel Jaringan',   'slug' => 'kabel-jaringan',  'description' => 'Kabel UTP, Fiber Optic, dll',         'prefix' => 'CBL', 'last_code_number' => 0],
-            ['name' => 'PC Client',        'slug' => 'pc-client',       'description' => 'Personal Computer untuk Client',       'prefix' => 'PC',  'last_code_number' => 0],
-            ['name' => 'Laptop',           'slug' => 'laptop',          'description' => 'Komputer Jinjing',                     'prefix' => 'LPT', 'last_code_number' => 0],
-            ['name' => 'Monitor',          'slug' => 'monitor',         'description' => 'Layar Monitor',                        'prefix' => 'MNT', 'last_code_number' => 0],
-            ['name' => 'Tools',            'slug' => 'tools',           'description' => 'Peralatan Jaringan (Crimping, Tester)','prefix' => 'TLS', 'last_code_number' => 0],
+            ['name' => 'Switch / Hub',          'slug' => 'switch-hub',          'description' => 'Perangkat Switch Managed, Unmanaged, dan PoE', 'prefix' => 'SWT', 'last_code_number' => 0],
+            ['name' => 'Router Gateway',         'slug' => 'router',              'description' => 'Router MikroTik, Cisco, dan EdgeRouter',       'prefix' => 'RTR', 'last_code_number' => 0],
+            ['name' => 'Wireless Access Point',  'slug' => 'access-point',        'description' => 'AP Indoor & Outdoor Ubiquiti, TP-Link, Aruba', 'prefix' => 'AP',  'last_code_number' => 0],
+            ['name' => 'Komputer Server',        'slug' => 'server',              'description' => 'Rackmount & Tower Server Dell, HP, Lenovo',    'prefix' => 'SRV', 'last_code_number' => 0],
+            ['name' => 'Kabel & Fiber Optik',    'slug' => 'kabel-jaringan',      'description' => 'Kabel UTP Cat6, Patch Cord, Fiber Optic, Dropcore', 'prefix' => 'CBL', 'last_code_number' => 0],
+            ['name' => 'PC Client Laboratorium', 'slug' => 'pc-client',           'description' => 'PC Desktop untuk Praktik Siswa dan Lab',       'prefix' => 'PC',  'last_code_number' => 0],
+            ['name' => 'Laptop Inventaris',      'slug' => 'laptop',              'description' => 'Laptop Operasional NOC dan Peminjaman Pengajar', 'prefix' => 'LPT', 'last_code_number' => 0],
+            ['name' => 'Monitor Display',        'slug' => 'monitor',             'description' => 'Layar Monitor LED / IPS untuk Lab dan NOC',     'prefix' => 'MNT', 'last_code_number' => 0],
+            ['name' => 'Tools & Alat Ukur',      'slug' => 'tools',               'description' => 'Fusion Splicer, OTDR, Cable Tester, Crimping Tool', 'prefix' => 'TLS', 'last_code_number' => 0],
+            ['name' => 'Power & UPS Backup',     'slug' => 'ups-power',           'description' => 'Uninterruptible Power Supply (UPS) & PDU Rack', 'prefix' => 'UPS', 'last_code_number' => 0],
         ];
 
         $catIds = [];
@@ -62,34 +144,35 @@ class NocSeeder extends Seeder
         }
 
         // =========================================================================
-        // 2. MASTER DATA: Lokasi
+        // 4. MASTER DATA: Lokasi / Ruangan
         // =========================================================================
         $locations = [
-            ['code' => 'LOC-001', 'name' => 'Ruang Server NOC', 'description' => 'Ruang Server Utama Gedung A',       'penanggung_jawab' => 'Pak Budi'],
-            ['code' => 'LOC-002', 'name' => 'Lab RPL 1',         'description' => 'Laboratorium Rekayasa Perangkat Lunak 1', 'penanggung_jawab' => 'Pak Anton'],
-            ['code' => 'LOC-003', 'name' => 'Lab RPL 2',         'description' => 'Laboratorium Rekayasa Perangkat Lunak 2', 'penanggung_jawab' => 'Bu Siska'],
-            ['code' => 'LOC-004', 'name' => 'Lab TKJ 1',         'description' => 'Laboratorium Teknik Komputer Jaringan 1', 'penanggung_jawab' => 'Pak Yanto'],
-            ['code' => 'LOC-005', 'name' => 'Lab TKJ 2',         'description' => 'Laboratorium Teknik Komputer Jaringan 2', 'penanggung_jawab' => 'Pak Yanto'],
-            ['code' => 'LOC-006', 'name' => 'Gudang NOC',        'description' => 'Gudang Penyimpanan Barang Jaringan',       'penanggung_jawab' => 'Pak Budi'],
-            ['code' => 'LOC-007', 'name' => 'Ruang Guru',        'description' => 'Ruangan Guru Produktif',                   'penanggung_jawab' => 'Kepala Bengkel'],
+            ['code' => 'LOC-001', 'name' => 'Ruang Server NOC Utama',          'penanggung_jawab' => 'M. Rizky Pratama (Kepala NOC)', 'description' => 'Pusat data server, router border, dan core switch sekolah'],
+            ['code' => 'LOC-002', 'name' => 'Lab Jaringan & Fiber Optik',       'penanggung_jawab' => 'Ahmad Fauzi, S.Kom',           'description' => 'Laboratorium praktik routing, switching, dan splicer fiber optik'],
+            ['code' => 'LOC-003', 'name' => 'Lab Komputer TKJ 1',               'penanggung_jawab' => 'Drs. Bambang Sudarsono',       'description' => 'Lab komputer praktik jaringan dasar dan administrasi server'],
+            ['code' => 'LOC-004', 'name' => 'Lab Komputer TKJ 2',               'penanggung_jawab' => 'Fajar Wicaksono',              'description' => 'Lab simulasi jaringan Packet Tracer dan MikroTik Academy'],
+            ['code' => 'LOC-005', 'name' => 'Lab Software Rekayasa Perangkat Lunak', 'penanggung_jawab' => 'Siti Rahmawati, S.Pd',      'description' => 'Lab pengembangan aplikasi desktop, mobile, dan web'],
+            ['code' => 'LOC-006', 'name' => 'Gudang Aset & Peralatan NOC',      'penanggung_jawab' => 'Fajar Wicaksono',              'description' => 'Penyimpanan cadangan perangkat, kabel roll, dan suku cadang'],
+            ['code' => 'LOC-007', 'name' => 'Ruang Guru Produktif TKI',         'penanggung_jawab' => 'Kepala Program TKI',           'description' => 'Ruang kerja pengajar produktif TKJ, RPL, dan SIJA'],
         ];
 
         $locIds = [];
         foreach ($locations as $loc) {
-            $locIds[] = DB::table('locations')->insertGetId(array_merge($loc, [
+            $id = DB::table('locations')->insertGetId(array_merge($loc, [
                 'created_at' => $now, 'updated_at' => $now,
             ]));
+            $locIds[] = $id;
         }
 
         // =========================================================================
-        // 3. MASTER DATA: Supplier
+        // 5. MASTER DATA: Supplier
         // =========================================================================
         $suppliers = [
-            ['name' => 'PT. MikroTik Indonesia',    'pic' => 'Hendro', 'phone' => '081234567890', 'email' => 'sales@mikrotik.co.id',     'address' => 'Jakarta',  'is_active' => 1],
-            ['name' => 'CV. Sinar Jaya Komputer',   'pic' => 'Agus',   'phone' => '082233445566', 'email' => 'info@sinarkomputer.com',    'address' => 'Malang',   'is_active' => 1],
-            ['name' => 'Toko Sentra Jaringan',      'pic' => 'Budi',   'phone' => '083344556677', 'email' => 'sentra.jaringan@gmail.com', 'address' => 'Surabaya', 'is_active' => 1],
-            ['name' => 'Bhinneka',                  'pic' => 'Siti',   'phone' => '084455667788', 'email' => 'corporate@bhinneka.com',    'address' => 'Jakarta',  'is_active' => 1],
-            ['name' => 'Tidak Diketahui',           'pic' => '-',      'phone' => '-',           'email' => '-',                          'address' => '-',        'is_active' => 0],
+            ['name' => 'PT. MikroTik Cipta Solusi Indonesia', 'pic' => 'Hendro Prasetyo',  'phone' => '081234567890', 'email' => 'sales@mikrotik.co.id',        'address' => 'Gedung Cyber 2 Lt. 15, Kuningan, Jakarta', 'is_active' => 1],
+            ['name' => 'PT. Cisco Systems Indonesia',         'pic' => 'Bambang Wijaya',   'phone' => '082199887766', 'email' => 'partner@cisco.com',           'address' => 'World Trade Center 2, Sudirman, Jakarta',   'is_active' => 1],
+            ['name' => 'CV. Sentra Jaringan Mandiri Malang',  'pic' => 'Agus Budiman',     'phone' => '083812345678', 'email' => 'kontak@sentrajaringan.id',    'address' => 'Jl. Soekarno Hatta No. 45, Lowokwaru, Malang', 'is_active' => 1],
+            ['name' => 'PT. Telkom Akses Regional V Jatim',   'pic' => 'Dwi Cahyono',      'phone' => '081357924680', 'email' => 'mitra.telkomakses@telkom.co.id','address' => 'Jl. Ketintang No. 156, Gayungan, Surabaya', 'is_active' => 1],
+            ['name' => 'PT. Bhinneka Mentari Dimensi',        'pic' => 'Siti Nurhaliza',   'phone' => '082244668800', 'email' => 'b2b.gov@bhinneka.com',        'address' => 'Jl. Gunung Sahari Raya 73C, Jakarta Pusat', 'is_active' => 1],
         ];
 
         $supIds = [];
@@ -100,248 +183,235 @@ class NocSeeder extends Seeder
         }
 
         // =========================================================================
-        // 4. MASTER DATA: Kondisi Barang
-        //    Mapping condition field -> kondisi_barang_id (sinkron)
+        // 6. MASTER DATA: Kondisi Barang
         // =========================================================================
         $kondisis = [
-            'baik'         => ['name' => 'Baik',         'label_color' => 'green',  'description' => 'Dapat berfungsi dengan normal'],
-            'rusak_ringan' => ['name' => 'Rusak Ringan', 'label_color' => 'yellow', 'description' => 'Masih bisa digunakan dengan perbaikan kecil'],
-            'rusak_berat'  => ['name' => 'Rusak Berat',  'label_color' => 'red',    'description' => 'Tidak dapat digunakan dan butuh perbaikan besar'],
-            'hilang'       => ['name' => 'Hilang',       'label_color' => 'gray',   'description' => 'Barang tidak ditemukan'],
+            'baik'         => ['name' => 'Baik',         'label_color' => 'green',  'description' => 'Fungsi 100% normal dan siap digunakan'],
+            'rusak_ringan' => ['name' => 'Rusak Ringan', 'label_color' => 'yellow', 'description' => 'Fungsi terganggu sebagian, masih dapat diperbaiki'],
+            'rusak_berat'  => ['name' => 'Rusak Berat',  'label_color' => 'red',    'description' => 'Kerusakan fisik/elektronik parah, perlu perbaikan besar / kanibal'],
+            'hilang'       => ['name' => 'Hilang',       'label_color' => 'gray',   'description' => 'Aset tidak ditemukan pada tempat semestinya'],
         ];
 
-        $kondisiIds = []; // key = condition string, value = id
-        foreach ($kondisis as $key => $kondisi) {
-            $kondisiIds[$key] = DB::table('kondisi_barangs')->insertGetId(array_merge($kondisi, [
+        $kondisiIds = [];
+        foreach ($kondisis as $key => $k) {
+            $kondisiIds[$key] = DB::table('kondisi_barangs')->insertGetId(array_merge($k, [
                 'created_at' => $now, 'updated_at' => $now,
             ]));
         }
 
         // =========================================================================
-        // 5. MASTER DATA: Asal Barang
+        // 7. MASTER DATA: Asal Barang
         // =========================================================================
         $asals = [
-            ['name' => 'Dana BOS',           'description' => 'Pembelian dari dana BOS reguler',    'is_active' => 1],
-            ['name' => 'Bantuan Pemerintah', 'description' => 'Bantuan dari Kemendikbud',           'is_active' => 1],
-            ['name' => 'Hibah Perusahaan',   'description' => 'CSR dari Perusahaan Rekanan',        'is_active' => 1],
-            ['name' => 'Komite Sekolah',     'description' => 'Sumbangan dari wali murid',          'is_active' => 1],
+            ['name' => 'Dana BOS Reguler 2024',         'description' => 'Pengadaan rutin anggaran operasional sekolah tahun 2024', 'is_active' => 1],
+            ['name' => 'Bantuan DAK Fisik SMK 2025',     'description' => 'Program revitalisasi laboratorium kejuruan SMK Kemendikbudristek', 'is_active' => 1],
+            ['name' => 'Hibah Industri PT. Telkom Akses','description' => 'Bantuan perangkat fiber optik & CSR kemitraan industri', 'is_active' => 1],
+            ['name' => 'Komite Sekolah',                'description' => 'Partisipasi orang tua siswa untuk penunjang sertifikasi kompetensi', 'is_active' => 1],
         ];
 
         $asalIds = [];
-        foreach ($asals as $asal) {
-            $asalIds[] = DB::table('asal_barangs')->insertGetId(array_merge($asal, [
+        foreach ($asals as $a) {
+            $asalIds[] = DB::table('asal_barangs')->insertGetId(array_merge($a, [
                 'created_at' => $now, 'updated_at' => $now,
             ]));
         }
 
         // =========================================================================
-        // 6. MASTER DATA: Jurusan
+        // 8. DATA BARANG (ITEMS) REALISTIS ERP NOC
         // =========================================================================
-        $jurusans = [
-            ['name' => 'Rekayasa Perangkat Lunak',              'description' => 'Jurusan RPL',  'is_active' => 1],
-            ['name' => 'Teknik Komputer dan Jaringan',          'description' => 'Jurusan TKJ',  'is_active' => 1],
-            ['name' => 'Multimedia',                            'description' => 'Jurusan MM',   'is_active' => 1],
-            ['name' => 'Sistem Informatika Jaringan dan Aplikasi','description' => 'Jurusan SIJA','is_active' => 1],
-        ];
+        $itemCatalog = [
+            // [name, brand, model, catSlug, subPrefix, unitCount, locIdx, condition, status, price]
+            // --- Router Gateway ---
+            ['Router MikroTik Cloud Core', 'MikroTik',  'CCR1036-8G-2S+',   'router',         'CCR', 2, 0, 'baik',         'tersedia',    18500000],
+            ['Router MikroTik Cloud Core', 'MikroTik',  'CCR2004-16G-2S+',  'router',         'CCR', 1, 0, 'baik',         'tersedia',    14000000],
+            ['Router MikroTik RB4011',     'MikroTik',  'RB4011iGS+RM',     'router',         'MKT', 3, 1, 'baik',         'tersedia',     4200000],
+            ['Router MikroTik RB4011',     'MikroTik',  'RB4011iGS+RM',     'router',         'MKT', 1, 1, 'baik',         'dipinjam',     4200000],
+            ['Router MikroTik hEX S',       'MikroTik',  'RB760iGS',         'router',         'HEX', 6, 1, 'baik',         'tersedia',     1350000],
+            ['Router MikroTik hEX S',       'MikroTik',  'RB760iGS',         'router',         'HEX', 2, 2, 'baik',         'dipinjam',     1350000],
+            ['Router Cisco ISR',           'Cisco',     'ISR 4331/K9',      'router',         'CSC', 1, 0, 'baik',         'tersedia',    32000000],
+            ['Router Cisco ISR',           'Cisco',     'ISR 4321/K9',      'router',         'CSC', 1, 1, 'rusak_ringan', 'maintenance', 22000000],
 
-        $jurusanIds = [];
-        foreach ($jurusans as $jurusan) {
-            $jurusanIds[] = DB::table('jurusans')->insertGetId(array_merge($jurusan, [
-                'created_at' => $now, 'updated_at' => $now,
-            ]));
-        }
+            // --- Switch / Hub ---
+            ['Core Switch Cisco Catalyst', 'Cisco',     'Catalyst 9200-24P','switch-hub',     'CSC', 2, 0, 'baik',         'tersedia',    28000000],
+            ['Distribution Switch Cisco',  'Cisco',     'Catalyst 2960X-48', 'switch-hub',     'CSC', 2, 0, 'baik',         'tersedia',    16500000],
+            ['Distribution Switch Cisco',  'Cisco',     'Catalyst 2960X-24', 'switch-hub',     'CSC', 1, 1, 'rusak_ringan', 'maintenance', 12500000],
+            ['Switch MikroTik Cloud Router','MikroTik', 'CRS326-24G-2S+RM', 'switch-hub',     'CRS', 4, 1, 'baik',         'tersedia',     4500000],
+            ['Switch MikroTik Cloud Router','MikroTik', 'CRS326-24G-2S+RM', 'switch-hub',     'CRS', 2, 2, 'baik',         'dipinjam',     4500000],
+            ['Switch TP-Link PoE Managed', 'TP-Link',   'TL-SG3428MP',      'switch-hub',     'TPL', 3, 1, 'baik',         'tersedia',     5200000],
+            ['Switch D-Link Gigabit',      'D-Link',    'DGS-1210-28P',     'switch-hub',     'DLK', 2, 3, 'baik',         'tersedia',     3800000],
+            ['Switch D-Link 8-Port Desktop','D-Link',   'DGS-1008A',        'switch-hub',     'DLK', 4, 5, 'baik',         'tersedia',      320000],
 
-        // =========================================================================
-        // 7. USER: Guru (10) & Siswa (40) — dengan jurusan_id
-        // =========================================================================
-        $userCounter = 3; // USR-001 & USR-002 sudah dipakai Superadmin & Admin
+            // --- Wireless Access Point ---
+            ['Access Point Ubiquiti UniFi','Ubiquiti',  'U6-Pro WiFi 6',    'access-point',   'UNI', 4, 0, 'baik',         'tersedia',     3100000],
+            ['Access Point Ubiquiti UniFi','Ubiquiti',  'UAP-AC-LR',        'access-point',   'UNI', 5, 2, 'baik',         'tersedia',     1950000],
+            ['Access Point Ubiquiti UniFi','Ubiquiti',  'UAP-AC-LR',        'access-point',   'UNI', 2, 3, 'baik',         'dipinjam',     1950000],
+            ['Access Point TP-Link Omada', 'TP-Link',   'EAP610 WiFi 6',    'access-point',   'TPL', 3, 1, 'baik',         'tersedia',     1650000],
+            ['Access Point TP-Link Outdoor','TP-Link',  'EAP225-Outdoor',   'access-point',   'TPL', 2, 0, 'baik',         'tersedia',     1250000],
+            ['Access Point Mikrotik cAP',  'MikroTik',  'cAP ac (RBcAPGi)', 'access-point',   'CAP', 3, 5, 'rusak_ringan', 'tersedia',     1100000],
 
-        $firstNames = ['Budi','Anton','Siska','Yanto','Ani','Joko','Siti','Dewi','Rudi','Andi','Rina','Nina','Eko','Agus','Dwi','Tri'];
-        $lastNames  = ['Santoso','Wijaya','Pratama','Kusuma','Sari','Lestari','Hidayat','Saputra','Setiawan','Nugroho'];
+            // --- Komputer Server ---
+            ['Server Rackmount Dell PowerEdge', 'Dell',  'PowerEdge R740 2U','server',         'DEL', 2, 0, 'baik',         'tersedia',    68000000],
+            ['Server Rackmount Dell PowerEdge', 'Dell',  'PowerEdge R440 1U','server',         'DEL', 1, 0, 'baik',         'tersedia',    42000000],
+            ['Server Tower HP ProLiant',   'HP',        'ProLiant ML350 G10','server',        'HP',  1, 0, 'baik',         'tersedia',    36000000],
+            ['Storage NAS Synology Rack',  'Synology',  'RackStation RS2423+','server',       'SYN', 1, 0, 'baik',         'tersedia',    29500000],
 
-        // Helper: generate user_code
-        $userCode = function () use (&$userCounter) {
-            return 'USR-' . str_pad($userCounter++, 3, '0', STR_PAD_LEFT);
-        };
+            // --- PC Client & Workstation ---
+            ['PC Workstation Core i7 Gen12','Rakitan NOC','Core i7-12700 32GB','pc-client',    'I7',  8, 1, 'baik',         'tersedia',    13500000],
+            ['PC Client Lab TKJ Core i5',  'Rakitan NOC','Core i5-11400 16GB','pc-client',    'I5', 10, 2, 'baik',         'tersedia',     8200000],
+            ['PC Client Lab TKJ Core i5',  'Rakitan NOC','Core i5-11400 16GB','pc-client',    'I5',  2, 2, 'rusak_ringan', 'maintenance',  8200000],
+            ['PC Client Lab RPL Core i5',  'Rakitan NOC','Core i5-10400 16GB','pc-client',    'I5', 10, 4, 'baik',         'tersedia',     7500000],
 
-        // 10 Guru — assign jurusan_id
-        $guruIds = [];
-        for ($i = 1; $i <= 10; $i++) {
-            $guruIds[] = DB::table('users')->insertGetId([
-                'user_code'  => $userCode(),
-                'name'       => $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)],
-                'username'   => 'guru' . $i,
-                'email'      => 'guru' . $i . '@noc.smkn4malang.sch.id',
-                'password'   => Hash::make('password123'),
-                'role'       => 'Guru',
-                'is_active'  => true,
-                'jurusan_id' => $jurusanIds[array_rand($jurusanIds)],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
+            // --- Laptop Inventaris ---
+            ['Laptop Lenovo ThinkPad',     'Lenovo',    'ThinkPad L14 Gen3','laptop',         'LNV', 3, 0, 'baik',         'tersedia',    12800000],
+            ['Laptop Lenovo ThinkPad',     'Lenovo',    'ThinkPad L14 Gen3','laptop',         'LNV', 2, 6, 'baik',         'dipinjam',    12800000],
+            ['Laptop ASUS ExpertBook',     'ASUS',      'ExpertBook B1400', 'laptop',         'ASS', 2, 0, 'baik',         'tersedia',     9800000],
 
-        // 40 Siswa — assign jurusan_id, email digunakan untuk menyimpan kelas
-        $kelas = ['X RPL 1', 'X RPL 2', 'XI TKJ 1', 'XI TKJ 2', 'XII MM 1', 'XII SIJA'];
-        $siswaIds = [];
-        for ($i = 1; $i <= 40; $i++) {
-            $siswaIds[] = DB::table('users')->insertGetId([
-                'user_code'  => $userCode(),
-                'name'       => $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)],
-                'username'   => 'siswa' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                'email'      => $kelas[array_rand($kelas)],
-                'password'   => Hash::make('password123'),
-                'role'       => 'Siswa',
-                'is_active'  => true,
-                'jurusan_id' => $jurusanIds[array_rand($jurusanIds)],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
+            // --- Monitor Display ---
+            ['Monitor LED Dell UltraSharp','Dell',      'U2422H 24 Inch IPS','monitor',       'DEL', 4, 0, 'baik',         'tersedia',     4100000],
+            ['Monitor LED LG Full HD',     'LG',        '24MP400 24 Inch',  'monitor',        'LG',  8, 1, 'baik',         'tersedia',     1850000],
+            ['Monitor LED Samsung IPS',    'Samsung',   'LF24T350 24 Inch', 'monitor',        'SMS', 8, 2, 'baik',         'tersedia',     1750000],
 
-        $allUserIds = array_merge($guruIds, $siswaIds);
+            // --- Tools & Alat Ukur Fiber Optik ---
+            ['Fusion Splicer Fiber Optik', 'Fujikura',  '90S+ Core Alignment','tools',        'FUS', 1, 1, 'baik',         'tersedia',    78000000],
+            ['Fusion Splicer Fiber Optik', 'Ilsintech', 'Swift K11',        'tools',          'FUS', 1, 1, 'baik',         'dipinjam',    48000000],
+            ['OTDR Optical Time Reflectometer','Yokogawa','AQ1210A',        'tools',          'OTD', 1, 1, 'baik',         'tersedia',    35000000],
+            ['Optical Power Meter & Light Source','Grandway','FHP2P01',      'tools',          'OPM', 2, 1, 'baik',         'tersedia',     3200000],
+            ['Optical Power Meter & Light Source','Grandway','FHP2P01',      'tools',          'OPM', 1, 1, 'baik',         'dipinjam',     3200000],
+            ['Tang Crimping RJ45 & RJ11',  'Proskit',   'CP-376TR',         'tools',          'TLS', 6, 1, 'baik',         'tersedia',      380000],
+            ['Tang Crimping RJ45 & RJ11',  'Proskit',   'CP-376TR',         'tools',          'TLS', 2, 1, 'baik',         'dipinjam',      380000],
+            ['LAN Cable Tester Digital',   'Noyafa',    'NF-8209 Pro',      'tools',          'TLS', 3, 1, 'baik',         'tersedia',      550000],
+            ['Visual Fault Locator (Laser)','Joinwit',  'JW3105P 10mW',     'tools',          'TLS', 4, 1, 'baik',         'tersedia',      180000],
 
-        // =========================================================================
-        // 8. ITEMS — Setiap unit = 1 row, qty=1, dengan sub_prefix
-        //    Format kode: PREFIX-SUBPREFIX-NUMBER
-        //    condition sinkron ke kondisi_barang_id
-        //    status konsisten: dipinjam hanya jika ada peminjaman aktif
-        // =========================================================================
-        $itemDefs = [
-            // [name, brand, model, categorySlug, sub_prefix, unitCount, locIdx, condition, status, price]
-            // --- Access Point ---
-            ['Access Point UniFi',   'Ubiquiti',  'UAP-AC-Pro',    'access-point',   'UNI', 5, 0, 'baik',         'tersedia',    2500000],
-            ['Access Point UniFi',   'Ubiquiti',  'UAP-AC-Pro',    'access-point',   'UNI', 3, 1, 'baik',         'tersedia',    2500000],
-            ['Access Point UniFi',   'Ubiquiti',  'UAP-AC-Lite',   'access-point',   'UNI', 2, 3, 'baik',         'dipinjam',    1800000],
-            ['Access Point TP-Link', 'TP-Link',   'EAP225',        'access-point',   'TPL', 4, 0, 'baik',         'tersedia',    850000],
-            ['Access Point TP-Link', 'TP-Link',   'EAP225',        'access-point',   'TPL', 2, 4, 'rusak_ringan', 'maintenance', 850000],
-            // --- Router ---
-            ['Router MikroTik',      'MikroTik',  'RB750Gr3',      'router',         'MKT', 6, 0, 'baik',         'tersedia',    1200000],
-            ['Router MikroTik',      'MikroTik',  'RB750Gr3',      'router',         'MKT', 3, 3, 'baik',         'dipinjam',    1200000],
-            ['Router MikroTik',      'MikroTik',  'RB951Ui-2HnD',  'router',         'MKT', 2, 1, 'rusak_ringan', 'tersedia',    900000],
-            ['Router Cisco',         'Cisco',     'ISR4321',       'router',         'CSC', 2, 0, 'baik',         'tersedia',    15000000],
-            ['Router Cisco',         'Cisco',     'ISR4321',       'router',         'CSC', 1, 0, 'rusak_berat',  'maintenance', 15000000],
-            // --- Switch ---
-            ['Switch TP-Link',       'TP-Link',   'TL-SG1024D',    'switch-hub',     'TPL', 4, 0, 'baik',         'tersedia',    1500000],
-            ['Switch TP-Link',       'TP-Link',   'TL-SG1024D',    'switch-hub',     'TPL', 3, 1, 'baik',         'tersedia',    1500000],
-            ['Switch Cisco',         'Cisco',     'Catalyst 2960', 'switch-hub',     'CSC', 3, 0, 'baik',         'tersedia',    8000000],
-            ['Switch Cisco',         'Cisco',     'Catalyst 2960', 'switch-hub',     'CSC', 2, 3, 'baik',         'dipinjam',    8000000],
-            ['Switch D-Link',        'D-Link',    'DGS-1008A',     'switch-hub',     'DLK', 2, 4, 'baik',         'tersedia',    650000],
-            // --- Server ---
-            ['Server Dell',          'Dell',      'PowerEdge R440','server',         'DEL', 2, 0, 'baik',         'tersedia',    45000000],
-            ['Server Dell',          'Dell',      'PowerEdge T340','server',         'DEL', 1, 0, 'baik',         'tersedia',    35000000],
-            // --- PC Client ---
-            ['PC Client',            'Rakitan',   'Core i5 Gen10', 'pc-client',      'I5',  8, 1, 'baik',         'tersedia',    7000000],
-            ['PC Client',            'Rakitan',   'Core i5 Gen10', 'pc-client',      'I5',  5, 2, 'baik',         'tersedia',    7000000],
-            ['PC Client',            'Rakitan',   'Core i7 Gen11', 'pc-client',      'I7',  4, 1, 'baik',         'tersedia',    12000000],
-            ['PC Client',            'Rakitan',   'Core i7 Gen11', 'pc-client',      'I7',  2, 2, 'rusak_ringan', 'maintenance', 12000000],
-            // --- Laptop ---
-            ['Laptop Lenovo',        'Lenovo',    'V14 G3',        'laptop',         'LNV', 3, 0, 'baik',         'tersedia',    8500000],
-            ['Laptop Lenovo',        'Lenovo',    'V14 G3',        'laptop',         'LNV', 2, 6, 'baik',         'dipinjam',    8500000],
-            ['Laptop ASUS',          'ASUS',      'ExpertBook B1', 'laptop',         'ASS', 2, 0, 'baik',         'tersedia',    9000000],
-            // --- Monitor ---
-            ['Monitor Samsung',      'Samsung',   'LS24A350',      'monitor',        'SMS', 5, 1, 'baik',         'tersedia',    2200000],
-            ['Monitor Samsung',      'Samsung',   'LS24A350',      'monitor',        'SMS', 3, 2, 'baik',         'tersedia',    2200000],
-            ['Monitor LG',           'LG',        '22MP410',       'monitor',        'LG',  4, 1, 'baik',         'tersedia',    1800000],
-            // --- Kabel ---
-            ['Kabel UTP Belden',     'Belden',    'Cat6 305m',     'kabel-jaringan', 'BLD', 3, 5, 'baik',         'tersedia',    1500000],
-            ['Kabel UTP AMP',        'AMP',       'Cat5e 305m',    'kabel-jaringan', 'AMP', 2, 5, 'baik',         'tersedia',    800000],
-            ['Konektor RJ45',        'AMP',       'Cat6',          'kabel-jaringan', 'RJ4', 10,5, 'baik',         'tersedia',    150000],
-            // --- Tools ---
-            ['Tang Crimping',        'TRENDnet',  'TC-CT68',       'tools',          'CRP', 3, 0, 'baik',         'tersedia',    250000],
-            ['LAN Tester',           'TRENDnet',  'TC-NT12',       'tools',          'TST', 2, 0, 'baik',         'tersedia',    350000],
-            ['Proyektor Epson',      'Epson',     'EB-X51',        'tools',          'EPS', 2, 6, 'baik',         'tersedia',    6500000],
-            ['Proyektor Epson',      'Epson',     'EB-X51',        'tools',          'EPS', 1, 0, 'rusak_ringan', 'maintenance', 6500000],
+            // --- Kabel Jaringan & Roll ---
+            ['Kabel UTP Roll Cat6 Belden', 'Belden',    '7814A Cat6 305m',  'kabel-jaringan', 'BLD', 3, 5, 'baik',         'tersedia',     1950000],
+            ['Kabel UTP Roll Cat6 Schneider','Schneider','Actassi Cat6 305m','kabel-jaringan', 'SCH', 2, 5, 'baik',         'tersedia',     1750000],
+            ['Kabel Fiber Optik Dropcore 1 Core','ZTE', 'G657A 1000 Meter', 'kabel-jaringan', 'FBO', 2, 5, 'baik',         'tersedia',      750000],
+
+            // --- Power & UPS ---
+            ['UPS Online Rackmount APC',   'APC',       'Smart-UPS RT 3000VA','ups-power',    'APC', 2, 0, 'baik',         'tersedia',    24000000],
+            ['UPS Tower ICA Sinewave',     'ICA',       'CN1300 1300VA',    'ups-power',      'ICA', 2, 0, 'baik',         'tersedia',     3800000],
         ];
 
         $itemIds = [];
-        $itemCodes = [];
-        $dipinjamItemIds = []; // Track items with status 'dipinjam' for peminjaman seeding
+        $itemObjects = [];
+        $dipinjamItems = [];
+        $maintenanceItems = [];
 
-        foreach ($itemDefs as $def) {
+        foreach ($itemCatalog as $def) {
             [$name, $brand, $model, $catSlug, $subPrefix, $unitCount, $locIdx, $condition, $status, $price] = $def;
 
-            $catId     = $catIds[$catSlug] ?? null;
+            $catId = $catIds[$catSlug] ?? null;
             if (!$catId) continue;
 
-            // Get current prefix from category
             $catPrefix = DB::table('categories')->where('id', $catId)->value('prefix');
-            $locId     = $locIds[$locIdx] ?? $locIds[0];
-            $purchaseDate = Carbon::now()->subDays(rand(30, 700))->format('Y-m-d');
-
-            // Map condition string to kondisi_barang_id
-            $kondisiBarangId = $kondisiIds[$condition] ?? null;
+            $locId = $locIds[$locIdx] ?? $locIds[0];
+            $condId = $kondisiIds[$condition] ?? $kondisiIds['baik'];
 
             for ($u = 0; $u < $unitCount; $u++) {
-                // Atomic: increment last_code_number pada category
                 $nextNum = DB::table('categories')->where('id', $catId)->value('last_code_number') + 1;
                 DB::table('categories')->where('id', $catId)->update([
                     'last_code_number' => $nextNum,
-                    'updated_at' => $now,
+                    'updated_at'       => $now,
                 ]);
 
-                // Format kode: PREFIX-SUBPREFIX-NUMBER
                 $code = $catPrefix . '-' . strtoupper($subPrefix) . '-' . str_pad($nextNum, 4, '0', STR_PAD_LEFT);
+                $purchaseDate = Carbon::now()->subDays(rand(40, 650))->format('Y-m-d');
+                $sn = strtoupper($subPrefix) . '-' . strtoupper(Str::random(4)) . '-' . rand(1000, 9999);
 
-                $id = DB::table('items')->insertGetId([
+                $itemId = DB::table('items')->insertGetId([
                     'name'              => $name,
                     'code'              => $code,
                     'sub_prefix'        => strtoupper($subPrefix),
-                    'serial_number'     => strtoupper($subPrefix) . '-' . rand(10000, 99999),
+                    'serial_number'     => $sn,
                     'brand'             => $brand,
                     'model'             => $model,
                     'category_id'       => $catId,
                     'location_id'       => $locId,
                     'supplier_id'       => $supIds[array_rand($supIds)],
                     'asal_barang_id'    => $asalIds[array_rand($asalIds)],
-                    'kondisi_barang_id' => $kondisiBarangId, // Sinkron dengan condition
+                    'kondisi_barang_id' => $condId,
                     'quantity'          => 1,
                     'condition'         => $condition,
                     'status'            => $status,
                     'purchase_date'     => $purchaseDate,
                     'purchase_price'    => $price,
-                    'notes'             => $brand . ' ' . $model,
-                    'created_at'        => $now,
+                    'notes'             => "Perangkat spesifikasi {$brand} {$model}. Terverifikasi NOC SMKN 4 Malang.",
+                    'created_at'        => Carbon::parse($purchaseDate),
                     'updated_at'        => $now,
                 ]);
 
-                $itemIds[] = $id;
-                $itemCodes[$id] = $code;
+                $itemIds[] = $itemId;
+                $itemObj = (object)[
+                    'id'          => $itemId,
+                    'name'        => $name,
+                    'code'        => $code,
+                    'location_id' => $locId,
+                    'condition'   => $condition,
+                    'status'      => $status,
+                    'brand'       => $brand,
+                    'model'       => $model,
+                ];
+                $itemObjects[] = $itemObj;
 
-                // Track dipinjam items
                 if ($status === 'dipinjam') {
-                    $dipinjamItemIds[] = $id;
+                    $dipinjamItems[] = $itemObj;
+                } elseif ($status === 'maintenance') {
+                    $maintenanceItems[] = $itemObj;
                 }
             }
         }
 
         // =========================================================================
-        // 9. ITEM MOVEMENTS — riwayat pergerakan barang
-        //    Type: masuk, keluar, pindah, maintenance, rusak, musnahkan
+        // 9. RIWAYAT MUTASI BARANG (ITEM MOVEMENTS) - TREN SEPANJANG TAHUN
         // =========================================================================
-        $adminIds = DB::table('users')
-            ->whereIn('role', ['Admin', 'Superadmin'])
-            ->pluck('id')
-            ->toArray();
-
-        $movementTypes = ['masuk', 'keluar', 'pindah', 'maintenance', 'rusak', 'musnahkan'];
         $movements = [];
+        $currentYear = now()->year;
 
-        for ($i = 0; $i < 100; $i++) {
-            $type = $movementTypes[array_rand($movementTypes)];
-            $movementDate = Carbon::now()->subDays(rand(1, 300));
+        // Distribusikan barang masuk per bulan di tahun ini agar chart dashboard hidup
+        for ($month = 1; $month <= 12; $month++) {
+            $monthIncomingCount = rand(4, 10);
+            for ($k = 0; $k < $monthIncomingCount; $k++) {
+                $randDay = rand(1, 28);
+                $mDate = Carbon::create($currentYear, $month, $randDay, rand(8, 16), rand(10, 50));
+                if ($mDate->isFuture()) continue;
+
+                $randomItem = $itemObjects[array_rand($itemObjects)];
+                $movements[] = [
+                    'item_id'          => $randomItem->id,
+                    'user_id'          => (rand(1, 10) > 4) ? $adminId : $superadminId,
+                    'type'             => 'masuk',
+                    'quantity'         => 1,
+                    'from_location_id' => null,
+                    'to_location_id'   => $randomItem->location_id,
+                    'notes'            => "Penerimaan pengadaan aset baru ({$randomItem->name}) ke {$randomItem->code}",
+                    'movement_date'    => $mDate->format('Y-m-d'),
+                    'created_at'       => $mDate,
+                    'updated_at'       => $mDate,
+                ];
+            }
+        }
+
+        // Tambah mutasi lain: pindah lokasi, maintenance, keluar
+        for ($i = 0; $i < 40; $i++) {
+            $randomItem = $itemObjects[array_rand($itemObjects)];
+            $mType = ['pindah', 'maintenance', 'keluar', 'pindah'][array_rand(['pindah', 'maintenance', 'keluar', 'pindah'])];
+            $mDaysAgo = rand(5, 200);
+            $mDate = Carbon::now()->subDays($mDaysAgo);
+
+            $fromLoc = $locIds[array_rand($locIds)];
+            $toLoc = ($mType === 'pindah') ? $locIds[array_rand($locIds)] : null;
 
             $movements[] = [
-                'item_id'          => $itemIds[array_rand($itemIds)],
-                'user_id'          => $adminIds[array_rand($adminIds)],
-                'type'             => $type,
-                'quantity'         => 1, // qty selalu 1 karena 1 row = 1 unit
-                'from_location_id' => $locIds[array_rand($locIds)],
-                'to_location_id'   => $locIds[array_rand($locIds)],
-                'notes'            => 'Mutasi barang - ' . $type,
-                'movement_date'    => $movementDate->format('Y-m-d'),
-                'created_at'       => $movementDate,
-                'updated_at'       => $movementDate,
+                'item_id'          => $randomItem->id,
+                'user_id'          => $adminId,
+                'type'             => $mType,
+                'quantity'         => 1,
+                'from_location_id' => $fromLoc,
+                'to_location_id'   => $toLoc,
+                'notes'            => "Mutasi {$mType} perangkat {$randomItem->name} ({$randomItem->code})",
+                'movement_date'    => $mDate->format('Y-m-d'),
+                'created_at'       => $mDate,
+                'updated_at'       => $mDate,
             ];
         }
 
@@ -350,77 +420,71 @@ class NocSeeder extends Seeder
         }
 
         // =========================================================================
-        // 10. PEMINJAMAN — konsisten dengan item status
-        //     - Item dengan status 'dipinjam' punya peminjaman aktif (status='dipinjam')
-        //     - Item lain punya peminjaman lampau (status='dikembalikan')
-        //     - kondisi_saat_kembali & keterangan_kembali hanya diisi jika sudah dikembalikan
+        // 10. PEMINJAMAN ASET (AKTIF & RIWAYAT PENGEMBALIAN)
         // =========================================================================
         $peminjamans = [];
-
-        $keteranganOptions = [
-            'Barang dikembalikan dalam kondisi baik, tidak ada kerusakan.',
-            'Terdapat goresan ringan pada casing, fungsi normal.',
-            'Port LAN agak longgar tapi masih bisa digunakan.',
-            'Layar ada bercak kecil, masih bisa digunakan.',
-            'Tombol power agak keras, perlu ditekan lebih kuat.',
-            'Kabel power sudah agak aus, perlu penggantian.',
-            'Barang dikembalikan tanpa kelengkapan (kabel/adaptor).',
-            'Kondisi fisik baik, tapi baterai sudah drop.',
+        $borrowerPool = [
+            ['nama' => 'Muhammad Ilham Pratama', 'kelas' => 'XII TKJ 1'],
+            ['nama' => 'Aditya Bagus Saputra',   'kelas' => 'XII TKJ 2'],
+            ['nama' => 'Nabila Putri Cahyani',    'kelas' => 'XI TKJ 1'],
+            ['nama' => 'Dimas Arya Yudha',       'kelas' => 'XI TKJ 2'],
+            ['nama' => 'Farhan Fathurrahman',    'kelas' => 'XII SIJA'],
+            ['nama' => 'Kevin Christian',        'kelas' => 'XI RPL 1'],
+            ['nama' => 'Rahmat Hidayatullah',    'kelas' => 'XII TKJ 1'],
+            ['nama' => 'Siti Nur Aisyah',        'kelas' => 'XI TKJ 2'],
+            ['nama' => 'Drs. Bambang Sudarsono', 'kelas' => 'Guru TKJ'],
+            ['nama' => 'Ahmad Fauzi, S.Kom',     'kelas' => 'Guru SIJA'],
         ];
 
-        // A. Peminjaman aktif (status='dipinjam') untuk semua item yang berstatus 'dipinjam'
-        foreach ($dipinjamItemIds as $itemId) {
-            $tglPinjam = Carbon::now()->subDays(rand(1, 14));
+        // A. Peminjaman AKTIF (sesuai item status='dipinjam')
+        foreach ($dipinjamItems as $item) {
+            $borrower = $borrowerPool[array_rand($borrowerPool)];
+            $loanDaysAgo = rand(1, 10);
+            $waktuPinjam = Carbon::now()->subDays($loanDaysAgo)->subHours(rand(1, 6));
 
             $peminjamans[] = [
-                'nama_peminjam'        => $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)],
-                'kelas'                => $kelas[array_rand($kelas)],
-                'item_id'              => $itemId,
-                'item_code'            => $itemCodes[$itemId],
-                'session_token'        => 'SEED-' . Str::random(10),
-                'waktu_pinjam'         => $tglPinjam,
+                'nama_peminjam'        => $borrower['nama'],
+                'kelas'                => $borrower['kelas'],
+                'item_id'              => $item->id,
+                'item_code'            => $item->code,
+                'session_token'        => 'NOC-PINJAM-' . strtoupper(Str::random(8)),
+                'waktu_pinjam'         => $waktuPinjam,
                 'waktu_kembali'        => null,
                 'status'               => 'dipinjam',
                 'kondisi_saat_kembali' => null,
                 'keterangan_kembali'   => null,
                 'foto_kembali'         => null,
-                'catatan'              => 'Peminjaman aktif dari seeder',
-                'created_at'           => $tglPinjam,
-                'updated_at'           => $now,
+                'catatan'              => 'Dipinjam untuk keperluan praktikum jaringan & sertifikasi kompetensi',
+                'created_at'           => $waktuPinjam,
+                'updated_at'           => $waktuPinjam,
             ];
         }
 
-        // B. Peminjaman lampau (status='dikembalikan') — random 40 record
-        $returnedItemIds = array_diff($itemIds, $dipinjamItemIds);
-        $returnedItemIds = array_values($returnedItemIds);
-
-        for ($i = 0; $i < 40; $i++) {
-            $itemId = $returnedItemIds[array_rand($returnedItemIds)];
-            $tglPinjam   = Carbon::now()->subDays(rand(15, 90));
-            $tglKembali  = (clone $tglPinjam)->addDays(rand(1, 7));
-
-            // Distribusi kondisi kembali: 70% baik, 15% rusak_ringan, 10% rusak_berat, 5% hilang
-            $rand = rand(1, 100);
-            if ($rand <= 70)      $kondisiKembali = 'baik';
-            elseif ($rand <= 85)  $kondisiKembali = 'rusak_ringan';
-            elseif ($rand <= 95)  $kondisiKembali = 'rusak_berat';
-            else                  $kondisiKembali = 'hilang';
+        // B. Riwayat Peminjaman Lampau (DIKEMBALIKAN)
+        $historicalCandidates = array_values(array_filter($itemObjects, fn($i) => $i->status !== 'dipinjam'));
+        for ($j = 0; $j < 30; $j++) {
+            $item = $historicalCandidates[array_rand($historicalCandidates)];
+            $borrower = $borrowerPool[array_rand($borrowerPool)];
+            $loanDaysAgo = rand(15, 120);
+            $waktuPinjam = Carbon::now()->subDays($loanDaysAgo);
+            $durasiHari = rand(1, 5);
+            $waktuKembali = (clone $waktuPinjam)->addDays($durasiHari)->addHours(rand(1, 4));
 
             $peminjamans[] = [
-                'nama_peminjam'        => $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)],
-                'kelas'                => $kelas[array_rand($kelas)],
-                'item_id'              => $itemId,
-                'item_code'            => $itemCodes[$itemId],
-                'session_token'        => 'SEED-' . Str::random(10),
-                'waktu_pinjam'         => $tglPinjam,
-                'waktu_kembali'        => $tglKembali,
+                'nama_peminjam'        => $borrower['nama'],
+                'kelas'                => $borrower['kelas'],
+                'item_id'              => $item->id,
+                'item_code'            => $item->code,
+                'session_token'        => 'HIST-' . strtoupper(Str::random(8)),
+                'waktu_pinjam'         => $waktuPinjam,
+                'waktu_kembali'        => $waktuKembali,
                 'status'               => 'dikembalikan',
-                'kondisi_saat_kembali' => $kondisiKembali,
-                'keterangan_kembali'   => $keteranganOptions[array_rand($keteranganOptions)],
+                'kondisi_saat_kembali' => 'baik',
+                'keterangan_kembali'   => 'Barang telah dikembalikan lengkap dengan adaptor & kabel, fungsi normal.',
                 'foto_kembali'         => null,
-                'catatan'              => 'Riwayat peminjaman dari seeder',
-                'created_at'           => $tglPinjam,
-                'updated_at'           => $tglKembali,
+                'catatan'              => 'Pengembalian tepat waktu telah diverifikasi teknisi NOC',
+                'created_at'           => $waktuPinjam,
+                'updated_at'           => $waktuKembali,
             ];
         }
 
@@ -428,6 +492,304 @@ class NocSeeder extends Seeder
             DB::table('peminjaman')->insert($chunk);
         }
 
-        $this->command->info('NocSeeder: ' . count($itemIds) . ' items, ' . count($peminjamans) . ' peminjaman, ' . count($movements) . ' movements seeded.');
+        // =========================================================================
+        // 11. PERAWATAN & MAINTENANCE ASET
+        // =========================================================================
+        $perawatans = [];
+        // Maintenance untuk item yang berstatus 'maintenance'
+        foreach ($maintenanceItems as $mItem) {
+            $perawatans[] = [
+                'item_id'           => $mItem->id,
+                'user_id'           => $adminId,
+                'jenis_perawatan'   => 'Corrective Maintenance',
+                'tanggal_pengajuan' => Carbon::now()->subDays(rand(2, 7))->format('Y-m-d'),
+                'tanggal_selesai'   => null,
+                'status'            => 'proses',
+                'catatan'           => "Pengecekan kendala operasional pada {$mItem->name} ({$mItem->code}). Menunggu penggantian suku cadang.",
+                'token_link'        => 'MAINT-' . Str::random(12),
+                'teknisi_nama'      => 'Fajar Wicaksono (Teknisi NOC)',
+                'biaya'             => 450000,
+                'foto_bukti'        => null,
+                'created_at'        => Carbon::now()->subDays(rand(2, 7)),
+                'updated_at'        => $now,
+            ];
+        }
+
+        // Riwayat perawatan SELESAI
+        $finishedCandidates = array_values(array_filter($itemObjects, fn($i) => $i->status === 'tersedia'));
+        for ($p = 0; $p < 8; $p++) {
+            $fItem = $finishedCandidates[array_rand($finishedCandidates)];
+            $tglAjukan = Carbon::now()->subDays(rand(20, 90));
+            $tglSelesai = (clone $tglAjukan)->addDays(rand(2, 5));
+
+            $perawatans[] = [
+                'item_id'           => $fItem->id,
+                'user_id'           => $adminId,
+                'jenis_perawatan'   => 'Preventive Maintenance',
+                'tanggal_pengajuan' => $tglAjukan->format('Y-m-d'),
+                'tanggal_selesai'   => $tglSelesai->format('Y-m-d'),
+                'status'            => 'selesai',
+                'catatan'           => "Pembersihan internal modul fan, penggantian pasta thermal, dan update firmware versi stabil.",
+                'token_link'        => 'MAINT-' . Str::random(12),
+                'teknisi_nama'      => 'Fajar Wicaksono (Teknisi NOC)',
+                'biaya'             => 150000,
+                'foto_bukti'        => null,
+                'created_at'        => $tglAjukan,
+                'updated_at'        => $tglSelesai,
+            ];
+        }
+
+        DB::table('perawatans')->insert($perawatans);
+
+        // =========================================================================
+        // 12. STOK OPNAME FISIK (STOCK TAKE)
+        //     - Sesi 1: Approved (Sesi Akhir Tahun 2025)
+        //     - Sesi 2: In Progress (Sesi Semester Genap 2026 Lab Jaringan)
+        // =========================================================================
+        // Sesi 1: Approved
+        $so1Id = DB::table('stock_takes')->insertGetId([
+            'code'          => 'SO-2025-001',
+            'title'         => 'Stok Opname Aset Tahunan NOC SMKN 4 Malang 2025',
+            'description'   => 'Rekonsiliasi inventaris seluruh ruangan laboratorium dan ruang server sebelum tutup buku anggaran.',
+            'location_id'   => null, // Semua lokasi
+            'started_by'    => $adminId,
+            'status'        => 'approved',
+            'started_at'    => Carbon::create(2025, 12, 15, 8, 0),
+            'completed_at'  => Carbon::create(2025, 12, 18, 16, 0),
+            'approved_by'   => $superadminId,
+            'approved_at'   => Carbon::create(2025, 12, 19, 10, 30),
+            'notes_summary' => 'Seluruh aset fisik di 7 ruangan telah diperiksa 100%. Ditemukan 1 port switch rusak dan telah dijadwalkan perawatan.',
+            'created_at'    => Carbon::create(2025, 12, 15, 8, 0),
+            'updated_at'    => Carbon::create(2025, 12, 19, 10, 30),
+        ]);
+
+        // Detail Sesi 1 (ambil 20 item sample)
+        $so1Sample = array_slice($itemObjects, 0, 20);
+        foreach ($so1Sample as $sample) {
+            DB::table('stock_take_items')->insert([
+                'stock_take_id'    => $so1Id,
+                'item_id'          => $sample->id,
+                'system_quantity'  => 1,
+                'system_condition' => $sample->condition,
+                'actual_quantity'  => 1,
+                'actual_condition' => $sample->condition,
+                'difference'       => 0,
+                'notes'            => 'Barang fisik sesuai dan terverifikasi label barcode.',
+                'checked_by'       => $adminId,
+                'checked_at'       => Carbon::create(2025, 12, 16, 14, 0),
+                'created_at'       => Carbon::create(2025, 12, 15, 8, 0),
+                'updated_at'       => Carbon::create(2025, 12, 16, 14, 0),
+            ]);
+        }
+
+        // Sesi 2: IN PROGRESS (Lab Jaringan & Fiber Optik) - Muncul di Dashboard Banner!
+        $labJaringanId = $locIds[1]; // LOC-002
+        $so2Id = DB::table('stock_takes')->insertGetId([
+            'code'          => 'SO-2026-001',
+            'title'         => 'Stok Opname Triwulan I 2026 - Lab Jaringan & Fiber Optik',
+            'description'   => 'Pengecekan fisik berkala router praktik, switch manageable, fusion splicer, dan kabel fiber optik.',
+            'location_id'   => $labJaringanId,
+            'started_by'    => $adminId,
+            'status'        => 'in_progress',
+            'started_at'    => Carbon::now()->subDays(1),
+            'completed_at'  => null,
+            'approved_by'   => null,
+            'approved_at'   => null,
+            'notes_summary' => null,
+            'created_at'    => Carbon::now()->subDays(1),
+            'updated_at'    => $now,
+        ]);
+
+        // Populate item di Lab Jaringan
+        $labJaringanItems = array_values(array_filter($itemObjects, fn($i) => $i->location_id === $labJaringanId));
+        foreach ($labJaringanItems as $index => $ljItem) {
+            $isAlreadyChecked = ($index < count($labJaringanItems) / 2);
+            DB::table('stock_take_items')->insert([
+                'stock_take_id'    => $so2Id,
+                'item_id'          => $ljItem->id,
+                'system_quantity'  => 1,
+                'system_condition' => $ljItem->condition,
+                'actual_quantity'  => $isAlreadyChecked ? 1 : null,
+                'actual_condition' => $isAlreadyChecked ? $ljItem->condition : null,
+                'difference'       => 0,
+                'notes'            => $isAlreadyChecked ? 'Kondisi fisik telah diperiksa.' : null,
+                'checked_by'       => $isAlreadyChecked ? $adminId : null,
+                'checked_at'       => $isAlreadyChecked ? Carbon::now()->subHours(rand(2, 10)) : null,
+                'created_at'       => Carbon::now()->subDays(1),
+                'updated_at'       => $now,
+            ]);
+        }
+
+        // =========================================================================
+        // 13. NOTIFIKASI SISTEM (IN-APP NOTIFICATIONS)
+        // =========================================================================
+        $notificationsData = [
+            [
+                'type'       => 'warning',
+                'icon'       => 'warning',
+                'title'      => 'Peringatan Jatuh Tempo Peminjaman',
+                'message'    => 'Router MikroTik RB4011 (RTR-MKT-0004) dipinjam oleh Nabila Putri Cahyani (XI TKJ 1) melewati batas estimasi pengembalian.',
+                'action_url' => '/data-peminjaman',
+                'is_read'    => false,
+                'hours_ago'  => 1,
+            ],
+            [
+                'type'       => 'info',
+                'icon'       => 'fact_check',
+                'title'      => 'Sesi Stok Opname Sedang Berlangsung',
+                'message'    => 'Sesi SO-2026-001 di Lab Jaringan & Fiber Optik sedang aktif. Silakan lakukan verifikasi fisik barang.',
+                'action_url' => '/stock-take/' . $so2Id,
+                'is_read'    => false,
+                'hours_ago'  => 3,
+            ],
+            [
+                'type'       => 'danger',
+                'icon'       => 'error',
+                'title'      => 'Laporan Kendala Perangkat',
+                'message'    => 'Switch Cisco Catalyst 2960X dilaporkan mengalami kerusakan kipas pendingin dan dipindahkan ke status Maintenance.',
+                'action_url' => '/data-perawatan',
+                'is_read'    => false,
+                'hours_ago'  => 8,
+            ],
+            [
+                'type'       => 'success',
+                'icon'       => 'task_alt',
+                'title'      => 'Perawatan Rutin Server Selesai',
+                'message'    => 'Pembersihan heatsink dan penggantian thermal paste Server Dell PowerEdge R740 telah selesai dan lolos tes beban kerja.',
+                'action_url' => '/data-perawatan',
+                'is_read'    => true,
+                'hours_ago'  => 24,
+            ],
+            [
+                'type'       => 'info',
+                'icon'       => 'add_shopping_cart',
+                'title'      => 'Aset Baru Ditambahkan',
+                'message'    => '4 Unit Access Point Ubiquiti UniFi U6-Pro berhasil didaftarkan ke Data Barang NOC.',
+                'action_url' => '/items',
+                'is_read'    => true,
+                'hours_ago'  => 48,
+            ],
+            [
+                'type'       => 'warning',
+                'icon'       => 'inventory_2',
+                'title'      => 'Peringatan Stok Habis Pakai',
+                'message'    => 'Konektor RJ45 Cat6 dan kabel roll Belden tersisa sedikit di Gudang Aset NOC. Mohon rencanakan pengadaan.',
+                'action_url' => '/items',
+                'is_read'    => true,
+                'hours_ago'  => 72,
+            ],
+        ];
+
+        // Kirim ke Superadmin dan Admin
+        foreach ([$superadminId, $adminId] as $targetUserId) {
+            foreach ($notificationsData as $notif) {
+                $time = Carbon::now()->subHours($notif['hours_ago']);
+                DB::table('notifications')->insert([
+                    'id'         => (string) Str::uuid(),
+                    'user_id'    => $targetUserId,
+                    'type'       => $notif['type'],
+                    'icon'       => $notif['icon'],
+                    'title'      => $notif['title'],
+                    'message'    => $notif['message'],
+                    'action_url' => $notif['action_url'],
+                    'is_read'    => $notif['is_read'],
+                    'read_at'    => $notif['is_read'] ? $time->copy()->addMinutes(15) : null,
+                    'created_at' => $time,
+                    'updated_at' => $time,
+                ]);
+            }
+        }
+
+        // =========================================================================
+        // 14. AUDIT TRAIL (ACTIVITY LOGS)
+        // =========================================================================
+        $auditLogs = [
+            [
+                'user_id'     => $superadminId,
+                'action'      => 'login',
+                'model_type'  => 'App\Models\User',
+                'model_id'    => $superadminId,
+                'description' => 'User superadmin berhasil masuk ke sistem ERP NOC',
+                'old_values'  => null,
+                'new_values'  => null,
+                'hours_ago'   => 2,
+            ],
+            [
+                'user_id'     => $adminId,
+                'action'      => 'created',
+                'model_type'  => 'App\Models\StockTake',
+                'model_id'    => $so2Id,
+                'description' => 'Membuat sesi Stok Opname baru: SO-2026-001 (Lab Jaringan & Fiber Optik)',
+                'old_values'  => null,
+                'new_values'  => ['code' => 'SO-2026-001', 'title' => 'Stok Opname Triwulan I 2026 - Lab Jaringan & Fiber Optik', 'status' => 'in_progress'],
+                'hours_ago'   => 24,
+            ],
+            [
+                'user_id'     => $superadminId,
+                'action'      => 'updated',
+                'model_type'  => 'App\Models\StockTake',
+                'model_id'    => $so1Id,
+                'description' => 'Menyetujui (Approve) Sesi Stok Opname SO-2025-001',
+                'old_values'  => ['status' => 'completed', 'approved_by' => null],
+                'new_values'  => ['status' => 'approved', 'approved_by' => $superadminId],
+                'hours_ago'   => 48,
+            ],
+            [
+                'user_id'     => $adminId,
+                'action'      => 'created',
+                'model_type'  => 'App\Models\Peminjaman',
+                'model_id'    => 1,
+                'description' => 'Mencatat peminjaman perangkat router RTR-MKT-0004 kepada Nabila Putri Cahyani (XI TKJ 1)',
+                'old_values'  => null,
+                'new_values'  => ['peminjam' => 'Nabila Putri Cahyani', 'item_code' => 'RTR-MKT-0004', 'status' => 'dipinjam'],
+                'hours_ago'   => 50,
+            ],
+            [
+                'user_id'     => $adminId,
+                'action'      => 'updated',
+                'model_type'  => 'App\Models\Item',
+                'model_id'    => $itemIds[0],
+                'description' => 'Memperbarui lokasi aset Router MikroTik CCR1036 ke Ruang Server NOC Utama',
+                'old_values'  => ['location_id' => $locIds[5]],
+                'new_values'  => ['location_id' => $locIds[0]],
+                'hours_ago'   => 72,
+            ],
+            [
+                'user_id'     => $superadminId,
+                'action'      => 'created',
+                'model_type'  => 'App\Models\Item',
+                'model_id'    => $itemIds[1],
+                'description' => 'Menambahkan data aset baru Router MikroTik CCR2004-16G-2S+',
+                'old_values'  => null,
+                'new_values'  => ['name' => 'Router MikroTik Cloud Core', 'code' => 'RTR-CCR-0002', 'condition' => 'baik'],
+                'hours_ago'   => 96,
+            ],
+        ];
+
+        foreach ($auditLogs as $log) {
+            $lTime = Carbon::now()->subHours($log['hours_ago']);
+            DB::table('activity_logs')->insert([
+                'user_id'     => $log['user_id'],
+                'action'      => $log['action'],
+                'model_type'  => $log['model_type'],
+                'model_id'    => $log['model_id'],
+                'description' => $log['description'],
+                'old_values'  => $log['old_values'] ? json_encode($log['old_values']) : null,
+                'new_values'  => $log['new_values'] ? json_encode($log['new_values']) : null,
+                'ip_address'  => '127.0.0.1',
+                'user_agent'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36',
+                'created_at'  => $lTime,
+                'updated_at'  => $lTime,
+            ]);
+        }
+
+        $this->command->info("NocSeeder: Berhasil membersihkan data lama dan men-seed data ERP lengkap!");
+        $this->command->info("- Total Aset Items: " . count($itemIds));
+        $this->command->info("- Total Mutasi: " . count($movements));
+        $this->command->info("- Total Peminjaman: " . count($peminjamans));
+        $this->command->info("- Total Perawatan: " . count($perawatans));
+        $this->command->info("- Total Sesi Stok Opname: 2 (1 Approved, 1 In Progress)");
+        $this->command->info("- Total Notifikasi: " . (count($notificationsData) * 2));
+        $this->command->info("- Total Audit Trail Logs: " . count($auditLogs));
     }
 }

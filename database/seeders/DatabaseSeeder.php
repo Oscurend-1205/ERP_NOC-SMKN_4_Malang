@@ -43,5 +43,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed data ERP NOC (master data + items + movements + peminjaman)
         $this->call(NocSeeder::class);
+
+        // Seed data Pengajuan Pengadaan Alat (Procurement)
+        $this->call(ProcurementSeeder::class);
     }
 }

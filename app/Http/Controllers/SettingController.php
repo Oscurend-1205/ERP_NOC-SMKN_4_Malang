@@ -41,6 +41,115 @@ class SettingController extends Controller
     }
 
     /**
+     * Update general settings.
+     */
+    public function updateGeneral(Request $request)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk tindakan ini.');
+        }
+
+        $validated = $request->validate([
+            'app_name' => 'required|string|max:255',
+            'timezone' => 'required|string',
+            'app_env' => 'required|in:local,production',
+            'app_debug' => 'required|boolean',
+        ]);
+
+        try {
+            // Update .env file
+            $envPath = base_path('.env');
+            $envContent = file_get_contents($envPath);
+
+            $envContent = preg_replace('/^APP_NAME=.*/m', 'APP_NAME="' . $validated['app_name'] . '"', $envContent);
+            $envContent = preg_replace('/^APP_TIMEZONE=.*/m', 'APP_TIMEZONE=' . $validated['timezone'], $envContent);
+            $envContent = preg_replace('/^APP_ENV=.*/m', 'APP_ENV=' . $validated['app_env'], $envContent);
+            $envContent = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=' . ($validated['app_debug'] ? 'true' : 'false'), $envContent);
+
+            file_put_contents($envPath, $envContent);
+
+            // Clear config cache
+            if (file_exists(base_path('bootstrap/cache/config.php'))) {
+                @unlink(base_path('bootstrap/cache/config.php'));
+            }
+
+            return redirect()->back()->with('success', 'Pengaturan umum berhasil diperbarui. Silakan refresh halaman untuk melihat perubahan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui pengaturan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * View system logs.
+     */
+    public function viewLogs(Request $request)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $logFile = $request->get('file', 'laravel');
+        $lines = $request->get('lines', 100);
+
+        $logPath = storage_path('logs/' . $logFile . '.log');
+
+        if (!file_exists($logPath)) {
+            return response()->json(['error' => 'Log file not found'], 404);
+        }
+
+        $logContent = file_get_contents($logPath);
+        $logLines = array_slice(explode("\n", $logContent), -$lines);
+
+        return response()->json([
+            'content' => implode("\n", $logLines),
+            'file' => $logFile,
+            'lines' => count($logLines)
+        ]);
+    }
+
+    /**
+     * Download system logs.
+     */
+    public function downloadLogs(Request $request)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk tindakan ini.');
+        }
+
+        $logFile = $request->get('file', 'laravel');
+        $logPath = storage_path('logs/' . $logFile . '.log');
+
+        if (!file_exists($logPath)) {
+            return redirect()->back()->with('error', 'File log tidak ditemukan.');
+        }
+
+        return response()->download($logPath, $logFile . '.log');
+    }
+
+    /**
+     * Clear system logs.
+     */
+    public function clearLogs(Request $request)
+    {
+        if (Auth::user()->role !== 'Superadmin') {
+            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk tindakan ini.');
+        }
+
+        try {
+            $logFile = $request->get('file', 'laravel');
+            $logPath = storage_path('logs/' . $logFile . '.log');
+
+            if (file_exists($logPath)) {
+                file_put_contents($logPath, '');
+            }
+
+            return redirect()->back()->with('success', 'Log berhasil dibersihkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membersihkan log: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Reset the system (truncate all tables + re-create admin accounts).
      * Mirrors the logic from mod-db.php but integrated into the app.
      */
@@ -54,6 +163,7 @@ class SettingController extends Controller
             Schema::disableForeignKeyConstraints();
 
             $tables = [
+                'activity_logs', 'notifications', 'stock_take_items', 'stock_takes',
                 'perawatans', 'item_movements', 'peminjaman', 'scan_sessions',
                 'items', 'categories', 'locations',
                 'suppliers', 'kondisi_barangs', 'asal_barangs', 'jurusans',
@@ -113,9 +223,9 @@ class SettingController extends Controller
 
         try {
             // Jalankan seeder secara langsung tanpa Artisan (menghindari exec())
-            $seeder = new \Database\Seeders\DummyDataSeeder();
+            $seeder = new \Database\Seeders\NocSeeder();
             $seeder->run();
-            return redirect()->back()->with('success', 'Dummy data berhasil ditambahkan! Data master, inventaris, pengguna, dan transaksi contoh telah dibuat.');
+            return redirect()->back()->with('success', 'Dummy data ERP lengkap berhasil di-generate! Data master, aset jaringan, mutasi, peminjaman, perawatan, dan stok opname telah diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menambahkan dummy data: ' . $e->getMessage());
         }
@@ -136,6 +246,7 @@ class SettingController extends Controller
             Schema::disableForeignKeyConstraints();
 
             $tables = [
+                'activity_logs', 'notifications', 'stock_take_items', 'stock_takes',
                 'perawatans', 'item_movements', 'peminjaman', 'scan_sessions',
                 'items', 'categories', 'locations',
                 'suppliers', 'kondisi_barangs', 'asal_barangs', 'jurusans',

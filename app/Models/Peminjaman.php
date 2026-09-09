@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Peminjaman extends Model
 {
+    use \App\Traits\LogsActivity;
+
+    protected string $logModelName = 'Peminjaman';
+
     protected $table = 'peminjaman';
     protected $primaryKey = 'id_pinjam';
 
@@ -21,6 +25,7 @@ class Peminjaman extends Model
     protected $fillable = [
         'nama_peminjam',
         'kelas',
+        'jurusan_id',
         'item_id',
         'item_code',
         'session_token',
@@ -52,6 +57,14 @@ class Peminjaman extends Model
     public function scanSession(): BelongsTo
     {
         return $this->belongsTo(ScanSession::class, 'session_token', 'token');
+    }
+
+    /**
+     * Relasi: Peminjaman terhubung ke satu jurusan.
+     */
+    public function jurusan(): BelongsTo
+    {
+        return $this->belongsTo(Jurusan::class);
     }
 
     /**

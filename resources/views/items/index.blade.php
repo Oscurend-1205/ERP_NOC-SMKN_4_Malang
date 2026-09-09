@@ -1,183 +1,268 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Data Barang - ERP NOC</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F8FAFC;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-    </style>
-    <style>
-        html { zoom: 0.9; }
-        /* Fix viewport height when zoomed */
-        .min-h-screen { min-height: calc(100vh / 0.9) !important; }
-        .h-screen { height: calc(100vh / 0.9) !important; }
-        
-        /* Consistent table header styling */
-        table thead {
-            background-color: #e5e7eb !important;
-            border-bottom: 1px solid #d1d5db !important;
-        }
-        table thead th {
-            color: #1f2937 !important;
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
-            padding: 0.75rem 1rem !important;
-        }
-        /* Elegant minimalist table cells */
-        table tbody td {
-            padding: 0.5rem 1rem !important;
-        }
-    </style>
-</head>
-<body class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+@extends('layouts.app')
 
-    @include('partials.sidebar')
+@section('title', 'Data Barang')
 
-    <!-- BEGIN: Main Content Area -->
-    <main class="grow flex flex-col h-screen overflow-y-auto transition-all duration-300 w-full min-w-0">
-        @include('partials.topbar')
+@section('content')
+<div class="space-y-6">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 border border-red-200">
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span class="font-medium text-sm">{{ session('error') }}</span>
+        </div>
+    @endif
 
-        <!-- BEGIN: Page Content -->
-        <div id="pjax-content" class="p-4 md:p-10 pt-4 md:pt-6 space-y-6">
-            {{-- Flash Messages --}}
-            @if(session('success'))
-                <div class="bg-green-50 text-green-700 p-4 rounded-xl flex items-center gap-3 border border-green-200">
-                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                    <span class="font-medium text-sm">{{ session('success') }}</span>
+    {{-- Header Utama --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800"></div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <!-- <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[#3F51B5] text-[11px] font-mono font-semibold uppercase tracking-wider mb-2">
+                    <span>SISTEM MANAJEMEN INVENTARIS</span>
+                    <span class="w-1 h-1 rounded-full bg-indigo-400"></span>
+                    <span>ASET NOC SMKN 4 MALANG</span>
+                </div> -->
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Data Barang & Asset Tagging</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
+                <a href="{{ route('items.barang-masuk') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-xs border border-gray-200">
+                    <span class="material-symbols-outlined text-[18px] text-gray-600">south_east</span>
+                    <span>Barang Masuk</span>
+                </a>
+                <a href="{{ route('items.barang-keluar') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-xs border border-gray-200">
+                            <span class="material-symbols-outlined text-[18px] text-gray-600">north_west</span>
+                            <span>Barang Keluar</span>
+                        </a>
+                        <button type="button" onclick="toggleAddBarangModal(true)" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#3F51B5] hover:bg-[#3949AB] text-white font-bold rounded-xl transition-all shadow-sm text-xs cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                            <span>+ Registrasi Barang Baru</span>
+                        </button>
+                        @endif
+                    </div>
                 </div>
-            @endif
-            @if(session('error'))
-                <div class="bg-red-50 text-red-700 p-4 rounded-xl flex items-center gap-3 border border-red-200">
-                    <span class="material-symbols-outlined text-[20px]">error</span>
-                    <span class="font-medium text-sm">{{ session('error') }}</span>
-                </div>
-            @endif
+            </div>
 
-            {{-- Header --}}
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Data Barang</h2>
-                    <p class="text-sm text-gray-500 mt-1">Kelola inventaris barang elektronik laboratorium</p>
+            {{-- Stat KPI Summary Cards --}}
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+                {{-- Card 1: Total Katalog --}}
+                <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-1 relative overflow-hidden">
+                    <div class="flex items-center justify-between text-gray-500">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Total Katalog</span>
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_katalog'] ?? 0) }}</div>
+                    <p class="text-[11px] text-gray-400">Model / Jenis terdaftar</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    @if(in_array(Auth::user()->role, ['Superadmin', 'Admin']))
-                    <a href="{{ route('items.barang-masuk') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">south_east</span>
-                        Barang Masuk
-                    </a>
-                    <a href="{{ route('items.barang-keluar') }}" class="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">north_west</span>
-                        Barang Keluar
-                    </a>
-                    <button type="button" onclick="toggleAddBarangModal(true)" class="flex items-center gap-2 px-4 py-2 bg-[#3F51B5] text-white font-semibold rounded-lg hover:bg-[#3949AB] transition-all shadow-sm active:scale-95 text-sm">
-                        <span class="material-symbols-outlined text-[18px]">add</span>
-                        Tambah Barang
-                    </button>
-                    @endif
+
+                {{-- Card 2: Total Unit --}}
+                <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-1 relative overflow-hidden">
+                    <div class="flex items-center justify-between text-gray-500">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Unit Fisik Real</span>
+                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">devices</span>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-indigo-700">{{ number_format($stats['total_unit'] ?? 0) }}</div>
+                    <p class="text-[11px] text-gray-400">Total akumulasi unit fisik</p>
+                </div>
+
+                {{-- Card 3: Unit Tersedia --}}
+                <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-1 relative overflow-hidden">
+                    <div class="flex items-center justify-between text-gray-500">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Unit Tersedia</span>
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-emerald-700">{{ number_format($stats['total_tersedia'] ?? 0) }}</div>
+                    <p class="text-[11px] text-emerald-600 font-medium">Siap dipinjam & digunakan</p>
+                </div>
+
+                {{-- Card 4: Dipinjam & Maintenance --}}
+                <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-1 relative overflow-hidden">
+                    <div class="flex items-center justify-between text-gray-500">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-700">Pinjam / Servis</span>
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">published_with_changes</span>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-amber-700">
+                        {{ number_format(($stats['total_dipinjam'] ?? 0) + ($stats['total_perawatan'] ?? 0)) }}
+                    </div>
+                    <p class="text-[11px] text-amber-600 font-medium">
+                        {{ number_format($stats['total_dipinjam'] ?? 0) }} Pinjam • {{ number_format($stats['total_perawatan'] ?? 0) }} Servis
+                    </p>
+                </div>
+
+                {{-- Card 5: Total Valuasi Asset --}}
+                <div class="col-span-2 lg:col-span-1 bg-gradient-to-br from-gray-900 to-indigo-950 p-4 rounded-2xl border border-gray-800 text-white shadow-xs space-y-1 relative overflow-hidden">
+                    <div class="flex items-center justify-between text-gray-400">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-300">Valuasi Aset</span>
+                        <div class="w-8 h-8 rounded-xl bg-white/10 text-emerald-400 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">payments</span>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold text-emerald-400 tracking-tight">
+                        Rp {{ number_format($stats['total_valuasi'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <p class="text-[10px] text-gray-400">Total nilai inventaris terdaftar</p>
                 </div>
             </div>
 
             {{-- Filter Bar --}}
-            <form id="filterForm" action="{{ route('items.index') }}" method="GET" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-center gap-3">
-                <div class="relative grow min-w-50">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
-                    <input type="text" name="search" class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] outline-none transition-all" placeholder="Cari nama, kode, merek..." value="{{ request('search') }}">
+            <form id="filterForm" action="{{ route('items.index') }}" method="GET" class="bg-white p-4 rounded-2xl shadow-xs border border-gray-200 flex flex-wrap items-center gap-3">
+                <div class="relative grow min-w-[220px]">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+                    <input type="text" name="search" class="w-full pl-10 pr-4 py-2 bg-gray-50 focus:bg-white rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#3F51B5] focus:border-[#3F51B5] outline-none transition-all" placeholder="Cari nama barang, kode prefix, merek, atau model..." value="{{ request('search') }}">
                 </div>
-                <select name="category_id" class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer bg-white">
+                <select name="category_id" class="px-3.5 py-2 bg-gray-50 focus:bg-white rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer">
                     <option value="">Semua Kategori</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                     @endforeach
                 </select>
-                <select name="location_id" class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer bg-white">
-                    <option value="">Semua Lokasi</option>
+                <select name="location_id" class="px-3.5 py-2 bg-gray-50 focus:bg-white rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer">
+                    <option value="">Semua Lokasi Ruangan</option>
                     @foreach($locations as $loc)
                         <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>{{ $loc->name }}</option>
                     @endforeach
                 </select>
-                <select name="condition" class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer bg-white">
-                    <option value="">Semua Kondisi</option>
+                <select name="condition" class="px-3.5 py-2 bg-gray-50 focus:bg-white rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#3F51B5] outline-none cursor-pointer">
+                    <option value="">Semua Kondisi Unit</option>
                     <option value="baik" {{ request('condition') == 'baik' ? 'selected' : '' }}>Baik</option>
                     <option value="rusak_ringan" {{ request('condition') == 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
                     <option value="rusak_berat" {{ request('condition') == 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
                     <option value="hilang" {{ request('condition') == 'hilang' ? 'selected' : '' }}>Hilang</option>
                 </select>
-                <button type="submit" class="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all text-sm border border-gray-200">
-                    <span class="material-symbols-outlined text-[16px]">filter_list</span> Filter
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-900 transition-all text-xs shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px]">filter_list</span>
+                    <span>Terapkan Filter</span>
                 </button>
                 @if(request()->hasAny(['search', 'category_id', 'location_id', 'condition', 'status']))
-                    <a href="{{ route('items.index') }}" class="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-all text-sm border border-red-200">
-                        <span class="material-symbols-outlined text-[16px]">close</span> Reset
+                    <a href="{{ route('items.index') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-all text-xs border border-red-200">
+                        <span class="material-symbols-outlined text-[16px]">close</span>
+                        <span>Reset Filter</span>
                     </a>
                 @endif
             </form>
 
             {{-- Table Card --}}
-            <div id="tableContainer" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
+            <div id="tableContainer" class="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden relative">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 border-b border-gray-100">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead class="bg-gray-100/80 border-b border-gray-200 text-gray-700">
                             <tr>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider w-12 text-center">No</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kode</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Barang</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Merek</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Qty</th>
-                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider w-12 text-center">No</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Kode Prefix</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Identitas Barang</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Kategori</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider">Komposisi Kondisi Unit</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-right">Est. Valuasi Aset</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Total Unit</th>
+                                <th class="py-3.5 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider text-center">Aksi Operasional</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-100 bg-white">
                             @forelse($items as $i => $item)
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="py-4 px-6 text-sm text-gray-500 text-center">{{ $items->firstItem() + $i }}</td>
-                                    <td class="py-4 px-6">
-                                        <code class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono font-bold">{{ $item->prefix }}</code>
+                                <tr class="hover:bg-blue-50/30 transition-colors">
+                                    <td class="py-3.5 px-4 text-xs text-gray-500 text-center font-mono">{{ $items->firstItem() + $i }}</td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 border border-gray-200 text-gray-800 font-mono font-bold text-xs">
+                                            <span class="material-symbols-outlined text-gray-400 text-[14px]">tag</span>
+                                            <span>{{ $item->prefix }}</span>
+                                        </div>
                                     </td>
-                                    <td class="py-4 px-6 font-semibold text-sm text-gray-800">{{ $item->name }}</td>
-                                    <td class="py-4 px-6 text-sm text-gray-600">{{ $item->brand ?? '-' }}</td>
-                                    <td class="py-4 px-6 text-sm text-gray-600">{{ $item->model ?? '-' }}</td>
-                                    <td class="py-4 px-6 text-sm text-gray-600">{{ $item->category->name }}</td>
-                                    <td class="py-4 px-6 text-sm font-bold text-[#3F51B5] text-center bg-indigo-50/50">{{ $item->total_stock }}</td>
-                                    <td class="py-4 px-6">
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-3">
+                                            @if($item->image)
+                                                <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0">
+                                            @else
+                                                <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center border border-gray-200 shrink-0">
+                                                    <span class="material-symbols-outlined text-[20px]">devices</span>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <div class="font-bold text-gray-900 text-xs sm:text-sm">{{ $item->name }}</div>
+                                                <div class="text-[11px] text-gray-500 flex items-center gap-2 mt-0.5">
+                                                    <span>Merek: <strong class="text-gray-700">{{ $item->brand ?? '-' }}</strong></span>
+                                                    <span>•</span>
+                                                    <span>Model: <strong class="text-gray-700">{{ $item->model ?? '-' }}</strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-xs">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-medium border border-blue-100">
+                                            {{ $item->category->name }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex flex-wrap gap-1 text-[11px]">
+                                            @if($item->total_baik > 0)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    {{ $item->total_baik }} Baik
+                                                </span>
+                                            @endif
+                                            @if($item->total_rusak_ringan > 0)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-medium border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    {{ $item->total_rusak_ringan }} Rusak Rgn
+                                                </span>
+                                            @endif
+                                            @if($item->total_rusak_berat > 0)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-medium border border-rose-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                    {{ $item->total_rusak_berat }} Rusak Brt
+                                                </span>
+                                            @endif
+                                            @if($item->total_hilang > 0)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 font-medium border border-gray-300">
+                                                    {{ $item->total_hilang }} Hilang
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right font-mono text-xs font-semibold text-gray-800">
+                                        @if($item->total_value > 0)
+                                            Rp {{ number_format($item->total_value, 0, ',', '.') }}
+                                        @else
+                                            <span class="text-gray-400 font-sans text-[11px]">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        <span class="inline-flex items-center justify-center min-w-8 px-2 py-1 bg-indigo-50 text-[#3F51B5] font-extrabold text-xs rounded-lg border border-indigo-100">
+                                            {{ $item->total_stock }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button type="button" onclick="openUnitsModal('{{ $item->name }}', '{{ $item->brand }}', '{{ $item->model }}', '{{ $item->category_id }}', '{{ $item->sub_prefix }}')" class="px-3 py-1.5 text-[#3F51B5] bg-indigo-50 hover:bg-[#3F51B5] hover:text-white rounded-lg transition-colors flex items-center gap-1.5 font-bold text-xs border border-indigo-100 shadow-sm" title="Lihat Daftar Unit">
-                                                <span class="material-symbols-outlined text-[16px]">list_alt</span> Rincian Unit
+                                            <button type="button" onclick="openUnitsModal('{{ addslashes($item->name) }}', '{{ addslashes($item->brand ?? '') }}', '{{ addslashes($item->model ?? '') }}', '{{ $item->category_id }}', '{{ addslashes($item->sub_prefix ?? '') }}')" class="px-3 py-1.5 text-[#3F51B5] bg-indigo-50 hover:bg-[#3F51B5] hover:text-white rounded-lg transition-colors flex items-center gap-1.5 font-bold text-xs border border-indigo-100 shadow-2xs cursor-pointer" title="Lihat Rincian Unit Fisik">
+                                                <span class="material-symbols-outlined text-[16px]">format_list_bulleted</span>
+                                                <span>Rincian Unit</span>
                                             </button>
+                                            <a href="{{ route('items.show', $item->id) }}" class="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-transparent" title="Lihat Detail Master">
+                                                <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-24 text-center text-gray-400">
-                                        <span class="material-symbols-outlined text-[64px] mb-4 opacity-20">inventory_2</span>
-                                        <div class="font-semibold text-gray-600">Belum ada barang</div>
-                                        <div class="text-xs mt-1">Tambahkan barang pertama untuk memulai inventaris!</div>
+                                    <td colspan="8" class="py-20 text-center text-gray-400">
+                                        <span class="material-symbols-outlined text-[56px] text-gray-300 mb-2">inventory_2</span>
+                                        <div class="font-bold text-gray-700 text-sm">Tidak ada data barang terdaftar</div>
+                                        <div class="text-xs text-gray-400 mt-1">Coba sesuaikan pencarian atau tambahkan barang baru ke inventaris.</div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -191,10 +276,10 @@
                     </div>
                 @endif
             </div>
-        </div> <!-- END PJAX CONTENT -->
-    </main>
+</div>
+@endsection
 
-    <div id="pjax-page-modals">
+@push('modals')
         <!-- Modal Tambah Barang Baru -->
         <div id="addBarangModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAddBarangModal(false)"></div>
@@ -614,7 +699,9 @@
             </form>
         </div>
     </div>
+@endpush
 
+@push('scripts')
     <script>
         // Pass Blade-injected values to the external JS module
         window._itemsConfig = {
@@ -625,11 +712,8 @@
             categoriesData: {!! json_encode($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'prefix' => $c->prefix, 'last_code_number' => $c->last_code_number])) !!}
         };
     </script>
-    </div> <!-- END PJAX PAGE MODALS -->
     @vite(['resources/js/turbo-navigation.js', 'resources/js/items-page.js'])
-    @include('components.accessibility-button')
-</body>
-</html>
+@endpush
 
 
 

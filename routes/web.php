@@ -1,19 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\ItemController;
-use App\Http\Controllers\ItemMovementController;
+use App\Http\Controllers\AsalBarangController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\QrAdminController;
-use App\Http\Controllers\QrScanController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DbSeederController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\IpController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ItemMovementController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\QrAdminController;
+use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\StLogController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\StockTakeController;
+use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\GuideController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +41,9 @@ Route::prefix('mt')->group(function () {
 Route::post('api/st-log', [StLogController::class, 'store'])
     ->name('st-log');
 Route::middleware(['auth'])->group(function () {
+    // Search API
+    Route::get('api/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search.api');
+    
     Route::middleware(['role:Superadmin'])->group(function () {
         Route::resource('kategori-barang', \App\Http\Controllers\CategoryController::class)
             ->names('categories')
@@ -62,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('data-pengguna/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('data-pengguna/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::get('settings', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
+        Route::post('settings/update-general', [\App\Http\Controllers\SettingController::class, 'updateGeneral'])->name('settings.update-general');
         Route::post('settings/reset', [\App\Http\Controllers\SettingController::class, 'resetSystem'])->name('settings.reset');
         Route::post('settings/reset-database', [\App\Http\Controllers\SettingController::class, 'resetDatabase'])->name('settings.reset-database');
         Route::post('settings/seed-dummy', [\App\Http\Controllers\SettingController::class, 'seedDummyData'])->name('settings.seed-dummy');
@@ -70,7 +79,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('settings/run-migrations', [\App\Http\Controllers\SettingController::class, 'runMigrations'])->name('settings.run-migrations');
         Route::post('settings/fix-strict-mode', [\App\Http\Controllers\SettingController::class, 'fixStrictMode'])->name('settings.fix-strict-mode');
         Route::get('settings/sql-mode-status', [\App\Http\Controllers\SettingController::class, 'getSqlModeStatus'])->name('settings.sql-mode-status');
+        Route::get('settings/view-logs', [\App\Http\Controllers\SettingController::class, 'viewLogs'])->name('settings.view-logs');
+        Route::get('settings/download-logs', [\App\Http\Controllers\SettingController::class, 'downloadLogs'])->name('settings.download-logs');
+        Route::post('settings/clear-logs', [\App\Http\Controllers\SettingController::class, 'clearLogs'])->name('settings.clear-logs');
         Route::delete('items/barang-masuk/{movement}', [ItemController::class, 'destroyBarangMasuk'])->name('items.barang-masuk.destroy');
+
+        // Audit Trail (Superadmin only)
+        Route::get('audit-trail', [ActivityLogController::class, 'index'])->name('activity-log.index');
+        Route::get('audit-trail/export', [ActivityLogController::class, 'export'])->name('activity-log.export');
+        Route::get('audit-trail/{id}', [ActivityLogController::class, 'show'])->name('activity-log.show');
+
+        // Stock Take Approve (Superadmin only)
+        Route::post('stock-take/{id}/approve', [StockTakeController::class, 'approve'])->name('stock-take.approve');
+
+        // Procurement Approval (Superadmin only)
+        Route::post('procurements/{id}/approve', [ProcurementController::class, 'approve'])->name('procurements.approve');
+        Route::post('procurements/{id}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject');
     });
     Route::middleware(['role:Superadmin,Admin,Jurusan'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -83,9 +107,33 @@ Route::middleware(['auth'])->group(function () {
         
         // Items (Jurusan can see items available for borrowing)
         Route::get('items', [ItemController::class, 'index'])->name('items.index');
+
+        // Notifications (All authenticated users)
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/unread', [NotificationController::class, 'getUnread'])->name('notifications.unread');
+        Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::delete('notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+        // Procurement (Pengajuan Pengadaan Alat)
+        Route::get('procurements', [ProcurementController::class, 'index'])->name('procurements.index');
+        Route::get('procurements/create', [ProcurementController::class, 'create'])->name('procurements.create');
+        Route::post('procurements', [ProcurementController::class, 'store'])->name('procurements.store');
+        Route::get('procurements/{id}', [ProcurementController::class, 'show'])->name('procurements.show');
+        Route::get('procurements/{id}/edit', [ProcurementController::class, 'edit'])->name('procurements.edit');
+        Route::put('procurements/{id}', [ProcurementController::class, 'update'])->name('procurements.update');
+        Route::delete('procurements/{id}', [ProcurementController::class, 'destroy'])->name('procurements.destroy');
+        Route::post('procurements/{id}/submit', [ProcurementController::class, 'submit'])->name('procurements.submit');
+        Route::get('procurements/{id}/print', [ProcurementController::class, 'print'])->name('procurements.print');
+        
+        // Panduan Sistem & Dokumentasi
+        Route::get('panduan', [GuideController::class, 'index'])->name('guide.index');
     });
 
     Route::middleware(['role:Superadmin,Admin'])->group(function () {
+        // Procurement Management (Admin & Superadmin)
+        Route::post('procurements/{id}/update-status', [ProcurementController::class, 'updateStatus'])->name('procurements.update-status');
+        Route::post('procurements/{id}/receive-item', [ProcurementController::class, 'receiveItem'])->name('procurements.receive-item');
         Route::post('pinjaman', [\App\Http\Controllers\PeminjamanController::class, 'storeManual'])->name('movements.loan');
         Route::get('data-pengguna', [UserController::class, 'index'])->name('users.index');
         Route::get('items/barang-masuk', [ItemController::class, 'barangMasuk'])->name('items.barang-masuk');
@@ -116,6 +164,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('qr-generate', [QrAdminController::class, 'generateQr'])->name('qr.generate');
         Route::get('qr-poll', [QrAdminController::class, 'pollPeminjaman'])->name('qr.poll');
         Route::delete('qr-revoke/{token}', [QrAdminController::class, 'revokeToken'])->name('qr.revoke');
+
+        // Stock Take (Superadmin & Admin)
+        Route::get('stock-take', [StockTakeController::class, 'index'])->name('stock-take.index');
+        Route::get('stock-take/create', [StockTakeController::class, 'create'])->name('stock-take.create');
+        Route::post('stock-take', [StockTakeController::class, 'store'])->name('stock-take.store');
+        Route::get('stock-take/{id}', [StockTakeController::class, 'show'])->name('stock-take.show');
+        Route::post('stock-take/{stockTakeId}/item/{itemId}', [StockTakeController::class, 'updateItem'])->name('stock-take.update-item');
+        Route::post('stock-take/{id}/complete', [StockTakeController::class, 'complete'])->name('stock-take.complete');
+        Route::delete('stock-take/{id}', [StockTakeController::class, 'destroy'])->name('stock-take.destroy');
     });
 });
 

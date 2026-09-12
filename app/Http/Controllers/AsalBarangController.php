@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 
 class AsalBarangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $asals = AsalBarang::paginate(10);
+        $query = AsalBarang::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $asals = $query->paginate(10)->withQueryString();
         return view('data-master.dataAsalbarang', compact('asals'));
     }
 
@@ -20,6 +30,7 @@ class AsalBarangController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $validated['is_active'] = $request->boolean('is_active');
         AsalBarang::create($validated);
 
         return redirect()->route('asal.index')
@@ -34,6 +45,7 @@ class AsalBarangController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $validated['is_active'] = $request->boolean('is_active');
         $asal->update($validated);
 
         return redirect()->route('asal.index')

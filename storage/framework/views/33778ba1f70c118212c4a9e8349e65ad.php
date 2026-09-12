@@ -8,6 +8,12 @@
         <p class="text-sm text-slate-500 mt-0.5">Ringkasan aktivitas inventaris dan aliran barang.</p>
     </div>
     <div class="relative flex items-center gap-2">
+        <!-- Settings Button -->
+        <a href="<?php echo e(route('laporan.settings')); ?>" class="flex items-center gap-2 px-3.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:bg-slate-200 transition-colors font-medium text-sm">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Pengaturan
+        </a>
+        
         <!-- Export Dropdown -->
         <div class="relative">
             <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-3.5 py-1.5 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors font-medium text-sm">
@@ -16,6 +22,15 @@
                 <span class="material-symbols-outlined text-[16px]">expand_more</span>
             </button>
             <div id="exportMenu" class="hidden absolute right-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-10 overflow-hidden">
+                
+                <a href="<?php echo e(route('laporan.settings')); ?>" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100">
+                    <span class="material-symbols-outlined text-[20px] text-slate-600">settings</span>
+                    <div>
+                        <div class="font-semibold">Pengaturan Laporan</div>
+                        <div class="text-[11px] text-slate-400">Customisasi judul, tanda tangan, dan info sekolah</div>
+                    </div>
+                </a>
+                
                 
                 <a href="<?php echo e(route('export.ringkasan.print')); ?>" target="_blank" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 transition-colors border-b border-slate-100">
                     <span class="material-symbols-outlined text-[20px] text-blue-600">summarize</span>
@@ -182,19 +197,43 @@
 </div>
 
 <!-- Bottom Section -->
+<?php
+    // Calculate chart data before using it
+    $chartData = [];
+    $chartLabels = [];
+    $currentDate = now()->subDays(29)->startOfDay();
+    
+    for ($i = 0; $i < 30; $i++) {
+        $dateKey = $currentDate->format('Y-m-d');
+        $movementCount = \App\Models\ItemMovement::whereDate('movement_date', $dateKey)->count();
+        $peminjamanCount = \App\Models\Peminjaman::whereDate('waktu_pinjam', $dateKey)->count();
+        $totalCount = $movementCount + $peminjamanCount;
+        
+        $chartData[] = $totalCount;
+        
+        if ($i === 0 || $i === 14 || $i === 29) {
+            $chartLabels[] = $currentDate->translatedFormat('M j');
+        } else {
+            $chartLabels[] = '';
+        }
+        
+        $currentDate->addDay();
+    }
+    
+    $realMaxVolume = max($chartData);
+    $realRataRata = $realMaxVolume > 0 ? round(array_sum($chartData) / count($chartData), 1) : 0;
+    $realTodayVolume = $chartData[count($chartData) - 1] ?? 0;
+?>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <!-- Chart Area -->
     <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col">
         <div class="flex justify-between items-center mb-4">
             <div>
                 <h3 class="text-base font-bold text-slate-900">Volume Transaksi (30 Hari Terakhir)</h3>
-                <?php
-                    $rataRata30Hari = $maxVolume > 0 ? round(array_sum($dataTotal30Hari) / count($dataTotal30Hari), 1) : 0;
-                    $puncakHariIni = $dataTotal30Hari[count($dataTotal30Hari)-1] ?? 0;
-                ?>
                 <p class="text-[11px] text-slate-400 mt-0.5">
-                    Rata-rata: <span class="font-semibold text-slate-600"><?php echo e($rataRata30Hari); ?> transaksi/hari</span>
-                    &nbsp;·&nbsp; Hari ini: <span class="font-semibold text-blue-600"><?php echo e($puncakHariIni); ?> transaksi</span>
+                    Rata-rata: <span class="font-semibold text-slate-600"><?php echo e($realRataRata); ?> transaksi/hari</span>
+                    &nbsp;·&nbsp; Hari ini: <span class="font-semibold text-blue-600"><?php echo e($realTodayVolume); ?> transaksi</span>
                 </p>
             </div>
             <button class="text-slate-400 hover:text-slate-600 transition-colors">
@@ -203,11 +242,12 @@
         </div>
         <!-- Dynamic Chart -->
         <div class="flex-1 relative min-h-[200px] flex items-end gap-0.5 pt-5">
-            <?php $__currentLoopData = $dataTotal30Hari; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $nilai): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            
+            <?php $__currentLoopData = $chartData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $nilai): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
-                    $tinggiPersen = $maxVolume > 0 ? max(3, ($nilai / $maxVolume) * 100) : 3;
-                    $isToday = $idx === count($dataTotal30Hari) - 1;
-                    $isAboveAvg = $rataRata30Hari > 0 && $nilai >= $rataRata30Hari;
+                    $tinggiPersen = $realMaxVolume > 0 ? max(3, ($nilai / $realMaxVolume) * 100) : 3;
+                    $isToday = $idx === count($chartData) - 1;
+                    $isAboveAvg = $realRataRata > 0 && $nilai >= $realRataRata;
                     if ($isToday) {
                         $barClass = 'bg-blue-500 hover:bg-blue-600';
                     } elseif ($isAboveAvg && $nilai > 0) {
@@ -217,11 +257,10 @@
                     } else {
                         $barClass = 'bg-slate-100 hover:bg-slate-200';
                     }
-                    $labelTampil = in_array($idx, [0, 14, 29]);
                 ?>
                 <div class="w-full <?php echo e($barClass); ?> rounded-t-sm relative group transition-colors overflow-hidden"
                      style="height: <?php echo e($tinggiPersen); ?>%;"
-                     title="<?php echo e($labels30Hari[$idx] ?? ''); ?>: <?php echo e($nilai); ?> transaksi">
+                     title="<?php echo e($chartLabels[$idx] ?? ''); ?>: <?php echo e($nilai); ?> transaksi">
                     <div class="hidden group-hover:block absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-1.5 py-1 rounded z-10 whitespace-nowrap shadow-lg">
                         <span class="font-bold"><?php echo e($nilai); ?></span> trans
                     </div>
@@ -230,8 +269,8 @@
         </div>
         <!-- X Axis Labels Dynamic -->
         <div class="flex justify-between text-[10px] text-slate-400 mt-1.5 px-0.5">
-            <?php $__currentLoopData = $labels30Hari; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <?php if(in_array($idx, [0, 14, 29])): ?>
+            <?php $__currentLoopData = $chartLabels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if(!empty($label)): ?>
                     <span class="font-medium"><?php echo e($label); ?></span>
                 <?php else: ?>
                     <span class="opacity-0">.</span>

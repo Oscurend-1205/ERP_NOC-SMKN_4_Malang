@@ -21,12 +21,12 @@
 <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <!-- Table Toolbar -->
     <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <div class="relative w-72">
+        <form method="GET" action="{{ route('asal.index') }}" class="relative w-72">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                 <i class="w-4 h-4" data-lucide="search"></i>
             </span>
-            <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari data asal barang...">
-        </div>
+            <input name="search" value="{{ request('search') }}" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Cari data asal barang..." type="text"/>
+        </form>
         </div>
 
     <!-- The Table -->
@@ -63,7 +63,7 @@
                     @if(auth()->user()->role === 'Superadmin')
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center space-x-3">
-                            <button onclick="openEditAsalModal({{ $asal->id }}, '{{ addslashes($asal->name) }}', '{{ addslashes($asal->description ?? '') }}')" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="openEditAsalModal({{ $asal->id }}, '{{ addslashes($asal->name) }}', '{{ addslashes($asal->description ?? '') }}', {{ $asal->is_active ? 1 : 0 }})" class="text-slate-500 hover:text-slate-700"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                             <form action="{{ route('asal.destroy', $asal->id) }}" method="POST" data-confirm="Yakin ingin menghapus data asal barang ini?" data-ajax-delete="true" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -100,10 +100,11 @@
 
 @push('scripts')
 <script>
-    function openEditAsalModal(id, name, description) {
+    function openEditAsalModal(id, name, description, isActive) {
         document.getElementById('editAsalForm').action = `/asal-barang/${id}`;
         document.getElementById('edit_asal_name').value = name;
         document.getElementById('edit_asal_description').value = description;
+        document.getElementById('edit_asal_is_active').checked = (isActive == 1);
         document.getElementById('editAsalModal').classList.remove('hidden');
     }
 </script>
@@ -132,6 +133,16 @@
                 <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Keterangan</label>
                     <textarea name="description" rows="3" placeholder="Deskripsi asal barang" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah asal barang ini sedang aktif.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
                 </div>
             </div>
 
@@ -170,6 +181,16 @@
                 <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700">Keterangan</label>
                     <textarea id="edit_asal_description" name="description" rows="3" placeholder="Deskripsi asal barang" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"></textarea>
+                </div>
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Status Aktif</label>
+                        <span class="text-xs text-slate-500">Tentukan apakah asal barang ini sedang aktif.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="edit_asal_is_active" name="is_active" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
                 </div>
             </div>
 

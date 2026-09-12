@@ -50,41 +50,41 @@
 <body>
     <button class="print-btn no-print" onclick="window.print()">Cetak Laporan (PDF)</button>
 
-    @php
+    <?php
         $settings = \App\Models\ReportSetting::getActive();
-    @endphp
+    ?>
 
     <div class="kop-surat">
-        @if($settings->logo_path)
+        <?php if($settings->logo_path): ?>
             <div class="logo-container">
-                <img src="{{ asset('storage/' . $settings->logo_path) }}" alt="Logo Sekolah">
+                <img src="<?php echo e(asset('storage/' . $settings->logo_path)); ?>" alt="Logo Sekolah">
             </div>
-        @endif
-        <div class="header-text {{ $settings->logo_path ? '' : 'no-logo' }}">
-            <h1>{{ $settings->school_name }}</h1>
-            <h1>{{ $settings->school_address }}</h1>
-            <h2>{{ $settings->school_phone }}</h2>
-            <p>{{ $settings->school_email }}</p>
-            <p>{{ $settings->school_website }}</p>
+        <?php endif; ?>
+        <div class="header-text <?php echo e($settings->logo_path ? '' : 'no-logo'); ?>">
+            <h1><?php echo e($settings->school_name); ?></h1>
+            <h1><?php echo e($settings->school_address); ?></h1>
+            <h2><?php echo e($settings->school_phone); ?></h2>
+            <p><?php echo e($settings->school_email); ?></p>
+            <p><?php echo e($settings->school_website); ?></p>
         </div>
     </div>
 
     <div class="doc-title">
         <h3>LAPORAN DAFTAR INVENTARIS BARANG</h3>
-        <p>Nomor: INV/NOC/{{ now()->format('Y/m/d') }}/{{ rand(100,999) }}</p>
+        <p>Nomor: INV/NOC/<?php echo e(now()->format('Y/m/d')); ?>/<?php echo e(rand(100,999)); ?></p>
     </div>
 
     <table class="meta-info">
         <tr>
             <td style="width: 120px;">Unit Kerja</td>
             <td style="width: 10px;">:</td>
-            <td>{{ $settings->department_name }}</td>
-            <td style="text-align: right;">Tanggal Cetak: {{ now()->translatedFormat('d F Y') }}</td>
+            <td><?php echo e($settings->department_name); ?></td>
+            <td style="text-align: right;">Tanggal Cetak: <?php echo e(now()->translatedFormat('d F Y')); ?></td>
         </tr>
         <tr>
             <td>Total Inventaris</td>
             <td>:</td>
-            <td>{{ $items->count() }} Item</td>
+            <td><?php echo e($items->count()); ?> Item</td>
             <td></td>
         </tr>
     </table>
@@ -104,31 +104,31 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($items as $index => $item)
+            <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td class="text-center">{{ $item->code }}</td>
+                <td class="text-center"><?php echo e($index + 1); ?></td>
+                <td class="text-center"><?php echo e($item->code); ?></td>
                 <td>
-                    <strong>{{ $item->name }}</strong><br>
-                    <small>{{ $item->brand }} {{ $item->model }}</small>
+                    <strong><?php echo e($item->name); ?></strong><br>
+                    <small><?php echo e($item->brand); ?> <?php echo e($item->model); ?></small>
                 </td>
-                <td class="text-center">{{ $item->category->name ?? '-' }}</td>
-                <td class="text-center">{{ $item->location->name ?? '-' }}</td>
+                <td class="text-center"><?php echo e($item->category->name ?? '-'); ?></td>
+                <td class="text-center"><?php echo e($item->location->name ?? '-'); ?></td>
                 <td class="text-center">
-                    <span class="badge">{{ $item->condition_label }}</span>
+                    <span class="badge"><?php echo e($item->condition_label); ?></span>
                 </td>
                 <td class="text-center">
-                    <span class="badge">{{ $item->status_label }}</span>
+                    <span class="badge"><?php echo e($item->status_label); ?></span>
                 </td>
-                <td class="text-center">{{ $item->purchase_date ? $item->purchase_date->format('d/m/Y') : '-' }}</td>
-                <td class="text-right">Rp {{ number_format($item->purchase_price, 0, ',', '.') }}</td>
+                <td class="text-center"><?php echo e($item->purchase_date ? $item->purchase_date->format('d/m/Y') : '-'); ?></td>
+                <td class="text-right">Rp <?php echo e(number_format($item->purchase_price, 0, ',', '.')); ?></td>
             </tr>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </tbody>
         <tfoot>
             <tr>
                 <th colspan="8" class="text-right">Total Nilai Aset</th>
-                <th class="text-right">Rp {{ number_format($items->sum('purchase_price'), 0, ',', '.') }}</th>
+                <th class="text-right">Rp <?php echo e(number_format($items->sum('purchase_price'), 0, ',', '.')); ?></th>
             </tr>
         </tfoot>
     </table>
@@ -138,31 +138,34 @@
             <tr>
                 <td>
                     Menyetujui,<br>
-                    {{ $settings->head_of_school_position }}<br>
+                    <?php echo e($settings->head_of_school_position); ?><br>
                     <div class="ttd-space"></div>
-                    @if($settings->head_of_school_signature)
-                        <img src="{{ asset('storage/' . $settings->head_of_school_signature) }}" alt="Tanda Tangan" class="signature-img"><br>
-                    @else
+                    <?php if($settings->head_of_school_signature): ?>
+                        <img src="<?php echo e(asset('storage/' . $settings->head_of_school_signature)); ?>" alt="Tanda Tangan" class="signature-img"><br>
+                    <?php else: ?>
                         <strong>__________________________</strong><br>
-                    @endif
-                    <strong>{{ $settings->head_of_school_name }}</strong><br>
-                    NIP. {{ $settings->head_of_school_nip }}
+                    <?php endif; ?>
+                    <strong><?php echo e($settings->head_of_school_name); ?></strong><br>
+                    NIP. <?php echo e($settings->head_of_school_nip); ?>
+
                 </td>
                 <td></td>
                 <td>
-                    Malang, {{ now()->translatedFormat('d F Y') }}<br>
-                    {{ $settings->head_of_department_position }}<br>
+                    Malang, <?php echo e(now()->translatedFormat('d F Y')); ?><br>
+                    <?php echo e($settings->head_of_department_position); ?><br>
                     <div class="ttd-space"></div>
-                    @if($settings->head_of_department_signature)
-                        <img src="{{ asset('storage/' . $settings->head_of_department_signature) }}" alt="Tanda Tangan" class="signature-img"><br>
-                    @else
+                    <?php if($settings->head_of_department_signature): ?>
+                        <img src="<?php echo e(asset('storage/' . $settings->head_of_department_signature)); ?>" alt="Tanda Tangan" class="signature-img"><br>
+                    <?php else: ?>
                         <strong>__________________________</strong><br>
-                    @endif
-                    <strong>{{ $settings->head_of_department_name }}</strong><br>
-                    NIP. {{ $settings->head_of_department_nip }}
+                    <?php endif; ?>
+                    <strong><?php echo e($settings->head_of_department_name); ?></strong><br>
+                    NIP. <?php echo e($settings->head_of_department_nip); ?>
+
                 </td>
             </tr>
         </table>
     </div>
 </body>
 </html>
+<?php /**PATH C:\Project Web Porto\ERP NOC - SMKN 4 Malang\resources\views/exports/inventaris.blade.php ENDPATH**/ ?>

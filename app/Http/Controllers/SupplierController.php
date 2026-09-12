@@ -7,9 +7,21 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::paginate(10);
+        $query = Supplier::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('pic', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $suppliers = $query->paginate(10)->withQueryString();
         $totalSupplier = Supplier::count();
         $supplierAktif = Supplier::where('is_active', true)->count();
         $pengirimanBulanIni = \App\Models\Item::whereNotNull('supplier_id')

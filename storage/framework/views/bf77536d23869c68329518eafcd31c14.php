@@ -1079,6 +1079,28 @@
             transform: translateZ(0);
         }
 
+        /* 5. Sticky elements + backdrop-blur: isolasi compositing layer
+              agar tidak memicu repaint seluruh layout (khusus zoom 0.9) */
+        [class*="sticky"][class*="backdrop-blur"],
+        [style*="backdrop-filter"][class*="sticky"] {
+            contain: layout paint;
+            isolation: isolate;
+            transform: translateZ(0);
+        }
+
+        /* 6. MAIN CONTENT SIDEBAR OFFSET SAFETY NET
+              Pastikan konten utama selalu bergeser ke kanan sebesar
+              lebar sidebar pada tampilan desktop. Ini mencegah bug
+              sidebar menutup konten akibat rendering quirk pada
+              Windows Chromium dengan html { zoom: 0.9 }. */
+        @media (min-width: 768px) {
+            main#mainContent,
+            main.flex-1.flex.flex-col.h-screen,
+            body > main {
+                margin-left: 256px !important;
+            }
+        }
+
         /* 5. Class utilitas untuk force-repaint via JS */
         .artifact-repaint {
             animation: artifact-flash 0.001ms 1 !important;
@@ -1104,7 +1126,7 @@
     <?php echo $__env->make('partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- BEGIN: Main Content Area -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto transition-all duration-300 min-w-0 md:ml-64">
+    <main id="mainContent" class="flex-1 flex flex-col h-screen overflow-y-auto transition-all duration-300 min-w-0 md:ml-64 relative z-0">
         <?php echo $__env->make('partials.topbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- BEGIN: Page Content -->

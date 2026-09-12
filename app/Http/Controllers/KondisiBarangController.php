@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 
 class KondisiBarangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kondisis = KondisiBarang::paginate(10);
+        $query = KondisiBarang::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $kondisis = $query->paginate(10)->withQueryString();
         return view('data-master.kondisiBarang', compact('kondisis'));
     }
 

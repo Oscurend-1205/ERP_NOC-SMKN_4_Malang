@@ -10,9 +10,20 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::withCount('items')->paginate(10);
+        $query = Category::withCount('items');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('prefix', 'like', "%{$search}%");
+            });
+        }
+
+        $categories = $query->paginate(10)->withQueryString();
         return view('data-master.kategoriBarang', compact('categories'));
     }
 

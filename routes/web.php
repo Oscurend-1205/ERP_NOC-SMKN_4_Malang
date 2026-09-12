@@ -19,6 +19,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StockTakeController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\GuideController;
+use App\Http\Controllers\ReportSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,6 +151,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('data-perawatan/{id}/generate-link', [\App\Http\Controllers\PerawatanController::class, 'generateLink'])->name('perawatan.generate-link');
         Route::post('data-perawatan/{id}/verify', [\App\Http\Controllers\PerawatanController::class, 'verifyMaintenance'])->name('perawatan.verify');
         Route::get('laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('laporan/settings', [ReportSettingController::class, 'index'])->name('laporan.settings');
+        Route::post('laporan/settings', [ReportSettingController::class, 'update'])->name('laporan.settings.update');
+        Route::post('laporan/settings/reset', [ReportSettingController::class, 'reset'])->name('laporan.settings.reset');
+        Route::delete('laporan/settings/signature/{type}', [ReportSettingController::class, 'deleteSignature'])->name('laporan.settings.delete-signature');
+        Route::delete('laporan/settings/logo', [ReportSettingController::class, 'deleteLogo'])->name('laporan.settings.delete-logo');
         Route::get('export/barang-masuk/csv', [ExportController::class, 'barangMasukCsv'])->name('export.barang-masuk.csv');
         Route::get('export/barang-masuk/print', [ExportController::class, 'barangMasukPrint'])->name('export.barang-masuk.print');
         Route::get('export/barang-keluar/csv', [ExportController::class, 'barangKeluarCsv'])->name('export.barang-keluar.csv');

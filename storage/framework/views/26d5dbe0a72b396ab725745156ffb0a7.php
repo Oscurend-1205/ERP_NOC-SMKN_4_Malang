@@ -26,7 +26,7 @@
 
 <!-- BEGIN: Header -->
 <header
-    class="flex items-center justify-between px-4 md:px-6 bg-white border-b border-gray-200 sticky top-0 z-40 h-[68px] transition-colors duration-300"
+    class="flex items-center justify-between px-4 md:px-6 bg-white border-b border-gray-200 sticky top-0 z-40 h-[68px] transition-colors duration-300 w-full shadow-sm"
     data-purpose="top-header"
     id="mainHeader"
 >

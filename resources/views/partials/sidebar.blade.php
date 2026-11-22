@@ -3,7 +3,7 @@
 <div id="sidebarBackdrop" class="fixed inset-0 bg-gray-900/50 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
 <!-- BEGIN: Sidebar -->
-<aside id="mainSidebar" class="fixed inset-y-0 left-0 h-screen transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#1A1E35] text-white flex flex-col flex-shrink-0 z-50" data-purpose="sidebar">
+<aside id="mainSidebar" class="fixed inset-y-0 left-0 h-screen transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-[#1A1E35] text-white flex flex-col flex-shrink-0 z-50 shadow-xl" data-purpose="sidebar">
 <style>
     /* Custom Scrollbar for Sidebar */
     #sidebar-nav-container {

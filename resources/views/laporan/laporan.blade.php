@@ -18,12 +18,12 @@
         
         <!-- Export Dropdown -->
         <div class="relative">
-            <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-3.5 py-1.5 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors font-medium text-sm">
+            <button type="button" onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-3.5 py-1.5 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors font-medium text-sm">
                 <span class="material-symbols-outlined text-[18px]">download</span>
                 Export Laporan
                 <span class="material-symbols-outlined text-[16px]">expand_more</span>
             </button>
-            <div id="exportMenu" class="hidden absolute right-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-10 overflow-hidden">
+            <div id="exportMenu" class="hidden absolute right-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden">
                 {{-- Settings --}}
                 <a href="{{ route('laporan.settings') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100">
                     <span class="material-symbols-outlined text-[20px] text-slate-600">settings</span>
@@ -61,41 +61,71 @@
                 </a>
                 {{-- Peminjaman --}}
                 <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase bg-slate-50">Log Peminjaman</div>
-                <a href="{{ route('export.peminjaman.csv') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.peminjaman.csv', ['date_range' => $dateRange]) }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-green-600">grid_on</span>
                     Peminjaman (CSV)
                 </a>
-                <a href="{{ route('export.peminjaman.print') }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.peminjaman.print', ['date_range' => $dateRange]) }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
                     Peminjaman (Print/PDF)
                 </a>
                 {{-- Barang Masuk --}}
                 <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase bg-slate-50">Aliran Barang</div>
-                <a href="{{ route('export.barang-masuk.csv') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.barang-masuk.csv', ['date_range' => $dateRange]) }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-green-600">grid_on</span>
                     Barang Masuk (CSV)
                 </a>
-                <a href="{{ route('export.barang-masuk.print') }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.barang-masuk.print', ['date_range' => $dateRange]) }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
                     Barang Masuk (Print/PDF)
                 </a>
                 {{-- Barang Keluar --}}
-                <a href="{{ route('export.barang-keluar.csv') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.barang-keluar.csv', ['date_range' => $dateRange]) }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-green-600">grid_on</span>
                     Barang Keluar (CSV)
                 </a>
-                <a href="{{ route('export.barang-keluar.print') }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                <a href="{{ route('export.barang-keluar.print', ['date_range' => $dateRange]) }}" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                     <span class="material-symbols-outlined text-[18px] text-red-600">picture_as_pdf</span>
                     Barang Keluar (Print/PDF)
                 </a>
             </div>
         </div>
 
-        <button class="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-slate-700 font-medium text-sm">
-            <i data-lucide="calendar" class="w-4 h-4 text-slate-500"></i>
-            Bulan Ini (Okt 2026)
-            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500"></i>
-        </button>
+        <!-- Filter Periode Dinamis -->
+        <div class="relative">
+            <button type="button" onclick="document.getElementById('periodMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-slate-700 font-medium text-sm">
+                <i data-lucide="calendar" class="w-4 h-4 text-slate-500"></i>
+                <span>{{ $rangeLabel }}</span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500"></i>
+            </button>
+            <div id="periodMenu" class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden py-1">
+                <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50">Pilih Rentang Waktu</div>
+                <a href="{{ route('laporan.index', ['date_range' => 'all']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'all' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Semua Waktu</span>
+                    @if($dateRange === 'all') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+                <a href="{{ route('laporan.index', ['date_range' => 'month']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'month' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Bulan Ini ({{ now()->translatedFormat('M Y') }})</span>
+                    @if($dateRange === 'month') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+                <a href="{{ route('laporan.index', ['date_range' => 'last_month']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'last_month' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Bulan Lalu ({{ now()->subMonth()->translatedFormat('M Y') }})</span>
+                    @if($dateRange === 'last_month') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+                <a href="{{ route('laporan.index', ['date_range' => 'week']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'week' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Minggu Ini</span>
+                    @if($dateRange === 'week') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+                <a href="{{ route('laporan.index', ['date_range' => 'today']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'today' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Hari Ini</span>
+                    @if($dateRange === 'today') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+                <a href="{{ route('laporan.index', ['date_range' => 'year']) }}" class="flex items-center justify-between px-3.5 py-2 text-xs font-medium {{ $dateRange === 'year' ? 'text-blue-600 bg-blue-50/60 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}">
+                    <span>Tahun Ini ({{ now()->year }})</span>
+                    @if($dateRange === 'year') <i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> @endif
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -127,7 +157,7 @@
                 <span class="text-slate-900 text-xs font-semibold">{{ $barangMasukBulanIni }} catatan</span>
             </div>
         </div>
-        <a href="{{ route('export.barang-masuk.csv') }}" class="w-full py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
+        <a href="{{ route('export.barang-masuk.csv', ['date_range' => $dateRange]) }}" class="w-full py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
             Export CSV
             <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </a>
@@ -159,7 +189,7 @@
                 <span class="text-slate-900 text-xs font-semibold">{{ $barangKeluarBulanIni }} catatan</span>
             </div>
         </div>
-        <a href="{{ route('export.barang-keluar.csv') }}" class="w-full py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
+        <a href="{{ route('export.barang-keluar.csv', ['date_range' => $dateRange]) }}" class="w-full py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
             Export CSV
             <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </a>
@@ -191,7 +221,7 @@
                 <span class="text-slate-900 text-xs font-semibold">{{ $tingkatPengembalian }}%</span>
             </div>
         </div>
-        <a href="{{ route('export.peminjaman.csv') }}" class="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
+        <a href="{{ route('export.peminjaman.csv', ['date_range' => $dateRange]) }}" class="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5">
             Export CSV
             <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </a>
@@ -199,34 +229,6 @@
 </div>
 
 <!-- Bottom Section -->
-@php
-    // Calculate chart data before using it
-    $chartData = [];
-    $chartLabels = [];
-    $currentDate = now()->subDays(29)->startOfDay();
-    
-    for ($i = 0; $i < 30; $i++) {
-        $dateKey = $currentDate->format('Y-m-d');
-        $movementCount = \App\Models\ItemMovement::whereDate('movement_date', $dateKey)->count();
-        $peminjamanCount = \App\Models\Peminjaman::whereDate('waktu_pinjam', $dateKey)->count();
-        $totalCount = $movementCount + $peminjamanCount;
-        
-        $chartData[] = $totalCount;
-        
-        if ($i === 0 || $i === 14 || $i === 29) {
-            $chartLabels[] = $currentDate->translatedFormat('M j');
-        } else {
-            $chartLabels[] = '';
-        }
-        
-        $currentDate->addDay();
-    }
-    
-    $realMaxVolume = max($chartData);
-    $realRataRata = $realMaxVolume > 0 ? round(array_sum($chartData) / count($chartData), 1) : 0;
-    $realTodayVolume = $chartData[count($chartData) - 1] ?? 0;
-@endphp
-
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <!-- Chart Area -->
     <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col">
@@ -234,27 +236,27 @@
             <div>
                 <h3 class="text-base font-bold text-slate-900">Volume Transaksi (30 Hari Terakhir)</h3>
                 <p class="text-[11px] text-slate-400 mt-0.5">
-                    Rata-rata: <span class="font-semibold text-slate-600">{{ $realRataRata }} transaksi/hari</span>
-                    &nbsp;·&nbsp; Hari ini: <span class="font-semibold text-blue-600">{{ $realTodayVolume }} transaksi</span>
+                    Rata-rata: <span class="font-semibold text-slate-600">{{ $rataRata30Hari }} transaksi/hari</span>
+                    &nbsp;·&nbsp; Hari ini: <span class="font-semibold text-blue-600">{{ $todayVolume }} transaksi</span>
                 </p>
             </div>
-            <button class="text-slate-400 hover:text-slate-600 transition-colors">
-                <i data-lucide="more-vertical" class="w-4 h-4"></i>
-            </button>
+            <a href="{{ Auth::user()->role === 'Superadmin' ? route('activity-log.index') : route('peminjaman.index') }}" class="text-slate-400 hover:text-slate-600 transition-colors p-1" title="Lihat Riwayat Transaksi">
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+            </a>
         </div>
+        
         <!-- Dynamic Chart -->
         <div class="flex-1 relative min-h-[200px] flex items-end gap-0.5 pt-5">
-            
-            @foreach($chartData as $idx => $nilai)
+            @foreach($chartItems as $idx => $item)
                 @php
-                    $tinggiPersen = $realMaxVolume > 0 ? max(3, ($nilai / $realMaxVolume) * 100) : 3;
-                    $isToday = $idx === count($chartData) - 1;
-                    $isAboveAvg = $realRataRata > 0 && $nilai >= $realRataRata;
+                    $tinggiPersen = $maxVolume > 0 ? max(3, ($item['total'] / $maxVolume) * 100) : 3;
+                    $isToday = $item['is_today'];
+                    $isAboveAvg = $rataRata30Hari > 0 && $item['total'] >= $rataRata30Hari;
                     if ($isToday) {
                         $barClass = 'bg-blue-500 hover:bg-blue-600';
-                    } elseif ($isAboveAvg && $nilai > 0) {
+                    } elseif ($isAboveAvg && $item['total'] > 0) {
                         $barClass = 'bg-blue-100 border-t-2 border-blue-500 hover:bg-blue-200';
-                    } elseif ($nilai === 0) {
+                    } elseif ($item['total'] === 0) {
                         $barClass = 'bg-slate-50 hover:bg-slate-100';
                     } else {
                         $barClass = 'bg-slate-100 hover:bg-slate-200';
@@ -262,23 +264,24 @@
                 @endphp
                 <div class="w-full {{ $barClass }} rounded-t-sm relative group transition-colors overflow-hidden"
                      style="height: {{ $tinggiPersen }}%;"
-                     title="{{ $chartLabels[$idx] ?? '' }}: {{ $nilai }} transaksi">
-                    <div class="hidden group-hover:block absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-1.5 py-1 rounded z-10 whitespace-nowrap shadow-lg">
-                        <span class="font-bold">{{ $nilai }}</span> trans
+                     title="{{ $item['full_date'] }}: {{ $item['total'] }} transaksi ({{ $item['peminjaman'] }} peminjaman, {{ $item['movement'] }} pergerakan)">
+                    <div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded z-20 whitespace-nowrap shadow-lg text-center pointer-events-none">
+                        <div class="font-bold">{{ $item['full_date'] }}</div>
+                        <div>{{ $item['total'] }} trans</div>
                     </div>
                 </div>
             @endforeach
         </div>
+
         <!-- X Axis Labels Dynamic -->
-        <div class="flex justify-between text-[10px] text-slate-400 mt-1.5 px-0.5">
-            @foreach($chartLabels as $idx => $label)
-                @if(!empty($label))
-                    <span class="font-medium">{{ $label }}</span>
-                @else
-                    <span class="opacity-0">.</span>
+        <div class="flex justify-between text-[10px] text-slate-400 mt-2 px-1">
+            @foreach($chartItems as $item)
+                @if(!empty($item['axis_label']))
+                    <span class="font-medium text-slate-500">{{ $item['axis_label'] }}</span>
                 @endif
             @endforeach
         </div>
+
         <!-- Legend -->
         <div class="flex items-center gap-4 mt-3 pt-3 border-t border-slate-50 text-[10px] text-slate-500">
             <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-sm bg-blue-500"></div>Hari ini</div>
@@ -302,19 +305,22 @@
             </span>
         </div>
         <div class="flex-1 flex flex-col">
-            <!-- Stok Menipis (Dinamis) -->
+            <!-- Stok Menipis (Dinamis & Real Link) -->
             @if($lowStockCount > 0)
-            <div class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-slate-50 transition-colors bg-red-50/40">
+            <a href="{{ route('items.index') }}" class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-red-50/60 transition-colors bg-red-50/30 group">
                 <div class="w-4.5 h-4.5 mt-0.5 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="alert-circle" class="text-red-500 w-3.5 h-3.5"></i>
                 </div>
-                <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-slate-900">
-                        {{ $lowStockCount }} Item Stok Menipis
-                    </h4>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-slate-900 group-hover:text-red-600 transition-colors">
+                            {{ $lowStockCount }} Model Unit Stok Menipis
+                        </h4>
+                        <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-red-500 transition-colors">chevron_right</span>
+                    </div>
                     <p class="text-xs text-slate-500 line-clamp-1 mt-0.5 truncate">{{ $lowStockPreview }}</p>
                 </div>
-            </div>
+            </a>
             @else
             <div class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-slate-50 transition-colors bg-green-50/40">
                 <div class="w-4.5 h-4.5 mt-0.5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -322,24 +328,27 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-semibold text-slate-900">Stok Barang Aman</h4>
-                    <p class="text-xs text-slate-500 mt-0.5">Semua item stok berada di atas ambang batas.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Semua model peralatan memiliki ketersediaan unit yang cukup.</p>
                 </div>
             </div>
             @endif
 
-            <!-- Pending Actions / Belum Disetujui (Dinamis) -->
+            <!-- Pending Actions / Belum Disetujui (Dinamis & Real Link) -->
             @if($totalPendingActions > 0)
-            <div class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-slate-50 transition-colors bg-amber-50/40">
+            <a href="{{ route('peminjaman.index') }}" class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-amber-50/60 transition-colors bg-amber-50/30 group">
                 <div class="w-4.5 h-4.5 mt-0.5 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="alert-triangle" class="text-amber-500 w-3.5 h-3.5"></i>
                 </div>
-                <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-slate-900">
-                        {{ $totalPendingActions }} Tindakan Perlu Diproses
-                    </h4>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-slate-900 group-hover:text-amber-600 transition-colors">
+                            {{ $totalPendingActions }} Tindakan Perlu Diproses
+                        </h4>
+                        <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-amber-500 transition-colors">chevron_right</span>
+                    </div>
                     <p class="text-xs text-slate-500 line-clamp-1 mt-0.5 truncate">{{ $pendingPreview }}</p>
                 </div>
-            </div>
+            </a>
             @else
             <div class="px-4 py-2.5 border-b border-slate-50 flex gap-2.5 hover:bg-slate-50 transition-colors bg-green-50/40">
                 <div class="w-4.5 h-4.5 mt-0.5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -347,7 +356,7 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-semibold text-slate-900">Semua Proses Selesai</h4>
-                    <p class="text-xs text-slate-500 mt-0.5">Tidak ada tindakan yang tertunda.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Tidak ada tindakan atau peminjaman yang tertunda.</p>
                 </div>
             </div>
             @endif
@@ -370,7 +379,8 @@
             </div>
         </div>
         <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50 mt-auto text-center">
-            <a class="inline-flex items-center justify-center gap-1 text-blue-600 text-xs font-semibold hover:text-blue-800 transition-colors uppercase py-1.5 px-3 rounded-md hover:bg-blue-100/50" href="#">
+            <a class="inline-flex items-center justify-center gap-1 text-blue-600 text-xs font-semibold hover:text-blue-800 transition-colors uppercase py-1.5 px-3 rounded-md hover:bg-blue-100/50"
+               href="{{ Auth::user()->role === 'Superadmin' ? route('activity-log.index') : route('peminjaman.index') }}">
                 Lihat Detail Aktivitas
                 <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
             </a>
@@ -379,11 +389,15 @@
 </div>
 
 <script>
-    // Close export dropdown when clicking outside
+    // Close export & period dropdowns when clicking outside
     document.addEventListener('click', function(e) {
-        const menu = document.getElementById('exportMenu');
-        if (menu && !menu.classList.contains('hidden') && !e.target.closest('.relative')) {
-            menu.classList.add('hidden');
+        const exportMenu = document.getElementById('exportMenu');
+        if (exportMenu && !exportMenu.classList.contains('hidden') && !e.target.closest('#exportMenu') && !e.target.closest('button[onclick*="exportMenu"]')) {
+            exportMenu.classList.add('hidden');
+        }
+        const periodMenu = document.getElementById('periodMenu');
+        if (periodMenu && !periodMenu.classList.contains('hidden') && !e.target.closest('#periodMenu') && !e.target.closest('button[onclick*="periodMenu"]')) {
+            periodMenu.classList.add('hidden');
         }
     });
 </script>

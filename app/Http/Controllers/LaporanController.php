@@ -7,165 +7,266 @@ use App\Models\Item;
 use App\Models\ItemMovement;
 use App\Models\Peminjaman;
 use App\Models\Category;
+use App\Models\Procurement;
 use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // ─── Barang Masuk ───────────────────────────────
-        $barangMasuk = ItemMovement::where('type', 'masuk')->count();
+        $dateRange = $request->get('date_range', 'all');
+
+        $now = now();
+        $startThisWeek = $now->copy()->startOfWeek();
+
+        // ─── Filter Range Resolution ───────────────────────
+        switch ($dateRange) {
+            case 'today':
+                $rangeLabel = 'Hari Ini (' . $now->translatedFormat('d M Y') . ')';
+                $dateConditionMovement = function ($q) use ($now) {
+                    $q->whereDate('movement_date', $now->toDateString());
+                };
+                $dateConditionPeminjaman = function ($q) use ($now) {
+                    $q->whereDate('waktu_pinjam', $now->toDateString());
+                };
+                break;
+
+            case 'week':
+                $rangeLabel = 'Minggu Ini (' . $startThisWeek->translatedFormat('d M') . ' - ' . $now->translatedFormat('d M') . ')';
+                $dateConditionMovement = function ($q) use ($startThisWeek, $now) {
+                    $q->whereBetween('movement_date', [$startThisWeek->toDateString(), $now->toDateString()]);
+                };
+                $dateConditionPeminjaman = function ($q) use ($startThisWeek, $now) {
+                    $q->whereBetween('waktu_pinjam', [$startThisWeek, $now]);
+                };
+                break;
+
+            case 'month':
+                $rangeLabel = 'Bulan Ini (' . $now->translatedFormat('M Y') . ')';
+                $dateConditionMovement = function ($q) use ($now) {
+                    $q->whereMonth('movement_date', $now->month)->whereYear('movement_date', $now->year);
+                };
+                $dateConditionPeminjaman = function ($q) use ($now) {
+                    $q->whereMonth('waktu_pinjam', $now->month)->whereYear('waktu_pinjam', $now->year);
+                };
+                break;
+
+            case 'last_month':
+                $lastM = $now->copy()->subMonth();
+                $rangeLabel = 'Bulan Lalu (' . $lastM->translatedFormat('M Y') . ')';
+                $dateConditionMovement = function ($q) use ($lastM) {
+                    $q->whereMonth('movement_date', $lastM->month)->whereYear('movement_date', $lastM->year);
+                };
+                $dateConditionPeminjaman = function ($q) use ($lastM) {
+                    $q->whereMonth('waktu_pinjam', $lastM->month)->whereYear('waktu_pinjam', $lastM->year);
+                };
+                break;
+
+            case 'year':
+                $rangeLabel = 'Tahun Ini (' . $now->year . ')';
+                $dateConditionMovement = function ($q) use ($now) {
+                    $q->whereYear('movement_date', $now->year);
+                };
+                $dateConditionPeminjaman = function ($q) use ($now) {
+                    $q->whereYear('waktu_pinjam', $now->year);
+                };
+                break;
+
+            default:
+                $dateRange = 'all';
+                $rangeLabel = 'Semua Periode';
+                $dateConditionMovement = null;
+                $dateConditionPeminjaman = null;
+                break;
+        }
+
+        // ─── 1. Barang Masuk ─────────────────────────────
+        $barangMasukQuery = ItemMovement::where('type', 'masuk');
+        if ($dateConditionMovement) {
+            $barangMasukQuery->where($dateConditionMovement);
+        }
+        $barangMasuk = $barangMasukQuery->count();
+
+        // Nilai barang masuk (dalam periode terpilih)
+        $nilaiMasukQuery = ItemMovement::where('type', 'masuk')
+            ->join('items', 'item_movements.item_id', '=', 'items.id');
+        if ($dateConditionMovement) {
+            $nilaiMasukQuery->where($dateConditionMovement);
+        }
+        $nilaiMasuk = (float) $nilaiMasukQuery->sum('items.purchase_price');
+
+        // Statistik bulan ini & bulan lalu untuk trend
         $barangMasukBulanIni = ItemMovement::where('type', 'masuk')
-            ->whereMonth('movement_date', now()->month)
-            ->whereYear('movement_date', now()->year)
+            ->whereMonth('movement_date', $now->month)
+            ->whereYear('movement_date', $now->year)
             ->count();
         $barangMasukBulanLalu = ItemMovement::where('type', 'masuk')
-            ->whereMonth('movement_date', now()->subMonth()->month)
-            ->whereYear('movement_date', now()->subMonth()->year)
+            ->whereMonth('movement_date', $now->copy()->subMonth()->month)
+            ->whereYear('movement_date', $now->copy()->subMonth()->year)
             ->count();
         $masukTrend = $barangMasukBulanLalu > 0
             ? round((($barangMasukBulanIni - $barangMasukBulanLalu) / $barangMasukBulanLalu) * 100)
             : ($barangMasukBulanIni > 0 ? 100 : 0);
-        $nilaiMasuk = ItemMovement::where('type', 'masuk')
-            ->join('items', 'item_movements.item_id', '=', 'items.id')
-            ->sum('items.purchase_price');
 
-        // ─── Barang Keluar ──────────────────────────────
-        $barangKeluar = Peminjaman::count();
-        $barangKeluarBulanIni = Peminjaman::whereMonth('waktu_pinjam', now()->month)
-            ->whereYear('waktu_pinjam', now()->year)
+        // ─── 2. Barang Keluar / Peminjaman ───────────────
+        $barangKeluarQuery = Peminjaman::query();
+        if ($dateConditionPeminjaman) {
+            $barangKeluarQuery->where($dateConditionPeminjaman);
+        }
+        $barangKeluar = $barangKeluarQuery->count();
+
+        $barangKeluarBulanIni = Peminjaman::whereMonth('waktu_pinjam', $now->month)
+            ->whereYear('waktu_pinjam', $now->year)
             ->count();
-        $barangKeluarBulanLalu = Peminjaman::whereMonth('waktu_pinjam', now()->subMonth()->month)
-            ->whereYear('waktu_pinjam', now()->subMonth()->year)
+        $barangKeluarBulanLalu = Peminjaman::whereMonth('waktu_pinjam', $now->copy()->subMonth()->month)
+            ->whereYear('waktu_pinjam', $now->copy()->subMonth()->year)
             ->count();
         $keluarTrend = $barangKeluarBulanLalu > 0
             ? round((($barangKeluarBulanIni - $barangKeluarBulanLalu) / $barangKeluarBulanLalu) * 100)
             : ($barangKeluarBulanIni > 0 ? 100 : 0);
 
-        // ─── Peminjaman ─────────────────────────────────
+        // ─── 3. Peminjaman Aktif & Pengembalian ───────────
         $peminjamanAktif = Peminjaman::where('status', 'dipinjam')->count();
         $peminjamanTerlambat = Peminjaman::where('status', 'dipinjam')
-            ->whereDate('waktu_pinjam', '<', now()->subDays(7))
+            ->whereDate('waktu_pinjam', '<', $now->copy()->subDays(7))
             ->count();
-        $peminjamanSelesai = Peminjaman::where('status', 'dikembalikan')->count();
-        $totalPeminjam = Peminjaman::distinct('nama_peminjam')->count('nama_peminjam');
+
+        $peminjamanSelesaiQuery = Peminjaman::where('status', 'dikembalikan');
+        if ($dateConditionPeminjaman) {
+            $peminjamanSelesaiQuery->where($dateConditionPeminjaman);
+        }
+        $peminjamanSelesai = $peminjamanSelesaiQuery->count();
+
+        $totalPeminjamQuery = Peminjaman::query();
+        if ($dateConditionPeminjaman) {
+            $totalPeminjamQuery->where($dateConditionPeminjaman);
+        }
+        $totalPeminjam = $totalPeminjamQuery->distinct('nama_peminjam')->count('nama_peminjam');
+
         $tingkatPengembalian = $barangKeluar > 0
             ? round(($peminjamanSelesai / $barangKeluar) * 100)
             : 0;
 
-        // ─── Total Aset & Nilai ─────────────────────────
+        // ─── 4. Total Aset & Nilai Keseluruhan ───────────
         $totalAset = Item::count();
-        $totalNilai = Item::sum('purchase_price');
+        $totalNilai = (float) Item::sum('purchase_price');
 
         // ═══════════════════════════════════════════════════
-        // ALGORITMA: Volume Transaksi 30 Hari Terakhir (REAL)
+        // 5. Volume Transaksi 30 Hari Terakhir (REAL & FAST)
         // ═══════════════════════════════════════════════════
-        $endDate = now()->startOfDay();
-        $startDate = now()->subDays(29)->startOfDay();
-        $labels30Hari = [];
-        $dataMovement30Hari = [];
-        $dataPeminjaman30Hari = [];
-        $dataTotal30Hari = [];
+        $endDate = $now->copy()->startOfDay();
+        $startDate = $now->copy()->subDays(29)->startOfDay();
+
+        $movements30Days = ItemMovement::selectRaw('DATE(movement_date) as tgl, COUNT(*) as cnt')
+            ->whereDate('movement_date', '>=', $startDate->toDateString())
+            ->whereDate('movement_date', '<=', $endDate->toDateString())
+            ->groupBy('tgl')
+            ->pluck('cnt', 'tgl')
+            ->all();
+
+        $peminjaman30Days = Peminjaman::selectRaw('DATE(waktu_pinjam) as tgl, COUNT(*) as cnt')
+            ->whereDate('waktu_pinjam', '>=', $startDate->toDateString())
+            ->whereDate('waktu_pinjam', '<=', $endDate->toDateString())
+            ->groupBy('tgl')
+            ->pluck('cnt', 'tgl')
+            ->all();
+
+        $chartItems = [];
         $maxVolume = 0;
+        $total30Hari = 0;
 
         for ($i = 0; $i < 30; $i++) {
-            $currentDate = $startDate->copy()->addDays($i);
-            $dateKey = $currentDate->format('Y-m-d');
-            $labelKey = $currentDate->format('j');
-            if ($i === 0) {
-                $labelKey = $currentDate->translatedFormat('M j');
-            }
-            if ($i === 14) {
-                $labelKey = $currentDate->translatedFormat('M j');
-            }
-            if ($i === 29) {
-                $labelKey = $currentDate->translatedFormat('M j');
-            }
-            $labels30Hari[] = $labelKey;
+            $curr = $startDate->copy()->addDays($i);
+            $key = $curr->format('Y-m-d');
+            $mov = (int) ($movements30Days[$key] ?? 0);
+            $pem = (int) ($peminjaman30Days[$key] ?? 0);
+            $tot = $mov + $pem;
 
-            $movementCount = ItemMovement::whereDate('movement_date', $dateKey)->count();
-            $peminjamanCount = Peminjaman::whereDate('waktu_pinjam', $dateKey)->count();
-            $totalCount = $movementCount + $peminjamanCount;
-
-            $dataMovement30Hari[] = $movementCount;
-            $dataPeminjaman30Hari[] = $peminjamanCount;
-            $dataTotal30Hari[] = $totalCount;
-
-            if ($totalCount > $maxVolume) {
-                $maxVolume = $totalCount;
+            $total30Hari += $tot;
+            if ($tot > $maxVolume) {
+                $maxVolume = $tot;
             }
+
+            $showAxisLabel = ($i === 0 || $i === 7 || $i === 14 || $i === 21 || $i === 29);
+
+            $chartItems[] = [
+                'date' => $key,
+                'full_date' => $curr->translatedFormat('d M Y'),
+                'axis_label' => $showAxisLabel ? $curr->translatedFormat('j M') : '',
+                'movement' => $mov,
+                'peminjaman' => $pem,
+                'total' => $tot,
+                'is_today' => ($i === 29),
+            ];
         }
+
         if ($maxVolume === 0) $maxVolume = 1;
+        $rataRata30Hari = round($total30Hari / 30, 1);
+        $todayVolume = $chartItems[29]['total'] ?? 0;
 
         // ═══════════════════════════════════════════════════
-        // ALGORITMA: Stok Menipis (Threshold Berdasarkan Kategori)
+        // 6. Perhatian Sistem: Stok Menipis (REAL AVAILABLE STOCK)
+        // Dihitung dari unit berstatus 'tersedia' <= 2 unit per model/nama barang
         // ═══════════════════════════════════════════════════
-        $thresholdUmum = 3;
-        $thresholdConsumable = 10;
-        $consumableKeywords = ['kabel', 'cable', 'adaptor', 'charger', 'batre', 'baterai', 'mouse', 'keyboard', 'usb', 'flashdisk', 'flash', 'card', 'earphone', 'headset', 'modem', 'router mini', 'converter', 'pen', 'kertas', 'tinta', 'masker', 'sarung', 'pembersih', 'cairan', 'tisu', 'paper'];
-
-        $lowStockQuery = Item::where(function ($q) use ($consumableKeywords) {
-            foreach ($consumableKeywords as $kw) {
-                $q->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($kw) . '%']);
-            }
-        })
-            ->where('status', '!=', 'dimusnahkan')
-            ->where('condition', '!=', 'hilang')
-            ->where('quantity', '<=', $thresholdConsumable);
-
-        $nonConsumableLowStock = Item::where(function ($q) use ($consumableKeywords) {
-            foreach ($consumableKeywords as $kw) {
-                $q->whereRaw('LOWER(name) NOT LIKE ?', ['%' . strtolower($kw) . '%']);
-            }
-        })
-            ->where('status', '!=', 'dimusnahkan')
-            ->where('condition', '!=', 'hilang')
-            ->whereRaw('quantity <= ' . $thresholdUmum . ' AND quantity > 0');
-
-        $allLowStock = $lowStockQuery->union($nonConsumableLowStock)
-            ->orderBy('quantity', 'asc')
-            ->limit(20)
+        $lowStockRecords = Item::where('status', 'tersedia')
+            ->selectRaw('name, count(*) as stock')
+            ->groupBy('name')
+            ->having('stock', '<=', 2)
+            ->orderBy('stock', 'asc')
+            ->limit(5)
             ->get();
 
-        $lowStockCount = $allLowStock->count();
-        $lowStockItems = $allLowStock->map(function ($item) {
-            return $item->name . ' (' . $item->quantity . ')';
+        $lowStockCount = Item::where('status', 'tersedia')
+            ->selectRaw('name, count(*) as stock')
+            ->groupBy('name')
+            ->having('stock', '<=', 2)
+            ->get()
+            ->count();
+
+        $lowStockItems = $lowStockRecords->map(function ($item) {
+            return $item->name . ' (' . $item->stock . ' unit)';
         })->toArray();
-        $lowStockPreview = implode(', ', array_slice($lowStockItems, 0, 2));
+
+        $lowStockPreview = count($lowStockItems) > 0 ? implode(', ', array_slice($lowStockItems, 0, 2)) : '';
         if (count($lowStockItems) > 2) {
             $lowStockPreview .= '...';
         }
         if (empty($lowStockPreview)) {
-            $lowStockPreview = 'Tidak ada item stok menipis.';
+            $lowStockPreview = 'Semua stok unit tersedia dalam batas aman.';
         }
 
         // ═══════════════════════════════════════════════════
-        // ALGORITMA: "Laporan Belum Disetujui" (Pending Actions)
-        // Ditafsirkan sebagai TINDAKAN YANG PERLU DIPROSES:
-        // 1. Peminjaman terlambat (> 7 hari belum dikembalikan)
-        // 2. Barang rusak berat yang belum dimusnahkan
-        // 3. Barang dalam maintenance > 14 hari
+        // 7. Perhatian Sistem: Tindakan Perlu Diproses (REAL)
         // ═══════════════════════════════════════════════════
         $pendingTerlambat = Peminjaman::where('status', 'dipinjam')
-            ->whereDate('waktu_pinjam', '<', now()->subDays(7))
+            ->whereDate('waktu_pinjam', '<', $now->copy()->subDays(7))
             ->count();
-        $pendingRusakBerat = Item::where('condition', 'rusak_berat')
+
+        $pendingRusak = Item::whereIn('condition', ['rusak_berat', 'rusak_ringan'])
             ->where('status', '!=', 'dimusnahkan')
             ->count();
-        $pendingMaintenanceLama = Item::where('status', 'maintenance')
-            ->whereDate('updated_at', '<', now()->subDays(14))
+
+        $pendingMaintenance = Item::where('status', 'maintenance')
             ->count();
-        $totalPendingActions = $pendingTerlambat + $pendingRusakBerat + $pendingMaintenanceLama;
+
+        $pendingProcurement = class_exists(Procurement::class)
+            ? Procurement::where('status', 'pending')->count()
+            : 0;
+
+        $totalPendingActions = $pendingTerlambat + $pendingRusak + $pendingMaintenance + $pendingProcurement;
 
         $pendingLabels = [];
         if ($pendingTerlambat > 0) $pendingLabels[] = $pendingTerlambat . ' pinjaman terlambat';
-        if ($pendingRusakBerat > 0) $pendingLabels[] = $pendingRusakBerat . ' barang rusak berat';
-        if ($pendingMaintenanceLama > 0) $pendingLabels[] = $pendingMaintenanceLama . ' maintenance lama';
-        $pendingPreview = count($pendingLabels) > 0 ? implode(', ', $pendingLabels) . ' menunggu tindakan.' : 'Semua tindakan selesai diproses.';
+        if ($pendingMaintenance > 0) $pendingLabels[] = $pendingMaintenance . ' sedang maintenance';
+        if ($pendingRusak > 0) $pendingLabels[] = $pendingRusak . ' barang rusak';
+        if ($pendingProcurement > 0) $pendingLabels[] = $pendingProcurement . ' pengadaan pending';
+
+        $pendingPreview = count($pendingLabels) > 0
+            ? implode(', ', array_slice($pendingLabels, 0, 2)) . (count($pendingLabels) > 2 ? '...' : ' perlu ditindaklanjuti.')
+            : 'Semua proses inventaris berjalan normal.';
 
         // ═══════════════════════════════════════════════════
-        // ALGORITMA: Sinkronisasi Data Terakhir
-        // Ambil MAX updated_at dari 5 tabel utama
+        // 8. Sinkronisasi Data Terakhir (REAL UPDATED_AT)
         // ═══════════════════════════════════════════════════
         $lastSyncCandidates = collect([
             Item::max('updated_at'),
@@ -177,13 +278,13 @@ class LaporanController extends Controller
 
         $lastSyncTimestamp = $lastSyncCandidates->sortDesc()->first() ?? now();
         $lastSyncTime = \Illuminate\Support\Carbon::parse($lastSyncTimestamp)->setTimezone('Asia/Jakarta');
-        $diffDays = now()->diffInDays($lastSyncTime);
+        $diffDays = $now->diffInDays($lastSyncTime);
 
         if ($diffDays === 0) {
-            $diffHours = now()->diffInHours($lastSyncTime);
+            $diffHours = $now->diffInHours($lastSyncTime);
             if ($diffHours === 0) {
-                $diffMins = max(1, now()->diffInMinutes($lastSyncTime));
-                $lastSyncText = 'Terakhir update: Hari ini, ' . $diffMins . ' menit lalu';
+                $diffMins = max(1, $now->diffInMinutes($lastSyncTime));
+                $lastSyncText = 'Terakhir update: ' . $diffMins . ' menit lalu';
             } else {
                 $lastSyncText = 'Terakhir update: Hari ini, ' . $lastSyncTime->format('H:i') . ' WIB';
             }
@@ -193,21 +294,19 @@ class LaporanController extends Controller
             $lastSyncText = 'Terakhir update: ' . $lastSyncTime->translatedFormat('d M Y, H:i') . ' WIB';
         }
 
-        // ═══════════════════════════════════════════════════
-        // ALGORITMA: Kondisi Kritis (untuk label info/sinkronisasi)
-        // Status = sukses jika total pending < 5 dan last sync < 1 jam
-        // ═══════════════════════════════════════════════════
-        $isSystemHealthy = ($totalPendingActions < 5 && $diffDays === 0);
-        $syncStatusLabel = $isSystemHealthy ? 'Sinkronisasi Data Berhasil' : 'Pemeriksaan Sistem Diperlukan';
+        $isSystemHealthy = ($peminjamanTerlambat === 0 && $pendingMaintenance < 5);
+        $syncStatusLabel = $isSystemHealthy ? 'Status Inventaris Sehat' : 'Pemeriksaan Sistem Diperlukan';
 
         return view('laporan.laporan', compact(
+            'dateRange', 'rangeLabel',
             'barangMasuk', 'barangMasukBulanIni', 'masukTrend', 'nilaiMasuk',
             'barangKeluar', 'barangKeluarBulanIni', 'keluarTrend',
             'peminjamanAktif', 'peminjamanTerlambat', 'peminjamanSelesai',
             'totalPeminjam', 'tingkatPengembalian',
             'totalAset', 'totalNilai',
-            // NEW dynamic data
-            'labels30Hari', 'dataMovement30Hari', 'dataPeminjaman30Hari', 'dataTotal30Hari', 'maxVolume',
+            // Chart Data
+            'chartItems', 'maxVolume', 'rataRata30Hari', 'todayVolume',
+            // System alerts
             'lowStockCount', 'lowStockPreview',
             'totalPendingActions', 'pendingPreview',
             'lastSyncText', 'syncStatusLabel', 'isSystemHealthy'
